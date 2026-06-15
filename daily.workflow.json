@@ -1,1 +1,2363 @@
-{"updatedAt":"2026-06-15T14:05:36.281Z","createdAt":"2026-06-15T13:57:13.185Z","id":"BsXYMJdidg8tej9i","name":"Gmail → Airtable : Run quotidien (mails de la veille)","description":null,"active":false,"isArchived":false,"nodes":[{"parameters":{"rule":{"interval":[{"field":"cronExpression","expression":"0 4 * * *"}]}},"type":"n8n-nodes-base.scheduleTrigger","typeVersion":1.2,"position":[-1408,-112],"id":"5c3adb21-d45c-4586-b560-8d1b643c7541","name":"Tous les jours à 4h"},{"parameters":{"operation":"getAll","returnAll":true,"simple":false,"filters":{"q":"=after:{{ $now.minus({days:1}).toFormat('yyyy/MM/dd') }} before:{{ $now.toFormat('yyyy/MM/dd') }}"},"options":{}},"name":"Gmail — Emails de la veille","type":"n8n-nodes-base.gmail","typeVersion":2,"position":[-1200,-112],"id":"690dcfb6-69e8-4c75-8554-12c342472ba9","retryOnFail":true,"maxTries":3,"waitBetweenTries":5000,"webhookId":"e25eef81-b9cb-4e34-a263-b7a0b3cbca78","credentials":{"gmailOAuth2":{"id":"wN9kkTh8npM257wD","name":"Gmail account"}}},{"parameters":{"jsCode":"const items = $input.all();\nconst results = [];\n\nconst decodeB64 = (data) => {\n  if (!data) return '';\n  try { return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'); }\n  catch (e) { return ''; }\n};\n\nconst extractText = (parts) => {\n  if (!Array.isArray(parts)) return '';\n  let text = '';\n  for (const part of parts) {\n    if (part.mimeType === 'text/plain' && part.body?.data) text += decodeB64(part.body.data) + ' ';\n    else if (Array.isArray(part.parts)) text += extractText(part.parts);\n  }\n  return text;\n};\n\nconst getHeader = (email, name) => {\n  const headers = email.payload?.headers;\n  if (Array.isArray(headers)) {\n    const found = headers.find(h => (h.name || '').toLowerCase() === name.toLowerCase());\n    if (found) return found.value || '';\n  }\n  const cap = name.charAt(0).toUpperCase() + name.slice(1);\n  return email[name] || email[cap] || '';\n};\n\nconst cutName = (s) => s.split(/\\s[-|–—:]\\s|\\n|\\bpour\\b|\\bfor\\b/i)[0].trim().slice(0, 60);\n\nfor (const item of items) {\n  const email = item.json;\n\n  const subject = getHeader(email, 'Subject');\n  const fromRaw = getHeader(email, 'From');\n  const dateRaw = getHeader(email, 'Date');\n  const fromEmail = (fromRaw ? ((fromRaw.match(/<([^>]+)>/) || [])[1] || fromRaw.trim()) : '').toLowerCase();\n  const domain = fromEmail.includes('@') ? fromEmail.split('@')[1] : '';\n  const snippet = email.snippet || '';\n  const isLinkedIn = domain.includes('linkedin.com');\n\n  let forcedReponse = null;\n  let forcedSociete = null;\n  if (isLinkedIn) {\n    const head = `${subject}\\n${snippet}`;\n    let m;\n    if ((m = head.match(/your application was sent to\\s+(.+)/i)) ||\n        (m = head.match(/candidature(?:\\s+a(?:\\s+bien)?\\s+été)?\\s+envoyée\\s+à\\s+(.+)/i))) {\n      forcedReponse = 'Envoyé'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/your application was viewed by\\s+(.+)/i)) ||\n               (m = head.match(/candidature a été consultée par\\s+(.+)/i))) {\n      forcedReponse = 'A/R'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/derni[eè]re nouvelle de\\s+(.+)/i))) {\n      forcedReponse = 'Non'; forcedSociete = cutName(m[1]);\n    }\n  }\n\n  if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') continue;\n\n  let bodyRaw = '';\n  if (email.payload) {\n    if (Array.isArray(email.payload.parts)) bodyRaw = extractText(email.payload.parts);\n    else if (email.payload.body?.data) bodyRaw = decodeB64(email.payload.body.data);\n  }\n  if (!bodyRaw) bodyRaw = email.text || email.html || snippet || '';\n\n  let bodyClean = String(bodyRaw).replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n  // garde le début ET la fin (signature/adresse souvent en bas)\n  if (bodyClean.length > 2500) bodyClean = bodyClean.slice(0, 1800) + ' […] ' + bodyClean.slice(-700);\n\n  const customId = ('m_' + (email.id || String(results.length)))\n    .replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);\n\n  const claudePrompt = `Analyse cet email de candidature à l'emploi (en français) et classe la réponse de l'employeur.\n\nExpéditeur : ${fromRaw}\nDomaine expéditeur : ${domain}\nSujet : ${subject}\nCorps : ${bodyClean || snippet}\n\nRéponds UNIQUEMENT avec ce JSON, sans texte ni balises autour :\n{\"recrutement\": true/false, \"societe\": \"... ou null\", \"poste\": \"... ou null\", \"reponse\": \"A/R|Oui|Non\", \"confidence\": \"high|medium|low\", \"note\": \"1 phrase\"}\n\nDÉFINITIONS\n- recrutement=true : email lié à une candidature précise (accusé de réception d'ATS, refus, invitation entretien, message d'un recruteur sur une candidature).\n- recrutement=false : alertes/offres non sollicitées, newsletters ; emails d'AUTHENTIFICATION / code de connexion / vérification ; emails de BIENVENUE / création de compte / inscription à une plateforme ; invitations à une CONFÉRENCE / webinaire / événement (≠ entretien d'embauche) ; notifs bancaires, factures, pub, réseaux sociaux.\n- societe : l'ENTREPRISE qui recrute. Si elle n'est pas explicite, DÉDUIS-LA de la signature, de l'adresse postale, du logo/nom cité dans le corps, ou du domaine de l'expéditeur. Jamais la plateforme/ATS ni le cabinet (ignorer Welcome to the Jungle, Greenhouse, Lever, Workday, LinkedIn). null seulement si vraiment introuvable.\n- poste : déduis l'intitulé depuis le sujet, le corps ou la signature. null si introuvable.\n\nCLASSEMENT DE reponse — lis le CORPS, pas seulement l'objet :\n- \"A/R\" = accusé de réception, AUCUNE décision : « bien reçu votre candidature », « candidature enregistrée », « merci pour votre candidature », confirmation automatique.\n- \"Non\" = refus : « ne donnerons pas suite », « profil n'a pas été retenu », « malheureusement », « regret », « unfortunately ».\n- \"Oui\" = suite positive RÉELLE : invitation entretien/échange/appel/visio, test ou screening de sélection, « souhaitons vous rencontrer », « vos disponibilités », « prochaine étape ». PAS une invitation à une conférence/événement ni une simple inscription.\n\nRÈGLES\n- Un accusé de réception n'est PAS un refus. A/R ≠ Non ≠ Oui.\n- En cas de doute entre les trois (si c'est bien du recrutement) → \"A/R\".`;\n\n  results.push({\n    json: { customId, emailId: email.id || '', subject, fromRaw, fromEmail, date: dateRaw, domain, snippet, bodyClean, claudePrompt, forcedReponse, forcedSociete },\n  });\n}\n\nreturn results;"},"name":"Filtrer & préparer","type":"n8n-nodes-base.code","typeVersion":2,"position":[-1008,-112],"id":"3047950d-5af9-4994-9218-65617b0ec29c"},{"parameters":{"jsCode":"const items = $input.all();\n\nconst requests = items.map((item) => ({\n  custom_id: item.json.customId,\n  params: {\n    model: 'claude-haiku-4-5-20251001',\n    max_tokens: 512,\n    system: 'Tu extrais des infos depuis des emails de recrutement. Réponds UNIQUEMENT en JSON valide.',\n    messages: [{ role: 'user', content: item.json.claudePrompt }],\n  },\n}));\n\n// Garde-fou: un batch vide renverrait un 400 côté Anthropic.\nif (requests.length === 0) {\n  throw new Error('Aucun email à classifier (0 requête) — rien à envoyer au batch.');\n}\n\nreturn [{ json: { requests, count: requests.length } }];\n"},"name":"Construire requêtes batch","type":"n8n-nodes-base.code","typeVersion":2,"position":[-800,-112],"id":"3321c773-71aa-4315-bc36-467b086e31fe"},{"parameters":{"method":"POST","url":"https://api.anthropic.com/v1/messages/batches","authentication":"genericCredentialType","genericAuthType":"httpHeaderAuth","sendHeaders":true,"headerParameters":{"parameters":[{"name":"anthropic-version","value":"2023-06-01"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={{ JSON.stringify({ requests: $json.requests }) }}","options":{}},"name":"Créer batch Claude","type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[-608,-112],"id":"57bb0470-73d3-4994-b85a-c5ba32c5c7f4","retryOnFail":true,"maxTries":3,"waitBetweenTries":5000,"credentials":{"httpHeaderAuth":{"id":"tb4jH2LrqUFwnjrM","name":"Anthropic API Key"}}},{"parameters":{"url":"=https://api.anthropic.com/v1/messages/batches/{{ $json.id }}","authentication":"genericCredentialType","genericAuthType":"httpHeaderAuth","sendHeaders":true,"headerParameters":{"parameters":[{"name":"anthropic-version","value":"2023-06-01"}]},"options":{}},"name":"Statut batch","type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[-400,-112],"id":"3e572ea9-03a0-401c-9999-2aa591cfd707","retryOnFail":true,"maxTries":3,"waitBetweenTries":5000,"credentials":{"httpHeaderAuth":{"id":"tb4jH2LrqUFwnjrM","name":"Anthropic API Key"}}},{"parameters":{"amount":30},"name":"Attendre 30 s","type":"n8n-nodes-base.wait","typeVersion":1.1,"position":[-208,96],"id":"572539d9-b461-4d88-a820-168823adb1dc","webhookId":"wait-batch-poll"},{"parameters":{"url":"={{ $json.results_url }}","authentication":"genericCredentialType","genericAuthType":"httpHeaderAuth","sendHeaders":true,"headerParameters":{"parameters":[{"name":"anthropic-version","value":"2023-06-01"}]},"options":{"response":{"response":{"responseFormat":"text"}}}},"name":"Récupérer résultats","type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[208,-112],"id":"edac904e-4b9b-4480-9dbc-9bb8689d5d4f","retryOnFail":true,"maxTries":3,"waitBetweenTries":5000,"credentials":{"httpHeaderAuth":{"id":"tb4jH2LrqUFwnjrM","name":"Anthropic API Key"}}},{"parameters":{"operation":"search","base":{"__rl":true,"value":"apphTpnW5vu0OdnfC","mode":"list","cachedResultName":"Mission Pipeline","cachedResultUrl":"https://airtable.com/apphTpnW5vu0OdnfC"},"table":{"__rl":true,"value":"tblF3jpncEXA647ou","mode":"list","cachedResultName":"Candidatures","cachedResultUrl":"https://airtable.com/apphTpnW5vu0OdnfC/tblF3jpncEXA647ou"},"options":{"fields":[]}},"name":"Lister enregistrements","type":"n8n-nodes-base.airtable","typeVersion":2,"position":[416,-112],"id":"8ee13f5e-6596-48bb-a849-69d0fa34cfef","retryOnFail":true,"maxTries":3,"waitBetweenTries":5000,"credentials":{"airtableTokenApi":{"id":"bQLoL1mZbqEFDoKw","name":"Airtable Personal Access Token account"}}},{"parameters":{"jsCode":"const DENY = new Set(['indigoneo']);\n\nconst RANK = { '': 0, 'neant': 0, 'envoye': 1, 'a/r': 2, 'ar': 2, 'oui': 3, 'non': 3 };\nconst rankOf = (rp) => RANK[String(rp || '').trim().toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')] ?? 0;\n\nconst toIso = (s) => { if (!s) return ''; const d = new Date(s); return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10); };\n\nconst normalize = (s) => String(s || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/\\b(sas|sasu|sa|sarl|inc|ltd|llc|gmbh|group|groupe|technologies|tech|recruitment|recrutement|staffing)\\b/g, '')\n  .replace(/[^a-z0-9]/g, '');\n\nconst getField = (f, name) => {\n  if (!f) return '';\n  if (f[name] != null) return f[name];\n  const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\n  const target = norm(name);\n  for (const k of Object.keys(f)) if (norm(k) === target) return f[k];\n  return '';\n};\n\nconst indexed = $input.all().map((i) => {\n  const f = i.json.fields || i.json;\n  return {\n    id: getField(f, 'id') || i.json.id,\n    societe: getField(f, 'societe'),\n    poste: getField(f, 'poste'),\n    reponse: getField(f, 'reponse'),\n    key: normalize(getField(f, 'societe')),\n  };\n});\n\nconst findMatch = (societe, meta) => {\n  const keyS = normalize(societe);\n  if (keyS.length > 1) {\n    const m = indexed.find(r => r.key && (r.key === keyS || r.key.includes(keyS) || keyS.includes(r.key)));\n    if (m) return m;\n  }\n  const hay = normalize(`${meta.subject || ''} ${meta.snippet || ''} ${meta.bodyClean || ''} ${meta.fromRaw || ''}`);\n  if (hay) {\n    const hits = indexed\n      .filter(r => r.key && r.key.length >= 4 && hay.includes(r.key))\n      .sort((a, b) => b.key.length - a.key.length);\n    if (hits.length) return hits[0];\n  }\n  const keyD = normalize((meta.domain || '').split('.')[0]);\n  if (keyD.length > 2) {\n    const m = indexed.find(r => r.key && (r.key.includes(keyD) || keyD.includes(r.key)));\n    if (m) return m;\n  }\n  return null;\n};\n\nconst metaById = {};\nfor (const it of $('Filtrer & préparer').all()) {\n  metaById[it.json.customId] = it.json;\n}\n\nconst r = $('Récupérer résultats').first().json;\nconst raw = (typeof r === 'string') ? r : (r.data || r.body || r.text || '');\nconst lines = String(raw).split('\\n').map(l => l.trim()).filter(Boolean);\n\nconst out = [];\nfor (const line of lines) {\n  let entry;\n  try { entry = JSON.parse(line); } catch (e) { continue; }\n\n  const meta = metaById[entry.custom_id];\n  if (!meta) continue;\n\n  let extracted = { recrutement: false, societe: null, poste: null, reponse: 'A/R', confidence: 'low', note: '' };\n  if (entry.result && entry.result.type === 'succeeded') {\n    try {\n      const text = entry.result.message?.content?.[0]?.text || '';\n      const clean = text.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\n      extracted = { ...extracted, ...JSON.parse(clean) };\n    } catch (e) { /* défaut conservé */ }\n  }\n\n  const forced = !!meta.forcedReponse;\n  if (extracted.recrutement !== true && !forced) continue;\n\n  let societe, societeReliable;\n  if (meta.forcedSociete) { societe = meta.forcedSociete; societeReliable = true; }\n  else if (extracted.societe && extracted.societe !== 'null') { societe = extracted.societe; societeReliable = true; }\n  else { societe = meta.domain ? meta.domain.split('.')[0] : ''; societeReliable = false; }\n\n  const poste = (extracted.poste && extracted.poste !== 'null') ? extracted.poste : '';\n  const reponse = forced\n    ? meta.forcedReponse\n    : (['Oui', 'Non', 'A/R'].includes(extracted.reponse) ? extracted.reponse : 'A/R');\n\n  if (DENY.has(normalize(societe))) continue;\n\n  const match = findMatch(societe, meta);\n\n  let action, airtableId = null;\n  if (match) {\n    airtableId = match.id;\n    action = rankOf(reponse) > rankOf(match.reponse) ? 'update' : 'skip';\n  } else if (societeReliable && normalize(societe).length >= 2) {\n    action = 'create';\n  } else {\n    action = 'review';\n  }\n\n  out.push({\n    json: {\n      action, airtableId, societe, poste, reponse,\n      subject: meta.subject, fromRaw: meta.fromRaw, date: toIso(meta.date),\n      note: extracted.note || '',\n      gmailLink: meta.emailId ? `https://mail.google.com/mail/u/0/#all/${meta.emailId}` : '',\n      domain: meta.domain, emailId: meta.emailId,\n      confidence: extracted.confidence || 'low',\n      forced, existingReponse: match ? match.reponse : null,\n    },\n  });\n}\n\n// Dédoublonnage intra-run : create/update oui ; review JAMAIS (l'upsert Airtable gère le cross-run)\nconst best = new Map();\nconst reviews = [];\nfor (const o of out) {\n  if (o.json.action === 'review') { reviews.push(o); continue; }\n  const k = (o.json.action === 'create') ? ('soc:' + normalize(o.json.societe)) : ('id:' + o.json.airtableId);\n  const prev = best.get(k);\n  if (!prev || rankOf(o.json.reponse) > rankOf(prev.json.reponse)) best.set(k, o);\n}\nreturn [...best.values(), ...reviews];"},"name":"Matcher & décider","type":"n8n-nodes-base.code","typeVersion":2,"position":[608,-112],"id":"a8b8ddc1-3008-481f-ab9b-612c2f69a5e1"},{"parameters":{"operation":"create","base":{"__rl":true,"value":"apphTpnW5vu0OdnfC","mode":"list","cachedResultName":"Mission Pipeline","cachedResultUrl":"https://airtable.com/apphTpnW5vu0OdnfC"},"table":{"__rl":true,"value":"tblF3jpncEXA647ou","mode":"list","cachedResultName":"Candidatures","cachedResultUrl":"https://airtable.com/apphTpnW5vu0OdnfC/tblF3jpncEXA647ou"},"columns":{"mappingMode":"defineBelow","value":{"Société":"={{ $json.societe }}","Poste":"={{ $json.poste }}","Réponse":"={{ $json.reponse }}","Note":"={{ $json.note }}","Date réponse":"={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : undefined }}","Date postulé":"={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : undefined }}","URL":"={{ $json.gmailLink }}"},"matchingColumns":[],"schema":[{"id":"Société","displayName":"Société","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Poste","displayName":"Poste","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Lieu","displayName":"Lieu","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Mode","displayName":"Mode","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Note","displayName":"Note","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"URL","displayName":"URL","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Date postulé","displayName":"Date postulé","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"dateTime","readOnly":false,"removed":false},{"id":"Date réponse","displayName":"Date réponse","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"dateTime","readOnly":false,"removed":false},{"id":"Réponse","displayName":"Réponse","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"options","options":[{"name":"Néant","value":"Néant"},{"name":"Envoyé","value":"Envoyé"},{"name":"A/R","value":"A/R"},{"name":"Oui","value":"Oui"},{"name":"Non","value":"Non"}],"readOnly":false,"removed":false}],"attemptToConvertTypes":false,"convertFieldsToString":false},"options":{}},"name":"Créer enregistrement Airtable","type":"n8n-nodes-base.airtable","typeVersion":2,"position":[1456,-352],"id":"8f3eac09-fe74-4114-bd15-d680f0dd5002","retryOnFail":true,"maxTries":3,"waitBetweenTries":5000,"credentials":{"airtableTokenApi":{"id":"bQLoL1mZbqEFDoKw","name":"Airtable Personal Access Token account"}}},{"parameters":{"operation":"update","base":{"__rl":true,"value":"apphTpnW5vu0OdnfC","mode":"list","cachedResultName":"Mission Pipeline","cachedResultUrl":"https://airtable.com/apphTpnW5vu0OdnfC"},"table":{"__rl":true,"value":"tblF3jpncEXA647ou","mode":"list","cachedResultName":"Candidatures","cachedResultUrl":"https://airtable.com/apphTpnW5vu0OdnfC/tblF3jpncEXA647ou"},"columns":{"mappingMode":"defineBelow","value":{"Réponse":"={{ $json.reponse }}","id":"={{ $json.airtableId }}","Date postulé":"={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : undefined }}","Date réponse":"={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : undefined }}","Note":"={{ $json.note }}"},"matchingColumns":["id"],"schema":[{"id":"id","displayName":"id","required":false,"defaultMatch":true,"display":true,"type":"string","readOnly":true,"removed":false},{"id":"Société","displayName":"Société","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Poste","displayName":"Poste","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Lieu","displayName":"Lieu","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Mode","displayName":"Mode","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Note","displayName":"Note","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"URL","displayName":"URL","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Date postulé","displayName":"Date postulé","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"dateTime","readOnly":false,"removed":false},{"id":"Date réponse","displayName":"Date réponse","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"dateTime","readOnly":false,"removed":false},{"id":"Réponse","displayName":"Réponse","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"options","options":[{"name":"Néant","value":"Néant"},{"name":"Envoyé","value":"Envoyé"},{"name":"A/R","value":"A/R"},{"name":"Oui","value":"Oui"},{"name":"Non","value":"Non"}],"readOnly":false,"removed":false}],"attemptToConvertTypes":false,"convertFieldsToString":false},"options":{}},"name":"Mettre à jour Réponse","type":"n8n-nodes-base.airtable","typeVersion":2,"position":[1456,-144],"id":"aaa8b4df-cd3f-4dec-8a4d-b5aa0dd60a02","retryOnFail":true,"maxTries":3,"waitBetweenTries":5000,"credentials":{"airtableTokenApi":{"id":"bQLoL1mZbqEFDoKw","name":"Airtable Personal Access Token account"}}},{"parameters":{},"name":"Ignoré — réponse déjà renseignée","type":"n8n-nodes-base.noOp","typeVersion":1,"position":[1456,64],"id":"af375f78-fc44-49b2-bf64-c24c71f2e54c"},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"loose","version":2},"conditions":[{"id":"ce04a402-af98-4aca-be6d-c0530d89174a","leftValue":"={{ $json.action }}","rightValue":"create","operator":{"type":"string","operation":"equals","name":"filter.operator.equals"}}],"combinator":"and"},"looseTypeValidation":true,"options":{}},"type":"n8n-nodes-base.if","typeVersion":2.2,"position":[1008,-240],"id":"5d6a6112-5688-4f22-b0fb-9891f71e2754","name":"Créer ?"},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"loose","version":2},"conditions":[{"id":"8061dad3-3dcb-4ba3-9e84-2ee885cb9fe9","leftValue":"={{ $json.action }}","rightValue":"update","operator":{"type":"string","operation":"equals","name":"filter.operator.equals"}}],"combinator":"and"},"looseTypeValidation":true,"options":{}},"type":"n8n-nodes-base.if","typeVersion":2.2,"position":[1232,-112],"id":"32abffbb-c8ca-4a8d-bc58-1dc1a0db3763","name":"Mettre à jour ?"},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"loose","version":2},"conditions":[{"id":"20c9b592-e705-4edc-a5a6-713e8f4e79a5","leftValue":"={{ $json.processing_status }}","rightValue":"ended","operator":{"type":"string","operation":"equals","name":"filter.operator.equals"}}],"combinator":"and"},"looseTypeValidation":true,"options":{}},"type":"n8n-nodes-base.if","typeVersion":2.2,"position":[-192,-112],"id":"4a0209a3-bd75-4e37-ab27-eb805a976d5c","name":"Batch terminé ?"},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"strict","version":3},"conditions":[{"id":"d4123f6d-cf4e-4ac4-a38f-a4c7752728a1","leftValue":"={{ $json.action }}","rightValue":"review","operator":{"type":"string","operation":"equals","name":"filter.operator.equals"}}],"combinator":"and"},"options":{}},"type":"n8n-nodes-base.if","typeVersion":2.3,"position":[800,-288],"id":"a79025c1-763a-4c54-9269-97a3aa480c7f","name":"A traiter ?"},{"parameters":{"operation":"upsert","base":{"__rl":true,"value":"apphTpnW5vu0OdnfC","mode":"list","cachedResultName":"Mission Pipeline","cachedResultUrl":"https://airtable.com/apphTpnW5vu0OdnfC"},"table":{"__rl":true,"value":"tblSeyppFhxU3i8Ev","mode":"list","cachedResultName":"A traiter","cachedResultUrl":"https://airtable.com/apphTpnW5vu0OdnfC/tblSeyppFhxU3i8Ev"},"columns":{"mappingMode":"defineBelow","value":{"Société":"={{ $json.societe }}","Poste":"={{ $json.poste }}","Sujet":"={{ $json.subject }}","Réponse":"={{ $json.reponse }}","Expéditeur":"={{ $json.fromRaw }}","Date":"={{ $json.date }}","Note":"={{ $json.note }}","Lien Gmail":"={{ $json.gmailLink }}","ID Email":"={{ $json.emailId }}"},"matchingColumns":["ID Email"],"schema":[{"id":"id","displayName":"id","required":false,"defaultMatch":true,"display":true,"type":"string","readOnly":true,"removed":false},{"id":"Société","displayName":"Société","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Poste","displayName":"Poste","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Réponse","displayName":"Réponse","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"options","options":[{"name":"Néant","value":"Néant"},{"name":"Envoyé","value":"Envoyé"},{"name":"A/R","value":"A/R"},{"name":"Oui","value":"Oui"},{"name":"Non","value":"Non"}],"readOnly":false,"removed":false},{"id":"Sujet","displayName":"Sujet","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Expéditeur","displayName":"Expéditeur","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Date","displayName":"Date","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"dateTime","readOnly":false,"removed":false},{"id":"Note","displayName":"Note","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"Lien Gmail","displayName":"Lien Gmail","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false},{"id":"ID Email","displayName":"ID Email","required":false,"defaultMatch":false,"canBeUsedToMatch":true,"display":true,"type":"string","readOnly":false,"removed":false}],"attemptToConvertTypes":false,"convertFieldsToString":false},"options":{}},"type":"n8n-nodes-base.airtable","typeVersion":2.2,"position":[1008,-432],"id":"c19fa31f-91bc-4c14-8621-e7772321ae92","name":"Créer un enregistrement à checker","retryOnFail":true,"waitBetweenTries":5000,"credentials":{"airtableTokenApi":{"id":"bQLoL1mZbqEFDoKw","name":"Airtable Personal Access Token account"}}}],"connections":{"Filtrer & préparer":{"main":[[{"node":"Construire requêtes batch","type":"main","index":0}]]},"Construire requêtes batch":{"main":[[{"node":"Créer batch Claude","type":"main","index":0}]]},"Créer batch Claude":{"main":[[{"node":"Statut batch","type":"main","index":0}]]},"Statut batch":{"main":[[{"node":"Batch terminé ?","type":"main","index":0}]]},"Attendre 30 s":{"main":[[{"node":"Statut batch","type":"main","index":0}]]},"Récupérer résultats":{"main":[[{"node":"Lister enregistrements","type":"main","index":0}]]},"Lister enregistrements":{"main":[[{"node":"Matcher & décider","type":"main","index":0}]]},"Matcher & décider":{"main":[[{"node":"A traiter ?","type":"main","index":0}]]},"Créer ?":{"main":[[{"node":"Créer enregistrement Airtable","type":"main","index":0}],[{"node":"Mettre à jour ?","type":"main","index":0}]]},"Mettre à jour ?":{"main":[[{"node":"Mettre à jour Réponse","type":"main","index":0}],[{"node":"Ignoré — réponse déjà renseignée","type":"main","index":0}]]},"Batch terminé ?":{"main":[[{"node":"Récupérer résultats","type":"main","index":0}],[{"node":"Attendre 30 s","type":"main","index":0}]]},"A traiter ?":{"main":[[{"node":"Créer un enregistrement à checker","type":"main","index":0}],[{"node":"Créer ?","type":"main","index":0}]]},"Gmail — Emails de la veille":{"main":[[{"node":"Filtrer & préparer","type":"main","index":0}]]},"Tous les jours à 4h":{"main":[[{"node":"Gmail — Emails de la veille","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"},"staticData":null,"meta":null,"nodeGroups":[],"pinData":null,"versionId":"5c5235a8-4863-44a7-be75-14085e75560c","activeVersionId":null,"versionCounter":2,"triggerCount":0,"sourceWorkflowId":null,"shared":[{"updatedAt":"2026-06-15T13:57:13.188Z","createdAt":"2026-06-15T13:57:13.188Z","role":"workflow:owner","workflowId":"BsXYMJdidg8tej9i","projectId":"G5Wnvvi3eXOd7TfX","project":{"updatedAt":"2025-11-24T22:32:24.451Z","createdAt":"2025-11-24T22:29:00.493Z","id":"G5Wnvvi3eXOd7TfX","name":"Xavier ROBITAILLE <xrobitaille92150@gmail.com>","type":"personal","icon":null,"description":null,"customTelemetryTags":[],"creatorId":"327b8291-3be6-4beb-a31b-67dda7c79279"}}],"tags":[],"activeVersion":null}
+{
+  "updatedAt": "2026-06-15T14:53:44.470Z",
+  "createdAt": "2026-06-15T13:57:13.185Z",
+  "id": "BsXYMJdidg8tej9i",
+  "name": "Gmail → Airtable : Run quotidien (mails de la veille)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 4 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1408,
+        -112
+      ],
+      "id": "5c3adb21-d45c-4586-b560-8d1b643c7541",
+      "name": "Tous les jours à 4h"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "simple": false,
+        "filters": {
+          "q": "=after:{{ $now.minus({days:1}).toFormat('yyyy/MM/dd') }} before:{{ $now.toFormat('yyyy/MM/dd') }}"
+        },
+        "options": {}
+      },
+      "name": "Gmail — Emails de la veille",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        -112
+      ],
+      "id": "690dcfb6-69e8-4c75-8554-12c342472ba9",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "webhookId": "e25eef81-b9cb-4e34-a263-b7a0b3cbca78",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wN9kkTh8npM257wD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nœud n8n \"Filtrer & préparer\" (Code, runOnceForAllItems)\n// Décode le corps des emails, applique les règles déterministes LinkedIn,\n// extrait URL/Poste/Lieu/Mode pour les confirmations Envoyé, et construit\n// le prompt Claude. Sortie : un item par email à classifier.\n\nconst items = $input.all();\nconst results = [];\n\nconst decodeB64 = (data) => {\n  if (!data) return '';\n  try { return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'); }\n  catch (e) { return ''; }\n};\n\nconst extractText = (parts) => {\n  if (!Array.isArray(parts)) return '';\n  let text = '';\n  for (const part of parts) {\n    if (part.mimeType === 'text/plain' && part.body?.data) text += decodeB64(part.body.data) + ' ';\n    else if (Array.isArray(part.parts)) text += extractText(part.parts);\n  }\n  return text;\n};\n\nconst getHeader = (email, name) => {\n  const headers = email.payload?.headers;\n  if (Array.isArray(headers)) {\n    const found = headers.find(h => (h.name || '').toLowerCase() === name.toLowerCase());\n    if (found) return found.value || '';\n  }\n  const cap = name.charAt(0).toUpperCase() + name.slice(1);\n  return email[name] || email[cap] || '';\n};\n\nconst cutName = (s) => s.split(/\\s[-|–—:]\\s|\\n|\\bpour\\b|\\bfor\\b/i)[0].trim().slice(0, 60);\nconst escRe = (s) => String(s).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n\n// Normalise un mode \"À distance / Remote / Hybride / Présentiel\" -> Remote / Hybrid / Présentiel\nconst cleanMode = (raw) => {\n  const m = String(raw || '').toLowerCase();\n  if (/(à\\s*distance|\\ba\\s*distance\\b|remote|télétravail|teletravail|full\\s*remote)/.test(m)) return 'Remote';\n  if (/(hybride|hybrid)/.test(m)) return 'Hybrid';\n  if (/(sur\\s*(?:site|place)|on[-\\s]?site|présentiel|presentiel)/.test(m)) return 'Présentiel';\n  return '';\n};\n\n// Trouve une URL d'offre LinkedIn dans un texte (HTML ou plain)\nconst findLinkedInJobUrl = (text) => {\n  if (!text) return '';\n  const m = String(text).match(/https?:\\/\\/(?:[\\w.-]+\\.)?linkedin\\.com\\/(?:comm\\/)?jobs\\/view\\/(\\d+)/i);\n  return m ? `https://www.linkedin.com/jobs/view/${m[1]}/` : '';\n};\n\n// Cherche l'URL d'offre dans toutes les parties du payload (plain + html)\nconst findLinkedInJobUrlInPayload = (payload) => {\n  if (!payload) return '';\n  if (payload.body?.data) {\n    const u = findLinkedInJobUrl(decodeB64(payload.body.data));\n    if (u) return u;\n  }\n  if (Array.isArray(payload.parts)) {\n    for (const p of payload.parts) {\n      const u = findLinkedInJobUrlInPayload(p);\n      if (u) return u;\n    }\n  }\n  return '';\n};\n\nfor (const item of items) {\n  const email = item.json;\n\n  const subject = getHeader(email, 'Subject');\n  const fromRaw = getHeader(email, 'From');\n  const dateRaw = getHeader(email, 'Date');\n  const fromEmail = (fromRaw ? ((fromRaw.match(/<([^>]+)>/) || [])[1] || fromRaw.trim()) : '').toLowerCase();\n  const domain = fromEmail.includes('@') ? fromEmail.split('@')[1] : '';\n  const snippet = email.snippet || '';\n  const isLinkedIn = domain.includes('linkedin.com');\n\n  // Règles déterministes LinkedIn (sur sujet + aperçu)\n  let forcedReponse = null;\n  let forcedSociete = null;\n  if (isLinkedIn) {\n    const head = `${subject}\\n${snippet}`;\n    let m;\n    if ((m = head.match(/your application was sent to\\s+(.+)/i)) ||\n        (m = head.match(/votre candidature a été envoyée à\\s+(.+)/i)) ||\n        (m = head.match(/candidature(?:\\s+a(?:\\s+bien)?\\s+été)?\\s+envoyée\\s+à\\s+(.+)/i))) {\n      forcedReponse = 'Envoyé'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/your application was viewed by\\s+(.+)/i)) ||\n               (m = head.match(/candidature a été consultée par\\s+(.+)/i))) {\n      forcedReponse = 'A/R'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/derni[eè]re nouvelle de\\s+(.+)/i))) {\n      forcedReponse = 'Non'; forcedSociete = cutName(m[1]);\n    }\n  }\n\n  // Alertes d'offres LinkedIn -> mises de côté\n  if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') continue;\n\n  let bodyRaw = '';\n  if (email.payload) {\n    if (Array.isArray(email.payload.parts)) bodyRaw = extractText(email.payload.parts);\n    else if (email.payload.body?.data) bodyRaw = decodeB64(email.payload.body.data);\n  }\n  if (!bodyRaw) bodyRaw = email.text || email.html || snippet || '';\n\n  let bodyClean = String(bodyRaw).replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n  if (bodyClean.length > 2500) bodyClean = bodyClean.slice(0, 1800) + ' […] ' + bodyClean.slice(-700);\n\n  // Enrichissement LinkedIn (Envoyé uniquement) — URL / Poste / Lieu / Mode\n  let forcedUrl = '';\n  let forcedPoste = null;\n  let forcedLieu = null;\n  let forcedMode = null;\n  if (isLinkedIn && forcedReponse === 'Envoyé' && forcedSociete) {\n    forcedUrl = findLinkedInJobUrlInPayload(email.payload);\n\n    // Pattern : \"<Société> <Poste> <Société> · <Lieu> (<Mode>?) ... Candidature/Application/Voir/View\"\n    const escSoc = escRe(forcedSociete);\n    const stop = '(?:\\\\s+Candidature\\\\s+envoyée|\\\\s+Application\\\\s+sent|\\\\s+View\\\\s+job|\\\\s+Voir\\\\s+l|\\\\s+Postuler|$)';\n    const re = new RegExp(\n      `${escSoc}\\\\s+([^·•]+?)\\\\s+${escSoc}\\\\s*[·•]\\\\s*([^·•]+?)${stop}`,\n      'i'\n    );\n    const mm = bodyClean.match(re);\n    if (mm) {\n      forcedPoste = mm[1].trim().slice(0, 200);\n      const meta = mm[2].trim();\n      const lm = meta.match(/^(.+?)\\s*(?:\\(([^)]+)\\))?\\s*$/);\n      if (lm) {\n        forcedLieu = lm[1].trim().slice(0, 100);\n        forcedMode = cleanMode(lm[2] || meta);\n      }\n    }\n  }\n\n  const customId = ('m_' + (email.id || String(results.length)))\n    .replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);\n\n  const claudePrompt = `Analyse cet email de candidature à l'emploi (en français) et classe la réponse de l'employeur.\n\nExpéditeur : ${fromRaw}\nDomaine expéditeur : ${domain}\nSujet : ${subject}\nCorps : ${bodyClean || snippet}\n\nRéponds UNIQUEMENT avec ce JSON, sans texte ni balises autour :\n{\"recrutement\": true/false, \"societe\": \"... ou null\", \"poste\": \"... ou null\", \"reponse\": \"A/R|Oui|Non\", \"confidence\": \"high|medium|low\", \"note\": \"1 phrase\"}\n\nDÉFINITIONS\n- recrutement=true : email lié à une candidature précise (accusé de réception d'ATS, refus, invitation entretien, message d'un recruteur sur une candidature).\n- recrutement=false : alertes/offres non sollicitées, newsletters ; emails d'AUTHENTIFICATION / code de connexion / vérification ; emails de BIENVENUE / création de compte / inscription à une plateforme ; invitations à une CONFÉRENCE / webinaire / événement (≠ entretien d'embauche) ; notifs bancaires, factures, pub, réseaux sociaux.\n- societe : l'ENTREPRISE qui recrute. Si elle n'est pas explicite, DÉDUIS-LA de la signature, de l'adresse postale, du logo/nom cité dans le corps, ou du domaine de l'expéditeur. Jamais la plateforme/ATS ni le cabinet (ignorer Welcome to the Jungle, Greenhouse, Lever, Workday, LinkedIn). null seulement si vraiment introuvable.\n- poste : déduis l'intitulé depuis le sujet, le corps ou la signature. null si introuvable.\n\nCLASSEMENT DE reponse — lis le CORPS, pas seulement l'objet :\n- \"A/R\" = accusé de réception, AUCUNE décision : « bien reçu votre candidature », « candidature enregistrée », « merci pour votre candidature », confirmation automatique.\n- \"Non\" = refus : « ne donnerons pas suite », « profil n'a pas été retenu », « malheureusement », « regret », « unfortunately ».\n- \"Oui\" = suite positive RÉELLE : invitation entretien/échange/appel/visio, test ou screening de sélection, « souhaitons vous rencontrer », « vos disponibilités », « prochaine étape ». PAS une invitation à une conférence/événement ni une simple inscription.\n\nRÈGLES\n- Un accusé de réception n'est PAS un refus. A/R ≠ Non ≠ Oui.\n- En cas de doute entre les trois (si c'est bien du recrutement) → \"A/R\".`;\n\n  results.push({\n    json: {\n      customId, emailId: email.id || '', subject, fromRaw, fromEmail,\n      date: dateRaw, domain, snippet, bodyClean, claudePrompt,\n      forcedReponse, forcedSociete, forcedUrl, forcedPoste, forcedLieu, forcedMode,\n    },\n  });\n}\n\nreturn results;\n"
+      },
+      "name": "Filtrer & préparer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1008,
+        -112
+      ],
+      "id": "3047950d-5af9-4994-9218-65617b0ec29c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst requests = items.map((item) => ({\n  custom_id: item.json.customId,\n  params: {\n    model: 'claude-haiku-4-5-20251001',\n    max_tokens: 512,\n    system: 'Tu extrais des infos depuis des emails de recrutement. Réponds UNIQUEMENT en JSON valide.',\n    messages: [{ role: 'user', content: item.json.claudePrompt }],\n  },\n}));\n\n// Garde-fou: un batch vide renverrait un 400 côté Anthropic.\nif (requests.length === 0) {\n  throw new Error('Aucun email à classifier (0 requête) — rien à envoyer au batch.');\n}\n\nreturn [{ json: { requests, count: requests.length } }];\n"
+      },
+      "name": "Construire requêtes batch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        -112
+      ],
+      "id": "3321c773-71aa-4315-bc36-467b086e31fe"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages/batches",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ requests: $json.requests }) }}",
+        "options": {}
+      },
+      "name": "Créer batch Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -608,
+        -112
+      ],
+      "id": "57bb0470-73d3-4994-b85a-c5ba32c5c7f4",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "tb4jH2LrqUFwnjrM",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.anthropic.com/v1/messages/batches/{{ $json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Statut batch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        -112
+      ],
+      "id": "3e572ea9-03a0-401c-9999-2aa591cfd707",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "tb4jH2LrqUFwnjrM",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "name": "Attendre 30 s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        96
+      ],
+      "id": "572539d9-b461-4d88-a820-168823adb1dc",
+      "webhookId": "wait-batch-poll"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.results_url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "name": "Récupérer résultats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        -112
+      ],
+      "id": "edac904e-4b9b-4480-9dbc-9bb8689d5d4f",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "tb4jH2LrqUFwnjrM",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list",
+          "cachedResultName": "Mission Pipeline",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblF3jpncEXA647ou",
+          "mode": "list",
+          "cachedResultName": "Candidatures",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblF3jpncEXA647ou"
+        },
+        "options": {
+          "fields": []
+        }
+      },
+      "name": "Lister enregistrements",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -112
+      ],
+      "id": "8ee13f5e-6596-48bb-a849-69d0fa34cfef",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nœud n8n \"Matcher & décider\" (Code, runOnceForAllItems)\n// Lit les résultats du batch (JSONL) + la liste Airtable, rapproche chaque\n// email d'une candidature existante, et décide : create / update / skip / review.\n// Propage en sortie les enrichissements LinkedIn (URL, Lieu, Mode).\n\nconst DENY = new Set(['indigoneo']);\n\n// Hiérarchie des statuts : on n'avance que vers l'avant\nconst RANK = { '': 0, 'neant': 0, 'envoye': 1, 'a/r': 2, 'ar': 2, 'oui': 3, 'non': 3 };\nconst rankOf = (rp) => RANK[String(rp || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')] ?? 0;\n\nconst toIso = (s) => { if (!s) return ''; const d = new Date(s); return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10); };\n\nconst normalize = (s) => String(s || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[̀-ͯ]/g, '')\n  .replace(/\\b(sas|sasu|sa|sarl|inc|ltd|llc|gmbh|group|groupe|technologies|tech|recruitment|recrutement|staffing)\\b/g, '')\n  .replace(/[^a-z0-9]/g, '');\n\nconst getField = (f, name) => {\n  if (!f) return '';\n  if (f[name] != null) return f[name];\n  const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');\n  const target = norm(name);\n  for (const k of Object.keys(f)) if (norm(k) === target) return f[k];\n  return '';\n};\n\nconst indexed = $input.all().map((i) => {\n  const f = i.json.fields || i.json;\n  return {\n    id: getField(f, 'id') || i.json.id,\n    societe: getField(f, 'societe'),\n    poste: getField(f, 'poste'),\n    reponse: getField(f, 'reponse'),\n    key: normalize(getField(f, 'societe')),\n  };\n});\n\nconst findMatch = (societe, meta) => {\n  const keyS = normalize(societe);\n  if (keyS.length > 1) {\n    const m = indexed.find(r => r.key && (r.key === keyS || r.key.includes(keyS) || keyS.includes(r.key)));\n    if (m) return m;\n  }\n  const hay = normalize(`${meta.subject || ''} ${meta.snippet || ''} ${meta.bodyClean || ''} ${meta.fromRaw || ''}`);\n  if (hay) {\n    const hits = indexed\n      .filter(r => r.key && r.key.length >= 4 && hay.includes(r.key))\n      .sort((a, b) => b.key.length - a.key.length);\n    if (hits.length) return hits[0];\n  }\n  const keyD = normalize((meta.domain || '').split('.')[0]);\n  if (keyD.length > 2) {\n    const m = indexed.find(r => r.key && (r.key.includes(keyD) || keyD.includes(r.key)));\n    if (m) return m;\n  }\n  return null;\n};\n\nconst metaById = {};\nfor (const it of $('Filtrer & préparer').all()) {\n  metaById[it.json.customId] = it.json;\n}\n\nconst r = $('Récupérer résultats').first().json;\nconst raw = (typeof r === 'string') ? r : (r.data || r.body || r.text || '');\nconst lines = String(raw).split('\\n').map(l => l.trim()).filter(Boolean);\n\nconst out = [];\nfor (const line of lines) {\n  let entry;\n  try { entry = JSON.parse(line); } catch (e) { continue; }\n\n  const meta = metaById[entry.custom_id];\n  if (!meta) continue;\n\n  let extracted = { recrutement: false, societe: null, poste: null, reponse: 'A/R', confidence: 'low', note: '' };\n  if (entry.result && entry.result.type === 'succeeded') {\n    try {\n      const text = entry.result.message?.content?.[0]?.text || '';\n      const clean = text.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\n      extracted = { ...extracted, ...JSON.parse(clean) };\n    } catch (e) { /* défaut conservé */ }\n  }\n\n  const forced = !!meta.forcedReponse;\n  if (extracted.recrutement !== true && !forced) continue;\n\n  // société + fiabilité (forcée OU extraite par Claude = fiable ; fallback domaine = non fiable)\n  let societe, societeReliable;\n  if (meta.forcedSociete) { societe = meta.forcedSociete; societeReliable = true; }\n  else if (extracted.societe && extracted.societe !== 'null') { societe = extracted.societe; societeReliable = true; }\n  else { societe = meta.domain ? meta.domain.split('.')[0] : ''; societeReliable = false; }\n\n  // Poste : préfère l'extraction LinkedIn déterministe, sinon Claude\n  const poste = meta.forcedPoste\n    ? meta.forcedPoste\n    : ((extracted.poste && extracted.poste !== 'null') ? extracted.poste : '');\n\n  // Enrichissements LinkedIn (vides pour les autres emails)\n  const lieu = meta.forcedLieu || '';\n  const mode = meta.forcedMode || '';\n  const linkedinUrl = meta.forcedUrl || '';\n\n  const reponse = forced\n    ? meta.forcedReponse\n    : (['Oui', 'Non', 'A/R'].includes(extracted.reponse) ? extracted.reponse : 'A/R');\n\n  if (DENY.has(normalize(societe))) continue;\n\n  const match = findMatch(societe, meta);\n\n  let action, airtableId = null;\n  if (match) {\n    airtableId = match.id;\n    action = rankOf(reponse) > rankOf(match.reponse) ? 'update' : 'skip';\n  } else if (societeReliable && normalize(societe).length >= 2) {\n    action = 'create';\n  } else {\n    action = 'review';\n  }\n\n  out.push({\n    json: {\n      action, airtableId, societe, poste, reponse,\n      lieu, mode, linkedinUrl,\n      subject: meta.subject, fromRaw: meta.fromRaw, date: toIso(meta.date),\n      note: extracted.note || '',\n      gmailLink: meta.emailId ? `https://mail.google.com/mail/u/0/#all/${meta.emailId}` : '',\n      domain: meta.domain, emailId: meta.emailId,\n      confidence: extracted.confidence || 'low',\n      forced, existingReponse: match ? match.reponse : null,\n    },\n  });\n}\n\n// Dédoublonnage intra-run : create/update oui ; review JAMAIS (l'upsert Airtable gère le cross-run)\nconst best = new Map();\nconst reviews = [];\nfor (const o of out) {\n  if (o.json.action === 'review') { reviews.push(o); continue; }\n  const k = (o.json.action === 'create') ? ('soc:' + normalize(o.json.societe)) : ('id:' + o.json.airtableId);\n  const prev = best.get(k);\n  if (!prev || rankOf(o.json.reponse) > rankOf(prev.json.reponse)) best.set(k, o);\n}\nreturn [...best.values(), ...reviews];\n"
+      },
+      "name": "Matcher & décider",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        -112
+      ],
+      "id": "a8b8ddc1-3008-481f-ab9b-612c2f69a5e1"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list",
+          "cachedResultName": "Mission Pipeline",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblF3jpncEXA647ou",
+          "mode": "list",
+          "cachedResultName": "Candidatures",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblF3jpncEXA647ou"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Société": "={{ $json.societe }}",
+            "Poste": "={{ $json.poste }}",
+            "Réponse": "={{ $json.reponse }}",
+            "Note": "={{ $json.note }}",
+            "Date réponse": "={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : undefined }}",
+            "Date postulé": "={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : undefined }}",
+            "URL": "={{ $json.linkedinUrl || undefined }}",
+            "Lieu": "={{ $json.lieu || undefined }}",
+            "Mode": "={{ $json.mode || undefined }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Société",
+              "displayName": "Société",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Poste",
+              "displayName": "Poste",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lieu",
+              "displayName": "Lieu",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mode",
+              "displayName": "Mode",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Note",
+              "displayName": "Note",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date postulé",
+              "displayName": "Date postulé",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date réponse",
+              "displayName": "Date réponse",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Réponse",
+              "displayName": "Réponse",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Néant",
+                  "value": "Néant"
+                },
+                {
+                  "name": "Envoyé",
+                  "value": "Envoyé"
+                },
+                {
+                  "name": "A/R",
+                  "value": "A/R"
+                },
+                {
+                  "name": "Oui",
+                  "value": "Oui"
+                },
+                {
+                  "name": "Non",
+                  "value": "Non"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "Créer enregistrement Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        -352
+      ],
+      "id": "8f3eac09-fe74-4114-bd15-d680f0dd5002",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list",
+          "cachedResultName": "Mission Pipeline",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblF3jpncEXA647ou",
+          "mode": "list",
+          "cachedResultName": "Candidatures",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblF3jpncEXA647ou"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Réponse": "={{ $json.reponse }}",
+            "id": "={{ $json.airtableId }}",
+            "Date postulé": "={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : undefined }}",
+            "Date réponse": "={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : undefined }}",
+            "Note": "={{ $json.note }}",
+            "Lieu": "={{ $json.lieu || undefined }}",
+            "Mode": "={{ $json.mode || undefined }}",
+            "URL": "={{ $json.linkedinUrl || undefined }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Société",
+              "displayName": "Société",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Poste",
+              "displayName": "Poste",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lieu",
+              "displayName": "Lieu",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mode",
+              "displayName": "Mode",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Note",
+              "displayName": "Note",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date postulé",
+              "displayName": "Date postulé",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date réponse",
+              "displayName": "Date réponse",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Réponse",
+              "displayName": "Réponse",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Néant",
+                  "value": "Néant"
+                },
+                {
+                  "name": "Envoyé",
+                  "value": "Envoyé"
+                },
+                {
+                  "name": "A/R",
+                  "value": "A/R"
+                },
+                {
+                  "name": "Oui",
+                  "value": "Oui"
+                },
+                {
+                  "name": "Non",
+                  "value": "Non"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "Mettre à jour Réponse",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        -144
+      ],
+      "id": "aaa8b4df-cd3f-4dec-8a4d-b5aa0dd60a02",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "name": "Ignoré — réponse déjà renseignée",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        64
+      ],
+      "id": "af375f78-fc44-49b2-bf64-c24c71f2e54c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ce04a402-af98-4aca-be6d-c0530d89174a",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "create",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        -240
+      ],
+      "id": "5d6a6112-5688-4f22-b0fb-9891f71e2754",
+      "name": "Créer ?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8061dad3-3dcb-4ba3-9e84-2ee885cb9fe9",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "update",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        -112
+      ],
+      "id": "32abffbb-c8ca-4a8d-bc58-1dc1a0db3763",
+      "name": "Mettre à jour ?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "20c9b592-e705-4edc-a5a6-713e8f4e79a5",
+              "leftValue": "={{ $json.processing_status }}",
+              "rightValue": "ended",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -192,
+        -112
+      ],
+      "id": "4a0209a3-bd75-4e37-ab27-eb805a976d5c",
+      "name": "Batch terminé ?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d4123f6d-cf4e-4ac4-a38f-a4c7752728a1",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "review",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        800,
+        -288
+      ],
+      "id": "a79025c1-763a-4c54-9269-97a3aa480c7f",
+      "name": "A traiter ?"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list",
+          "cachedResultName": "Mission Pipeline",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSeyppFhxU3i8Ev",
+          "mode": "list",
+          "cachedResultName": "A traiter",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblSeyppFhxU3i8Ev"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Société": "={{ $json.societe }}",
+            "Poste": "={{ $json.poste }}",
+            "Sujet": "={{ $json.subject }}",
+            "Réponse": "={{ $json.reponse }}",
+            "Expéditeur": "={{ $json.fromRaw }}",
+            "Date": "={{ $json.date }}",
+            "Note": "={{ $json.note }}",
+            "Lien Gmail": "={{ $json.gmailLink }}",
+            "ID Email": "={{ $json.emailId }}"
+          },
+          "matchingColumns": [
+            "ID Email"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Société",
+              "displayName": "Société",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Poste",
+              "displayName": "Poste",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Réponse",
+              "displayName": "Réponse",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Néant",
+                  "value": "Néant"
+                },
+                {
+                  "name": "Envoyé",
+                  "value": "Envoyé"
+                },
+                {
+                  "name": "A/R",
+                  "value": "A/R"
+                },
+                {
+                  "name": "Oui",
+                  "value": "Oui"
+                },
+                {
+                  "name": "Non",
+                  "value": "Non"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sujet",
+              "displayName": "Sujet",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Expéditeur",
+              "displayName": "Expéditeur",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Note",
+              "displayName": "Note",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lien Gmail",
+              "displayName": "Lien Gmail",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID Email",
+              "displayName": "ID Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        -432
+      ],
+      "id": "c19fa31f-91bc-4c14-8621-e7772321ae92",
+      "name": "Créer un enregistrement à checker",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Filtrer & préparer": {
+      "main": [
+        [
+          {
+            "node": "Construire requêtes batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construire requêtes batch": {
+      "main": [
+        [
+          {
+            "node": "Créer batch Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer batch Claude": {
+      "main": [
+        [
+          {
+            "node": "Statut batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Statut batch": {
+      "main": [
+        [
+          {
+            "node": "Batch terminé ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attendre 30 s": {
+      "main": [
+        [
+          {
+            "node": "Statut batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Récupérer résultats": {
+      "main": [
+        [
+          {
+            "node": "Lister enregistrements",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lister enregistrements": {
+      "main": [
+        [
+          {
+            "node": "Matcher & décider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Matcher & décider": {
+      "main": [
+        [
+          {
+            "node": "A traiter ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer ?": {
+      "main": [
+        [
+          {
+            "node": "Créer enregistrement Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mettre à jour ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mettre à jour ?": {
+      "main": [
+        [
+          {
+            "node": "Mettre à jour Réponse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignoré — réponse déjà renseignée",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batch terminé ?": {
+      "main": [
+        [
+          {
+            "node": "Récupérer résultats",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Attendre 30 s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A traiter ?": {
+      "main": [
+        [
+          {
+            "node": "Créer un enregistrement à checker",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Créer ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail — Emails de la veille": {
+      "main": [
+        [
+          {
+            "node": "Filtrer & préparer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tous les jours à 4h": {
+      "main": [
+        [
+          {
+            "node": "Gmail — Emails de la veille",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Tous les jours à 4h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "7887d6b6-0a30-47b6-a44f-c8007e3cade7",
+  "activeVersionId": "7887d6b6-0a30-47b6-a44f-c8007e3cade7",
+  "versionCounter": 4,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "shared": [
+    {
+      "updatedAt": "2026-06-15T13:57:13.188Z",
+      "createdAt": "2026-06-15T13:57:13.188Z",
+      "role": "workflow:owner",
+      "workflowId": "BsXYMJdidg8tej9i",
+      "projectId": "G5Wnvvi3eXOd7TfX",
+      "project": {
+        "updatedAt": "2025-11-24T22:32:24.451Z",
+        "createdAt": "2025-11-24T22:29:00.493Z",
+        "id": "G5Wnvvi3eXOd7TfX",
+        "name": "Xavier ROBITAILLE <xrobitaille92150@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "327b8291-3be6-4beb-a31b-67dda7c79279"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-06-15T14:53:44.471Z",
+    "createdAt": "2026-06-15T14:53:44.471Z",
+    "versionId": "7887d6b6-0a30-47b6-a44f-c8007e3cade7",
+    "workflowId": "BsXYMJdidg8tej9i",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 4 * * *"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -1408,
+          -112
+        ],
+        "id": "5c3adb21-d45c-4586-b560-8d1b643c7541",
+        "name": "Tous les jours à 4h"
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "returnAll": true,
+          "simple": false,
+          "filters": {
+            "q": "=after:{{ $now.minus({days:1}).toFormat('yyyy/MM/dd') }} before:{{ $now.toFormat('yyyy/MM/dd') }}"
+          },
+          "options": {}
+        },
+        "name": "Gmail — Emails de la veille",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2,
+        "position": [
+          -1200,
+          -112
+        ],
+        "id": "690dcfb6-69e8-4c75-8554-12c342472ba9",
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "webhookId": "e25eef81-b9cb-4e34-a263-b7a0b3cbca78",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "wN9kkTh8npM257wD",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Nœud n8n \"Filtrer & préparer\" (Code, runOnceForAllItems)\n// Décode le corps des emails, applique les règles déterministes LinkedIn,\n// extrait URL/Poste/Lieu/Mode pour les confirmations Envoyé, et construit\n// le prompt Claude. Sortie : un item par email à classifier.\n\nconst items = $input.all();\nconst results = [];\n\nconst decodeB64 = (data) => {\n  if (!data) return '';\n  try { return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'); }\n  catch (e) { return ''; }\n};\n\nconst extractText = (parts) => {\n  if (!Array.isArray(parts)) return '';\n  let text = '';\n  for (const part of parts) {\n    if (part.mimeType === 'text/plain' && part.body?.data) text += decodeB64(part.body.data) + ' ';\n    else if (Array.isArray(part.parts)) text += extractText(part.parts);\n  }\n  return text;\n};\n\nconst getHeader = (email, name) => {\n  const headers = email.payload?.headers;\n  if (Array.isArray(headers)) {\n    const found = headers.find(h => (h.name || '').toLowerCase() === name.toLowerCase());\n    if (found) return found.value || '';\n  }\n  const cap = name.charAt(0).toUpperCase() + name.slice(1);\n  return email[name] || email[cap] || '';\n};\n\nconst cutName = (s) => s.split(/\\s[-|–—:]\\s|\\n|\\bpour\\b|\\bfor\\b/i)[0].trim().slice(0, 60);\nconst escRe = (s) => String(s).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n\n// Normalise un mode \"À distance / Remote / Hybride / Présentiel\" -> Remote / Hybrid / Présentiel\nconst cleanMode = (raw) => {\n  const m = String(raw || '').toLowerCase();\n  if (/(à\\s*distance|\\ba\\s*distance\\b|remote|télétravail|teletravail|full\\s*remote)/.test(m)) return 'Remote';\n  if (/(hybride|hybrid)/.test(m)) return 'Hybrid';\n  if (/(sur\\s*(?:site|place)|on[-\\s]?site|présentiel|presentiel)/.test(m)) return 'Présentiel';\n  return '';\n};\n\n// Trouve une URL d'offre LinkedIn dans un texte (HTML ou plain)\nconst findLinkedInJobUrl = (text) => {\n  if (!text) return '';\n  const m = String(text).match(/https?:\\/\\/(?:[\\w.-]+\\.)?linkedin\\.com\\/(?:comm\\/)?jobs\\/view\\/(\\d+)/i);\n  return m ? `https://www.linkedin.com/jobs/view/${m[1]}/` : '';\n};\n\n// Cherche l'URL d'offre dans toutes les parties du payload (plain + html)\nconst findLinkedInJobUrlInPayload = (payload) => {\n  if (!payload) return '';\n  if (payload.body?.data) {\n    const u = findLinkedInJobUrl(decodeB64(payload.body.data));\n    if (u) return u;\n  }\n  if (Array.isArray(payload.parts)) {\n    for (const p of payload.parts) {\n      const u = findLinkedInJobUrlInPayload(p);\n      if (u) return u;\n    }\n  }\n  return '';\n};\n\nfor (const item of items) {\n  const email = item.json;\n\n  const subject = getHeader(email, 'Subject');\n  const fromRaw = getHeader(email, 'From');\n  const dateRaw = getHeader(email, 'Date');\n  const fromEmail = (fromRaw ? ((fromRaw.match(/<([^>]+)>/) || [])[1] || fromRaw.trim()) : '').toLowerCase();\n  const domain = fromEmail.includes('@') ? fromEmail.split('@')[1] : '';\n  const snippet = email.snippet || '';\n  const isLinkedIn = domain.includes('linkedin.com');\n\n  // Règles déterministes LinkedIn (sur sujet + aperçu)\n  let forcedReponse = null;\n  let forcedSociete = null;\n  if (isLinkedIn) {\n    const head = `${subject}\\n${snippet}`;\n    let m;\n    if ((m = head.match(/your application was sent to\\s+(.+)/i)) ||\n        (m = head.match(/votre candidature a été envoyée à\\s+(.+)/i)) ||\n        (m = head.match(/candidature(?:\\s+a(?:\\s+bien)?\\s+été)?\\s+envoyée\\s+à\\s+(.+)/i))) {\n      forcedReponse = 'Envoyé'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/your application was viewed by\\s+(.+)/i)) ||\n               (m = head.match(/candidature a été consultée par\\s+(.+)/i))) {\n      forcedReponse = 'A/R'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/derni[eè]re nouvelle de\\s+(.+)/i))) {\n      forcedReponse = 'Non'; forcedSociete = cutName(m[1]);\n    }\n  }\n\n  // Alertes d'offres LinkedIn -> mises de côté\n  if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') continue;\n\n  let bodyRaw = '';\n  if (email.payload) {\n    if (Array.isArray(email.payload.parts)) bodyRaw = extractText(email.payload.parts);\n    else if (email.payload.body?.data) bodyRaw = decodeB64(email.payload.body.data);\n  }\n  if (!bodyRaw) bodyRaw = email.text || email.html || snippet || '';\n\n  let bodyClean = String(bodyRaw).replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n  if (bodyClean.length > 2500) bodyClean = bodyClean.slice(0, 1800) + ' […] ' + bodyClean.slice(-700);\n\n  // Enrichissement LinkedIn (Envoyé uniquement) — URL / Poste / Lieu / Mode\n  let forcedUrl = '';\n  let forcedPoste = null;\n  let forcedLieu = null;\n  let forcedMode = null;\n  if (isLinkedIn && forcedReponse === 'Envoyé' && forcedSociete) {\n    forcedUrl = findLinkedInJobUrlInPayload(email.payload);\n\n    // Pattern : \"<Société> <Poste> <Société> · <Lieu> (<Mode>?) ... Candidature/Application/Voir/View\"\n    const escSoc = escRe(forcedSociete);\n    const stop = '(?:\\\\s+Candidature\\\\s+envoyée|\\\\s+Application\\\\s+sent|\\\\s+View\\\\s+job|\\\\s+Voir\\\\s+l|\\\\s+Postuler|$)';\n    const re = new RegExp(\n      `${escSoc}\\\\s+([^·•]+?)\\\\s+${escSoc}\\\\s*[·•]\\\\s*([^·•]+?)${stop}`,\n      'i'\n    );\n    const mm = bodyClean.match(re);\n    if (mm) {\n      forcedPoste = mm[1].trim().slice(0, 200);\n      const meta = mm[2].trim();\n      const lm = meta.match(/^(.+?)\\s*(?:\\(([^)]+)\\))?\\s*$/);\n      if (lm) {\n        forcedLieu = lm[1].trim().slice(0, 100);\n        forcedMode = cleanMode(lm[2] || meta);\n      }\n    }\n  }\n\n  const customId = ('m_' + (email.id || String(results.length)))\n    .replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);\n\n  const claudePrompt = `Analyse cet email de candidature à l'emploi (en français) et classe la réponse de l'employeur.\n\nExpéditeur : ${fromRaw}\nDomaine expéditeur : ${domain}\nSujet : ${subject}\nCorps : ${bodyClean || snippet}\n\nRéponds UNIQUEMENT avec ce JSON, sans texte ni balises autour :\n{\"recrutement\": true/false, \"societe\": \"... ou null\", \"poste\": \"... ou null\", \"reponse\": \"A/R|Oui|Non\", \"confidence\": \"high|medium|low\", \"note\": \"1 phrase\"}\n\nDÉFINITIONS\n- recrutement=true : email lié à une candidature précise (accusé de réception d'ATS, refus, invitation entretien, message d'un recruteur sur une candidature).\n- recrutement=false : alertes/offres non sollicitées, newsletters ; emails d'AUTHENTIFICATION / code de connexion / vérification ; emails de BIENVENUE / création de compte / inscription à une plateforme ; invitations à une CONFÉRENCE / webinaire / événement (≠ entretien d'embauche) ; notifs bancaires, factures, pub, réseaux sociaux.\n- societe : l'ENTREPRISE qui recrute. Si elle n'est pas explicite, DÉDUIS-LA de la signature, de l'adresse postale, du logo/nom cité dans le corps, ou du domaine de l'expéditeur. Jamais la plateforme/ATS ni le cabinet (ignorer Welcome to the Jungle, Greenhouse, Lever, Workday, LinkedIn). null seulement si vraiment introuvable.\n- poste : déduis l'intitulé depuis le sujet, le corps ou la signature. null si introuvable.\n\nCLASSEMENT DE reponse — lis le CORPS, pas seulement l'objet :\n- \"A/R\" = accusé de réception, AUCUNE décision : « bien reçu votre candidature », « candidature enregistrée », « merci pour votre candidature », confirmation automatique.\n- \"Non\" = refus : « ne donnerons pas suite », « profil n'a pas été retenu », « malheureusement », « regret », « unfortunately ».\n- \"Oui\" = suite positive RÉELLE : invitation entretien/échange/appel/visio, test ou screening de sélection, « souhaitons vous rencontrer », « vos disponibilités », « prochaine étape ». PAS une invitation à une conférence/événement ni une simple inscription.\n\nRÈGLES\n- Un accusé de réception n'est PAS un refus. A/R ≠ Non ≠ Oui.\n- En cas de doute entre les trois (si c'est bien du recrutement) → \"A/R\".`;\n\n  results.push({\n    json: {\n      customId, emailId: email.id || '', subject, fromRaw, fromEmail,\n      date: dateRaw, domain, snippet, bodyClean, claudePrompt,\n      forcedReponse, forcedSociete, forcedUrl, forcedPoste, forcedLieu, forcedMode,\n    },\n  });\n}\n\nreturn results;\n"
+        },
+        "name": "Filtrer & préparer",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1008,
+          -112
+        ],
+        "id": "3047950d-5af9-4994-9218-65617b0ec29c"
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\n\nconst requests = items.map((item) => ({\n  custom_id: item.json.customId,\n  params: {\n    model: 'claude-haiku-4-5-20251001',\n    max_tokens: 512,\n    system: 'Tu extrais des infos depuis des emails de recrutement. Réponds UNIQUEMENT en JSON valide.',\n    messages: [{ role: 'user', content: item.json.claudePrompt }],\n  },\n}));\n\n// Garde-fou: un batch vide renverrait un 400 côté Anthropic.\nif (requests.length === 0) {\n  throw new Error('Aucun email à classifier (0 requête) — rien à envoyer au batch.');\n}\n\nreturn [{ json: { requests, count: requests.length } }];\n"
+        },
+        "name": "Construire requêtes batch",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -800,
+          -112
+        ],
+        "id": "3321c773-71aa-4315-bc36-467b086e31fe"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.anthropic.com/v1/messages/batches",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "anthropic-version",
+                "value": "2023-06-01"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ requests: $json.requests }) }}",
+          "options": {}
+        },
+        "name": "Créer batch Claude",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -608,
+          -112
+        ],
+        "id": "57bb0470-73d3-4994-b85a-c5ba32c5c7f4",
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "tb4jH2LrqUFwnjrM",
+            "name": "Anthropic API Key"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "=https://api.anthropic.com/v1/messages/batches/{{ $json.id }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "anthropic-version",
+                "value": "2023-06-01"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "name": "Statut batch",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -400,
+          -112
+        ],
+        "id": "3e572ea9-03a0-401c-9999-2aa591cfd707",
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "tb4jH2LrqUFwnjrM",
+            "name": "Anthropic API Key"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "amount": 30
+        },
+        "name": "Attendre 30 s",
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          -208,
+          96
+        ],
+        "id": "572539d9-b461-4d88-a820-168823adb1dc",
+        "webhookId": "wait-batch-poll"
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.results_url }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "anthropic-version",
+                "value": "2023-06-01"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "responseFormat": "text"
+              }
+            }
+          }
+        },
+        "name": "Récupérer résultats",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          208,
+          -112
+        ],
+        "id": "edac904e-4b9b-4480-9dbc-9bb8689d5d4f",
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "tb4jH2LrqUFwnjrM",
+            "name": "Anthropic API Key"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apphTpnW5vu0OdnfC",
+            "mode": "list",
+            "cachedResultName": "Mission Pipeline",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblF3jpncEXA647ou",
+            "mode": "list",
+            "cachedResultName": "Candidatures",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblF3jpncEXA647ou"
+          },
+          "options": {
+            "fields": []
+          }
+        },
+        "name": "Lister enregistrements",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          416,
+          -112
+        ],
+        "id": "8ee13f5e-6596-48bb-a849-69d0fa34cfef",
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "bQLoL1mZbqEFDoKw",
+            "name": "Airtable Personal Access Token account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Nœud n8n \"Matcher & décider\" (Code, runOnceForAllItems)\n// Lit les résultats du batch (JSONL) + la liste Airtable, rapproche chaque\n// email d'une candidature existante, et décide : create / update / skip / review.\n// Propage en sortie les enrichissements LinkedIn (URL, Lieu, Mode).\n\nconst DENY = new Set(['indigoneo']);\n\n// Hiérarchie des statuts : on n'avance que vers l'avant\nconst RANK = { '': 0, 'neant': 0, 'envoye': 1, 'a/r': 2, 'ar': 2, 'oui': 3, 'non': 3 };\nconst rankOf = (rp) => RANK[String(rp || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')] ?? 0;\n\nconst toIso = (s) => { if (!s) return ''; const d = new Date(s); return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10); };\n\nconst normalize = (s) => String(s || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[̀-ͯ]/g, '')\n  .replace(/\\b(sas|sasu|sa|sarl|inc|ltd|llc|gmbh|group|groupe|technologies|tech|recruitment|recrutement|staffing)\\b/g, '')\n  .replace(/[^a-z0-9]/g, '');\n\nconst getField = (f, name) => {\n  if (!f) return '';\n  if (f[name] != null) return f[name];\n  const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');\n  const target = norm(name);\n  for (const k of Object.keys(f)) if (norm(k) === target) return f[k];\n  return '';\n};\n\nconst indexed = $input.all().map((i) => {\n  const f = i.json.fields || i.json;\n  return {\n    id: getField(f, 'id') || i.json.id,\n    societe: getField(f, 'societe'),\n    poste: getField(f, 'poste'),\n    reponse: getField(f, 'reponse'),\n    key: normalize(getField(f, 'societe')),\n  };\n});\n\nconst findMatch = (societe, meta) => {\n  const keyS = normalize(societe);\n  if (keyS.length > 1) {\n    const m = indexed.find(r => r.key && (r.key === keyS || r.key.includes(keyS) || keyS.includes(r.key)));\n    if (m) return m;\n  }\n  const hay = normalize(`${meta.subject || ''} ${meta.snippet || ''} ${meta.bodyClean || ''} ${meta.fromRaw || ''}`);\n  if (hay) {\n    const hits = indexed\n      .filter(r => r.key && r.key.length >= 4 && hay.includes(r.key))\n      .sort((a, b) => b.key.length - a.key.length);\n    if (hits.length) return hits[0];\n  }\n  const keyD = normalize((meta.domain || '').split('.')[0]);\n  if (keyD.length > 2) {\n    const m = indexed.find(r => r.key && (r.key.includes(keyD) || keyD.includes(r.key)));\n    if (m) return m;\n  }\n  return null;\n};\n\nconst metaById = {};\nfor (const it of $('Filtrer & préparer').all()) {\n  metaById[it.json.customId] = it.json;\n}\n\nconst r = $('Récupérer résultats').first().json;\nconst raw = (typeof r === 'string') ? r : (r.data || r.body || r.text || '');\nconst lines = String(raw).split('\\n').map(l => l.trim()).filter(Boolean);\n\nconst out = [];\nfor (const line of lines) {\n  let entry;\n  try { entry = JSON.parse(line); } catch (e) { continue; }\n\n  const meta = metaById[entry.custom_id];\n  if (!meta) continue;\n\n  let extracted = { recrutement: false, societe: null, poste: null, reponse: 'A/R', confidence: 'low', note: '' };\n  if (entry.result && entry.result.type === 'succeeded') {\n    try {\n      const text = entry.result.message?.content?.[0]?.text || '';\n      const clean = text.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\n      extracted = { ...extracted, ...JSON.parse(clean) };\n    } catch (e) { /* défaut conservé */ }\n  }\n\n  const forced = !!meta.forcedReponse;\n  if (extracted.recrutement !== true && !forced) continue;\n\n  // société + fiabilité (forcée OU extraite par Claude = fiable ; fallback domaine = non fiable)\n  let societe, societeReliable;\n  if (meta.forcedSociete) { societe = meta.forcedSociete; societeReliable = true; }\n  else if (extracted.societe && extracted.societe !== 'null') { societe = extracted.societe; societeReliable = true; }\n  else { societe = meta.domain ? meta.domain.split('.')[0] : ''; societeReliable = false; }\n\n  // Poste : préfère l'extraction LinkedIn déterministe, sinon Claude\n  const poste = meta.forcedPoste\n    ? meta.forcedPoste\n    : ((extracted.poste && extracted.poste !== 'null') ? extracted.poste : '');\n\n  // Enrichissements LinkedIn (vides pour les autres emails)\n  const lieu = meta.forcedLieu || '';\n  const mode = meta.forcedMode || '';\n  const linkedinUrl = meta.forcedUrl || '';\n\n  const reponse = forced\n    ? meta.forcedReponse\n    : (['Oui', 'Non', 'A/R'].includes(extracted.reponse) ? extracted.reponse : 'A/R');\n\n  if (DENY.has(normalize(societe))) continue;\n\n  const match = findMatch(societe, meta);\n\n  let action, airtableId = null;\n  if (match) {\n    airtableId = match.id;\n    action = rankOf(reponse) > rankOf(match.reponse) ? 'update' : 'skip';\n  } else if (societeReliable && normalize(societe).length >= 2) {\n    action = 'create';\n  } else {\n    action = 'review';\n  }\n\n  out.push({\n    json: {\n      action, airtableId, societe, poste, reponse,\n      lieu, mode, linkedinUrl,\n      subject: meta.subject, fromRaw: meta.fromRaw, date: toIso(meta.date),\n      note: extracted.note || '',\n      gmailLink: meta.emailId ? `https://mail.google.com/mail/u/0/#all/${meta.emailId}` : '',\n      domain: meta.domain, emailId: meta.emailId,\n      confidence: extracted.confidence || 'low',\n      forced, existingReponse: match ? match.reponse : null,\n    },\n  });\n}\n\n// Dédoublonnage intra-run : create/update oui ; review JAMAIS (l'upsert Airtable gère le cross-run)\nconst best = new Map();\nconst reviews = [];\nfor (const o of out) {\n  if (o.json.action === 'review') { reviews.push(o); continue; }\n  const k = (o.json.action === 'create') ? ('soc:' + normalize(o.json.societe)) : ('id:' + o.json.airtableId);\n  const prev = best.get(k);\n  if (!prev || rankOf(o.json.reponse) > rankOf(prev.json.reponse)) best.set(k, o);\n}\nreturn [...best.values(), ...reviews];\n"
+        },
+        "name": "Matcher & décider",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          608,
+          -112
+        ],
+        "id": "a8b8ddc1-3008-481f-ab9b-612c2f69a5e1"
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "apphTpnW5vu0OdnfC",
+            "mode": "list",
+            "cachedResultName": "Mission Pipeline",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblF3jpncEXA647ou",
+            "mode": "list",
+            "cachedResultName": "Candidatures",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblF3jpncEXA647ou"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Société": "={{ $json.societe }}",
+              "Poste": "={{ $json.poste }}",
+              "Réponse": "={{ $json.reponse }}",
+              "Note": "={{ $json.note }}",
+              "Date réponse": "={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : undefined }}",
+              "Date postulé": "={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : undefined }}",
+              "URL": "={{ $json.linkedinUrl || undefined }}",
+              "Lieu": "={{ $json.lieu || undefined }}",
+              "Mode": "={{ $json.mode || undefined }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Société",
+                "displayName": "Société",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Poste",
+                "displayName": "Poste",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Lieu",
+                "displayName": "Lieu",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Mode",
+                "displayName": "Mode",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Note",
+                "displayName": "Note",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "URL",
+                "displayName": "URL",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Date postulé",
+                "displayName": "Date postulé",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Date réponse",
+                "displayName": "Date réponse",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Réponse",
+                "displayName": "Réponse",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Néant",
+                    "value": "Néant"
+                  },
+                  {
+                    "name": "Envoyé",
+                    "value": "Envoyé"
+                  },
+                  {
+                    "name": "A/R",
+                    "value": "A/R"
+                  },
+                  {
+                    "name": "Oui",
+                    "value": "Oui"
+                  },
+                  {
+                    "name": "Non",
+                    "value": "Non"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "name": "Créer enregistrement Airtable",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          1456,
+          -352
+        ],
+        "id": "8f3eac09-fe74-4114-bd15-d680f0dd5002",
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "bQLoL1mZbqEFDoKw",
+            "name": "Airtable Personal Access Token account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "apphTpnW5vu0OdnfC",
+            "mode": "list",
+            "cachedResultName": "Mission Pipeline",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblF3jpncEXA647ou",
+            "mode": "list",
+            "cachedResultName": "Candidatures",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblF3jpncEXA647ou"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Réponse": "={{ $json.reponse }}",
+              "id": "={{ $json.airtableId }}",
+              "Date postulé": "={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : undefined }}",
+              "Date réponse": "={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : undefined }}",
+              "Note": "={{ $json.note }}",
+              "Lieu": "={{ $json.lieu || undefined }}",
+              "Mode": "={{ $json.mode || undefined }}",
+              "URL": "={{ $json.linkedinUrl || undefined }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Société",
+                "displayName": "Société",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Poste",
+                "displayName": "Poste",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Lieu",
+                "displayName": "Lieu",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Mode",
+                "displayName": "Mode",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Note",
+                "displayName": "Note",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "URL",
+                "displayName": "URL",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Date postulé",
+                "displayName": "Date postulé",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Date réponse",
+                "displayName": "Date réponse",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Réponse",
+                "displayName": "Réponse",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Néant",
+                    "value": "Néant"
+                  },
+                  {
+                    "name": "Envoyé",
+                    "value": "Envoyé"
+                  },
+                  {
+                    "name": "A/R",
+                    "value": "A/R"
+                  },
+                  {
+                    "name": "Oui",
+                    "value": "Oui"
+                  },
+                  {
+                    "name": "Non",
+                    "value": "Non"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "name": "Mettre à jour Réponse",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          1456,
+          -144
+        ],
+        "id": "aaa8b4df-cd3f-4dec-8a4d-b5aa0dd60a02",
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "bQLoL1mZbqEFDoKw",
+            "name": "Airtable Personal Access Token account"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "name": "Ignoré — réponse déjà renseignée",
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          1456,
+          64
+        ],
+        "id": "af375f78-fc44-49b2-bf64-c24c71f2e54c"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "ce04a402-af98-4aca-be6d-c0530d89174a",
+                "leftValue": "={{ $json.action }}",
+                "rightValue": "create",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1008,
+          -240
+        ],
+        "id": "5d6a6112-5688-4f22-b0fb-9891f71e2754",
+        "name": "Créer ?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "8061dad3-3dcb-4ba3-9e84-2ee885cb9fe9",
+                "leftValue": "={{ $json.action }}",
+                "rightValue": "update",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1232,
+          -112
+        ],
+        "id": "32abffbb-c8ca-4a8d-bc58-1dc1a0db3763",
+        "name": "Mettre à jour ?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "20c9b592-e705-4edc-a5a6-713e8f4e79a5",
+                "leftValue": "={{ $json.processing_status }}",
+                "rightValue": "ended",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -192,
+          -112
+        ],
+        "id": "4a0209a3-bd75-4e37-ab27-eb805a976d5c",
+        "name": "Batch terminé ?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "d4123f6d-cf4e-4ac4-a38f-a4c7752728a1",
+                "leftValue": "={{ $json.action }}",
+                "rightValue": "review",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          800,
+          -288
+        ],
+        "id": "a79025c1-763a-4c54-9269-97a3aa480c7f",
+        "name": "A traiter ?"
+      },
+      {
+        "parameters": {
+          "operation": "upsert",
+          "base": {
+            "__rl": true,
+            "value": "apphTpnW5vu0OdnfC",
+            "mode": "list",
+            "cachedResultName": "Mission Pipeline",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblSeyppFhxU3i8Ev",
+            "mode": "list",
+            "cachedResultName": "A traiter",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblSeyppFhxU3i8Ev"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Société": "={{ $json.societe }}",
+              "Poste": "={{ $json.poste }}",
+              "Sujet": "={{ $json.subject }}",
+              "Réponse": "={{ $json.reponse }}",
+              "Expéditeur": "={{ $json.fromRaw }}",
+              "Date": "={{ $json.date }}",
+              "Note": "={{ $json.note }}",
+              "Lien Gmail": "={{ $json.gmailLink }}",
+              "ID Email": "={{ $json.emailId }}"
+            },
+            "matchingColumns": [
+              "ID Email"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Société",
+                "displayName": "Société",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Poste",
+                "displayName": "Poste",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Réponse",
+                "displayName": "Réponse",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Néant",
+                    "value": "Néant"
+                  },
+                  {
+                    "name": "Envoyé",
+                    "value": "Envoyé"
+                  },
+                  {
+                    "name": "A/R",
+                    "value": "A/R"
+                  },
+                  {
+                    "name": "Oui",
+                    "value": "Oui"
+                  },
+                  {
+                    "name": "Non",
+                    "value": "Non"
+                  }
+                ],
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Sujet",
+                "displayName": "Sujet",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Expéditeur",
+                "displayName": "Expéditeur",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Date",
+                "displayName": "Date",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Note",
+                "displayName": "Note",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Lien Gmail",
+                "displayName": "Lien Gmail",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "ID Email",
+                "displayName": "ID Email",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.2,
+        "position": [
+          1008,
+          -432
+        ],
+        "id": "c19fa31f-91bc-4c14-8621-e7772321ae92",
+        "name": "Créer un enregistrement à checker",
+        "retryOnFail": true,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "bQLoL1mZbqEFDoKw",
+            "name": "Airtable Personal Access Token account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Filtrer & préparer": {
+        "main": [
+          [
+            {
+              "node": "Construire requêtes batch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construire requêtes batch": {
+        "main": [
+          [
+            {
+              "node": "Créer batch Claude",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Créer batch Claude": {
+        "main": [
+          [
+            {
+              "node": "Statut batch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Statut batch": {
+        "main": [
+          [
+            {
+              "node": "Batch terminé ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Attendre 30 s": {
+        "main": [
+          [
+            {
+              "node": "Statut batch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Récupérer résultats": {
+        "main": [
+          [
+            {
+              "node": "Lister enregistrements",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Lister enregistrements": {
+        "main": [
+          [
+            {
+              "node": "Matcher & décider",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Matcher & décider": {
+        "main": [
+          [
+            {
+              "node": "A traiter ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Créer ?": {
+        "main": [
+          [
+            {
+              "node": "Créer enregistrement Airtable",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Mettre à jour ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mettre à jour ?": {
+        "main": [
+          [
+            {
+              "node": "Mettre à jour Réponse",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ignoré — réponse déjà renseignée",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Batch terminé ?": {
+        "main": [
+          [
+            {
+              "node": "Récupérer résultats",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Attendre 30 s",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "A traiter ?": {
+        "main": [
+          [
+            {
+              "node": "Créer un enregistrement à checker",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Créer ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gmail — Emails de la veille": {
+        "main": [
+          [
+            {
+              "node": "Filtrer & préparer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Tous les jours à 4h": {
+        "main": [
+          [
+            {
+              "node": "Gmail — Emails de la veille",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Xavier ROBITAILLE",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-06-15T14:53:44.527Z",
+        "id": 19,
+        "workflowId": "BsXYMJdidg8tej9i",
+        "versionId": "7887d6b6-0a30-47b6-a44f-c8007e3cade7",
+        "event": "activated",
+        "userId": "327b8291-3be6-4beb-a31b-67dda7c79279"
+      },
+      {
+        "createdAt": "2026-06-15T14:53:44.509Z",
+        "id": 18,
+        "workflowId": "BsXYMJdidg8tej9i",
+        "versionId": "7887d6b6-0a30-47b6-a44f-c8007e3cade7",
+        "event": "deactivated",
+        "userId": "327b8291-3be6-4beb-a31b-67dda7c79279"
+      }
+    ]
+  }
+}

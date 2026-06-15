@@ -1,6 +1,7 @@
 // Nœud n8n "Matcher & décider" (Code, runOnceForAllItems)
 // Lit les résultats du batch (JSONL) + la liste Airtable, rapproche chaque
 // email d'une candidature existante, et décide : create / update / skip / review.
+// Propage en sortie les enrichissements LinkedIn (URL, Lieu, Mode).
 
 const DENY = new Set(['indigoneo']);
 
@@ -16,7 +17,6 @@ const normalize = (s) => String(s || '')
   .replace(/\b(sas|sasu|sa|sarl|inc|ltd|llc|gmbh|group|groupe|technologies|tech|recruitment|recrutement|staffing)\b/g, '')
   .replace(/[^a-z0-9]/g, '');
 
-// Lecture de champ tolérante (Société / societe / SOCIETE...) — gère aussi le format à plat
 const getField = (f, name) => {
   if (!f) return '';
   if (f[name] != null) return f[name];
@@ -43,7 +43,6 @@ const findMatch = (societe, meta) => {
     const m = indexed.find(r => r.key && (r.key === keyS || r.key.includes(keyS) || keyS.includes(r.key)));
     if (m) return m;
   }
-  // rapprochement "à l'envers" : un nom de candidature connue présent dans le texte
   const hay = normalize(`${meta.subject || ''} ${meta.snippet || ''} ${meta.bodyClean || ''} ${meta.fromRaw || ''}`);
   if (hay) {
     const hits = indexed
@@ -94,7 +93,16 @@ for (const line of lines) {
   else if (extracted.societe && extracted.societe !== 'null') { societe = extracted.societe; societeReliable = true; }
   else { societe = meta.domain ? meta.domain.split('.')[0] : ''; societeReliable = false; }
 
-  const poste = (extracted.poste && extracted.poste !== 'null') ? extracted.poste : '';
+  // Poste : préfère l'extraction LinkedIn déterministe, sinon Claude
+  const poste = meta.forcedPoste
+    ? meta.forcedPoste
+    : ((extracted.poste && extracted.poste !== 'null') ? extracted.poste : '');
+
+  // Enrichissements LinkedIn (vides pour les autres emails)
+  const lieu = meta.forcedLieu || '';
+  const mode = meta.forcedMode || '';
+  const linkedinUrl = meta.forcedUrl || '';
+
   const reponse = forced
     ? meta.forcedReponse
     : (['Oui', 'Non', 'A/R'].includes(extracted.reponse) ? extracted.reponse : 'A/R');
@@ -108,14 +116,15 @@ for (const line of lines) {
     airtableId = match.id;
     action = rankOf(reponse) > rankOf(match.reponse) ? 'update' : 'skip';
   } else if (societeReliable && normalize(societe).length >= 2) {
-    action = 'create';                              // société identifiée -> Candidatures
+    action = 'create';
   } else {
-    action = 'review';                              // société non identifiable -> À traiter
+    action = 'review';
   }
 
   out.push({
     json: {
       action, airtableId, societe, poste, reponse,
+      lieu, mode, linkedinUrl,
       subject: meta.subject, fromRaw: meta.fromRaw, date: toIso(meta.date),
       note: extracted.note || '',
       gmailLink: meta.emailId ? `https://mail.google.com/mail/u/0/#all/${meta.emailId}` : '',

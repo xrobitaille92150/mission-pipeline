@@ -1,6 +1,7 @@
 // Nœud n8n "Filtrer & préparer" (Code, runOnceForAllItems)
 // Décode le corps des emails, applique les règles déterministes LinkedIn,
-// et construit le prompt Claude. Sortie : un item par email à classifier.
+// extrait URL/Poste/Lieu/Mode pour les confirmations Envoyé, et construit
+// le prompt Claude. Sortie : un item par email à classifier.
 
 const items = $input.all();
 const results = [];
@@ -32,6 +33,39 @@ const getHeader = (email, name) => {
 };
 
 const cutName = (s) => s.split(/\s[-|–—:]\s|\n|\bpour\b|\bfor\b/i)[0].trim().slice(0, 60);
+const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Normalise un mode "À distance / Remote / Hybride / Présentiel" -> Remote / Hybrid / Présentiel
+const cleanMode = (raw) => {
+  const m = String(raw || '').toLowerCase();
+  if (/(à\s*distance|\ba\s*distance\b|remote|télétravail|teletravail|full\s*remote)/.test(m)) return 'Remote';
+  if (/(hybride|hybrid)/.test(m)) return 'Hybrid';
+  if (/(sur\s*(?:site|place)|on[-\s]?site|présentiel|presentiel)/.test(m)) return 'Présentiel';
+  return '';
+};
+
+// Trouve une URL d'offre LinkedIn dans un texte (HTML ou plain)
+const findLinkedInJobUrl = (text) => {
+  if (!text) return '';
+  const m = String(text).match(/https?:\/\/(?:[\w.-]+\.)?linkedin\.com\/(?:comm\/)?jobs\/view\/(\d+)/i);
+  return m ? `https://www.linkedin.com/jobs/view/${m[1]}/` : '';
+};
+
+// Cherche l'URL d'offre dans toutes les parties du payload (plain + html)
+const findLinkedInJobUrlInPayload = (payload) => {
+  if (!payload) return '';
+  if (payload.body?.data) {
+    const u = findLinkedInJobUrl(decodeB64(payload.body.data));
+    if (u) return u;
+  }
+  if (Array.isArray(payload.parts)) {
+    for (const p of payload.parts) {
+      const u = findLinkedInJobUrlInPayload(p);
+      if (u) return u;
+    }
+  }
+  return '';
+};
 
 for (const item of items) {
   const email = item.json;
@@ -51,6 +85,7 @@ for (const item of items) {
     const head = `${subject}\n${snippet}`;
     let m;
     if ((m = head.match(/your application was sent to\s+(.+)/i)) ||
+        (m = head.match(/votre candidature a été envoyée à\s+(.+)/i)) ||
         (m = head.match(/candidature(?:\s+a(?:\s+bien)?\s+été)?\s+envoyée\s+à\s+(.+)/i))) {
       forcedReponse = 'Envoyé'; forcedSociete = cutName(m[1]);
     } else if ((m = head.match(/your application was viewed by\s+(.+)/i)) ||
@@ -61,7 +96,7 @@ for (const item of items) {
     }
   }
 
-  // Alertes d'offres LinkedIn -> mises de côté (traitement spécifique à venir)
+  // Alertes d'offres LinkedIn -> mises de côté
   if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') continue;
 
   let bodyRaw = '';
@@ -72,8 +107,34 @@ for (const item of items) {
   if (!bodyRaw) bodyRaw = email.text || email.html || snippet || '';
 
   let bodyClean = String(bodyRaw).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  // garde le début ET la fin (signature/adresse souvent en bas)
   if (bodyClean.length > 2500) bodyClean = bodyClean.slice(0, 1800) + ' […] ' + bodyClean.slice(-700);
+
+  // Enrichissement LinkedIn (Envoyé uniquement) — URL / Poste / Lieu / Mode
+  let forcedUrl = '';
+  let forcedPoste = null;
+  let forcedLieu = null;
+  let forcedMode = null;
+  if (isLinkedIn && forcedReponse === 'Envoyé' && forcedSociete) {
+    forcedUrl = findLinkedInJobUrlInPayload(email.payload);
+
+    // Pattern : "<Société> <Poste> <Société> · <Lieu> (<Mode>?) ... Candidature/Application/Voir/View"
+    const escSoc = escRe(forcedSociete);
+    const stop = '(?:\\s+Candidature\\s+envoyée|\\s+Application\\s+sent|\\s+View\\s+job|\\s+Voir\\s+l|\\s+Postuler|$)';
+    const re = new RegExp(
+      `${escSoc}\\s+([^·•]+?)\\s+${escSoc}\\s*[·•]\\s*([^·•]+?)${stop}`,
+      'i'
+    );
+    const mm = bodyClean.match(re);
+    if (mm) {
+      forcedPoste = mm[1].trim().slice(0, 200);
+      const meta = mm[2].trim();
+      const lm = meta.match(/^(.+?)\s*(?:\(([^)]+)\))?\s*$/);
+      if (lm) {
+        forcedLieu = lm[1].trim().slice(0, 100);
+        forcedMode = cleanMode(lm[2] || meta);
+      }
+    }
+  }
 
   const customId = ('m_' + (email.id || String(results.length)))
     .replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
@@ -104,7 +165,11 @@ RÈGLES
 - En cas de doute entre les trois (si c'est bien du recrutement) → "A/R".`;
 
   results.push({
-    json: { customId, emailId: email.id || '', subject, fromRaw, fromEmail, date: dateRaw, domain, snippet, bodyClean, claudePrompt, forcedReponse, forcedSociete },
+    json: {
+      customId, emailId: email.id || '', subject, fromRaw, fromEmail,
+      date: dateRaw, domain, snippet, bodyClean, claudePrompt,
+      forcedReponse, forcedSociete, forcedUrl, forcedPoste, forcedLieu, forcedMode,
+    },
   });
 }
 

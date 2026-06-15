@@ -22,7 +22,8 @@
       "Read(//Users/xavierrobitaille/**)",
       "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline add -A)",
       "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'docs: croisement bidirectionnel avec le projet Cowork Candidatures *)",
-      "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline log --oneline)"
+      "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline log --oneline)",
+      "Bash(git -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'feat: extraction Lieu / Mode / URL depuis mails de confirmation LinkedIn *)"
     ]
   }
 }
