@@ -13,7 +13,10 @@
       "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline init -q)",
       "Bash(git add *)",
       "Bash(git -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'Baseline: workflow candidatures \\(export n8n du 15 juin, semaine 2 backfill\\) *)",
-      "Bash(git -C . log --oneline)"
+      "Bash(git -C . log --oneline)",
+      "Bash(cat /tmp/n8n_put_response.json | jq . 2>/dev/null || cat /tmp/n8n_put_response.json)",
+      "Bash(cp /tmp/n8n_verify.json candidatures.workflow.json)",
+      "Bash(git -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'fix: mapping Poste correct dans le nœud '\\\\''A traiter'\\\\'' *)"
     ]
   }
 }
