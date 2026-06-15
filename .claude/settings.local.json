@@ -18,7 +18,11 @@
       "Bash(cp /tmp/n8n_verify.json candidatures.workflow.json)",
       "Bash(git -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'fix: mapping Poste correct dans le nœud '\\\\''A traiter'\\\\'' *)",
       "Bash(cp /tmp/n8n_check2.json candidatures.workflow.json)",
-      "Bash(git -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'fix: upsert '\\\\''A traiter'\\\\'' sur ID Email \\(anti-doublons cross-run\\) *)"
+      "Bash(git -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'fix: upsert '\\\\''A traiter'\\\\'' sur ID Email \\(anti-doublons cross-run\\) *)",
+      "Read(//Users/xavierrobitaille/**)",
+      "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline add -A)",
+      "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'docs: croisement bidirectionnel avec le projet Cowork Candidatures *)",
+      "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline log --oneline)"
     ]
   }
 }

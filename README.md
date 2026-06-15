@@ -3,11 +3,46 @@
 Automatisation n8n qui lit les emails Gmail liés à des candidatures, les classe avec
 Claude, et tient à jour une base Airtable du suivi de candidatures.
 
-- **Hébergement** : n8n auto-hébergé sur VPS Hostinger (workflow `Cc6Ngky4IS30Cj8h`,
-  projet n8n « Xavier ROBITAILLE »).
+- **Hébergement** : n8n auto-hébergé sur VPS Hostinger.
+- **Workflows live** :
+  - Backfill (manuel, semaine par semaine) — `Cc6Ngky4IS30Cj8h`
+  - Run quotidien (cron `0 4 * * *`, **inactif** par défaut) — `BsXYMJdidg8tej9i`
 - **Source de vérité** : l'instance n8n en ligne. Ce dépôt en est le **miroir versionné**
-  (`candidatures.workflow.json` = export ; `nodes/*.js` = code lisible des nœuds Code).
+  (`backfill.workflow.json` / `daily.workflow.json` = export complet via API ;
+  `nodes/*.js` = code lisible des nœuds Code).
 - **État** : backfill en cours, traité **semaine par semaine** (déclencheur manuel).
+  Daily à activer une fois le backfill terminé.
+
+## Contexte projet (front-end / pilotage)
+
+Ce dépôt est la **plomberie** : il alimente la base Airtable Mission Pipeline. Le **front
+de pilotage** (dashboard, profil, sync LinkedIn, contexte stratégique) vit dans le projet
+Cowork :
+
+- **Projet Cowork « Candidatures »** : `/Users/xavierrobitaille/Desktop/Claude/Projects/Candidatures/`
+  - `CLAUDE.md` : instructions Claude (schéma Airtable, MCP, dashboard)
+  - `PROJECT.md` : statut, KPIs
+  - `artifacts/mission-pipeline.html` : dashboard live
+- **Profil partagé** : `/Users/xavierrobitaille/Desktop/Claude/Projects/_shared/context.md`
+  (parcours XRO, mission en cours, priorités, TJM cible, liste cabinets…)
+
+**Contrat partagé entre les deux** : la base Airtable **Mission Pipeline**
+(`apphTpnW5vu0OdnfC`). Toute mise à jour écrite par ce pipeline est lue par le dashboard
+en temps réel.
+
+## Édition à distance via l'API n8n
+
+Plus de copier-coller : la clé API n8n est stockée dans `~/.config/mission-pipeline/n8n.env`
+(jamais commitée, jamais collée dans un chat). Depuis une session Code :
+
+```sh
+set -a; source ~/.config/mission-pipeline/n8n.env; set +a
+# GET un workflow
+curl -sS -H "X-N8N-API-KEY: $N8N_API_KEY" "$N8N_URL/api/v1/workflows/Cc6Ngky4IS30Cj8h" | jq .
+# PUT après patch (settings strict : ne garder que executionOrder)
+curl -sS -X PUT -H "X-N8N-API-KEY: $N8N_API_KEY" -H "Content-Type: application/json" \
+  --data @body.json "$N8N_URL/api/v1/workflows/Cc6Ngky4IS30Cj8h"
+```
 
 ## Architecture (flux des nœuds)
 
