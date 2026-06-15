@@ -23,7 +23,11 @@
       "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline add -A)",
       "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'docs: croisement bidirectionnel avec le projet Cowork Candidatures *)",
       "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline log --oneline)",
-      "Bash(git -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'feat: extraction Lieu / Mode / URL depuis mails de confirmation LinkedIn *)"
+      "Bash(git -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'feat: extraction Lieu / Mode / URL depuis mails de confirmation LinkedIn *)",
+      "mcp__1efbcac8-6973-473a-8b67-ed8c9049d15d__list_records_for_table",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/tmp/airtable_update_payload.json'\\)\\); [print\\(r\\) for r in d[:3]]; print\\(f'total: {len\\(d\\)}'\\)\")",
+      "mcp__1efbcac8-6973-473a-8b67-ed8c9049d15d__update_records_for_table"
     ]
   }
 }

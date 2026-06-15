@@ -35,12 +35,12 @@ const getHeader = (email, name) => {
 const cutName = (s) => s.split(/\s[-|–—:]\s|\n|\bpour\b|\bfor\b/i)[0].trim().slice(0, 60);
 const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// Normalise un mode "À distance / Remote / Hybride / Présentiel" -> Remote / Hybrid / Présentiel
+// Normalise vers les valeurs FR utilisées dans Airtable Candidatures : "À distance" / "Hybride" / "Sur site"
 const cleanMode = (raw) => {
   const m = String(raw || '').toLowerCase();
-  if (/(à\s*distance|\ba\s*distance\b|remote|télétravail|teletravail|full\s*remote)/.test(m)) return 'Remote';
-  if (/(hybride|hybrid)/.test(m)) return 'Hybrid';
-  if (/(sur\s*(?:site|place)|on[-\s]?site|présentiel|presentiel)/.test(m)) return 'Présentiel';
+  if (/(à\s*distance|\ba\s*distance\b|remote|télétravail|teletravail|full\s*remote)/.test(m)) return 'À distance';
+  if (/(hybride|hybrid)/.test(m)) return 'Hybride';
+  if (/(sur\s*(?:site|place)|on[-\s]?site|présentiel|presentiel)/.test(m)) return 'Sur site';
   return '';
 };
 
