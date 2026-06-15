@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Mission Pipeline",
+  "schemaVersion": 1,
+  "description": "Dashboard live du pipeline de candidatures Xavier Advisory — données fraîches depuis Airtable (base Mission Pipeline, table Candidatures). Affiche KPIs, synthèse IA, alertes de relance, charts, et table filtrée/triable.",
+  "mcpTools": [
+    "mcp__1efbcac8-6973-473a-8b67-ed8c9049d15d__list_records_for_table"
+  ],
+  "mcpServerNames": [
+    "Airtable"
+  ]
+}
+</script>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission Pipeline — Xavier Advisory</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<link href="https://cdn.jsdelivr.net/npm/gridjs@5.0.2/dist/theme/mermaid.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gridjs@5.0.2/dist/gridjs.umd.js" integrity="sha384-/XXDzxe4FsGiAe50i/u9pY/Vy/uX654MHB1xoc1BJNnH1WXHhqHga9g3q5tF4gj7" crossorigin="anonymous"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; font-size: 14px; }
+
+header {
+  background: #0f172a;
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+header .subtitle { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
+header .brand { font-size: 0.7rem; color: rgba(255,255,255,0.3); letter-spacing: 0.08em; text-transform: uppercase; }
+header .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+.sync-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #0a66c2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.sync-btn:hover  { background: #0958a8; }
+.sync-btn:active { transform: scale(0.97); }
+.sync-btn:disabled { background: #334155; cursor: not-allowed; opacity: 0.7; }
+.sync-btn .li-icon { font-size: 1rem; line-height: 1; }
+
+/* Sync toast */
+.sync-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #1e293b;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  max-width: 320px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  z-index: 999;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+.sync-toast.visible { opacity: 1; transform: translateY(0); }
+.sync-toast strong { display: block; margin-bottom: 4px; color: #7dd3fc; }
+
+.container { padding: 16px 20px; max-width: 1100px; margin: 0 auto; }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.kpi { background: white; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e5e5ea; }
+.kpi .label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: #8e8e93; font-weight: 600; }
+.kpi .value { font-size: 1.9rem; font-weight: 800; color: #1d1d1f; line-height: 1.1; margin-top: 4px; }
+.kpi .sub { font-size: 0.7rem; color: #8e8e93; margin-top: 3px; }
+.kpi.kpi-alert .value { color: #c0392b; }
+.kpi.kpi-active .value { color: #1a7f37; }
+
+/* AI Box */
+.ai-box {
+  background: #f0f5ff;
+  border: 1px solid #c7d7f7;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.ai-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.ai-inner .label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #3b5bdb; margin-bottom: 5px; }
+.ai-content { font-size: 0.85rem; line-height: 1.65; color: #1d1d1f; }
+
+/* Charts row */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.chart-card { background: white; border-radius: 10px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e5e5ea; }
+.card-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #8e8e93; margin-bottom: 12px; }
+.chart-wrap { height: 150px; position: relative; }
+
+/* Alert section */
+.alerts-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+}
+.alerts-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.alerts-header .title { font-size: 0.78rem; font-weight: 700; color: #92400e; }
+.alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid #fde68a;
+  font-size: 0.8rem;
+}
+.alert-item:last-child { border-bottom: none; }
+.alert-item .info { flex: 1; min-width: 0; }
+.alert-item .co { font-weight: 600; color: #1d1d1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alert-item .role { color: #6e6e73; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.days-badge { background: #d97706; color: white; padding: 2px 9px; border-radius: 99px; font-size: 0.68rem; font-weight: 700; white-space: nowrap; margin-left: 12px; flex-shrink: 0; }
+.days-badge.critical { background: #c0392b; }
+
+/* Table */
+.table-card { background: white; border-radius: 10px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e5e5ea; }
+.table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+.filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.filter-btn { padding: 4px 11px; border-radius: 99px; border: 1px solid #d2d2d7; background: white; font-size: 0.72rem; font-weight: 500; cursor: pointer; color: #3a3a3c; transition: all 0.12s; }
+.filter-btn:hover { background: #f5f5f7; }
+.filter-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+
+/* Status badges */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.68rem; font-weight: 600; }
+.badge-neant { background: #f1f1f4; color: #636366; }
+.badge-ar { background: #fff3cd; color: #856404; }
+.badge-pos { background: #d4edda; color: #155724; }
+.badge-neg { background: #f8d7da; color: #721c24; }
+
+/* Grid.js overrides */
+.gridjs-wrapper { box-shadow: none !important; border: none !important; }
+.gridjs-table { font-size: 0.78rem !important; }
+th.gridjs-th { background: #f5f5f7 !important; font-size: 0.68rem !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; color: #8e8e93 !important; font-weight: 600 !important; }
+.gridjs-search input { font-size: 0.78rem !important; border-radius: 7px !important; }
+.gridjs-pagination { font-size: 0.75rem !important; }
+
+/* Loading / error */
+.loading { text-align: center; padding: 60px 20px; color: #8e8e93; }
+.loading-spinner { font-size: 2rem; animation: spin 1.5s linear infinite; display: inline-block; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.error-box { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 10px; padding: 16px; color: #991b1b; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📊 Mission Pipeline</h1>
+    <div class="subtitle" id="last-refresh">Chargement en cours…</div>
+  </div>
+  <div class="header-actions">
+    <button class="sync-btn" id="sync-btn" onclick="triggerLinkedInSync()">
+      <span class="li-icon">💼</span>
+      Sync LinkedIn
+    </button>
+    <div class="brand">Xavier Advisory</div>
+  </div>
+</header>
+
+<!-- Sync toast notification -->
+<div class="sync-toast" id="sync-toast">
+  <strong>🔄 Sync LinkedIn déclenchée</strong>
+  Claude va naviguer sur ton LinkedIn Jobs Tracker et importer les nouvelles candidatures dans Airtable. Actualise l'artefact une fois la sync terminée dans le chat.
+</div>
+
+<div class="container">
+
+  <!-- Loading state -->
+  <div id="state-loading" class="loading">
+    <div class="loading-spinner">⏳</div>
+    <p style="margin-top:12px;font-size:0.85rem">Chargement des candidatures depuis Airtable…</p>
+  </div>
+
+  <!-- Error state -->
+  <div id="state-error" style="display:none; margin-top:16px;">
+    <div class="error-box" id="error-msg"></div>
+  </div>
+
+  <!-- Main content -->
+  <div id="state-content" style="display:none;">
+
+    <!-- AI Summary -->
+    <div class="ai-box">
+      <div class="ai-icon">🤖</div>
+      <div class="ai-inner">
+        <div class="label">Synthèse IA du pipeline</div>
+        <div class="ai-content" id="ai-summary">Analyse en cours…</div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Total candidatures</div>
+        <div class="value" id="kpi-total">—</div>
+        <div class="sub" id="kpi-period">—</div>
+      </div>
+      <div class="kpi kpi-active">
+        <div class="label">En attente (A/R)</div>
+        <div class="value" id="kpi-ar">—</div>
+        <div class="sub">Réponse attendue</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Sans réponse (Néant)</div>
+        <div class="value" id="kpi-neant">—</div>
+        <div class="sub">Aucun retour reçu</div>
+      </div>
+      <div class="kpi kpi-alert">
+        <div class="label">⚠ À relancer</div>
+        <div class="value" id="kpi-stale">—</div>
+        <div class="sub">Néant depuis &gt; 14 j</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="card-title">Répartition par statut de réponse</div>
+        <div class="chart-wrap"><canvas id="chart-statut"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="card-title">Répartition par mode de travail</div>
+        <div class="chart-wrap"><canvas id="chart-mode"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div id="alerts-section" class="alerts-box" style="display:none;">
+      <div class="alerts-header">
+        <span>⚠️</span>
+        <span class="title">Candidatures à relancer — Néant depuis plus de 14 jours</span>
+      </div>
+      <div id="alerts-list"></div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <div class="card-title" style="margin-bottom:0">Toutes les candidatures</div>
+      </div>
+      <div class="filter-row" id="filter-row"></div>
+      <div id="grid-container"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const BASE_ID  = "apphTpnW5vu0OdnfC";
+const TABLE_ID = "tblF3jpncEXA647ou";
+const FIELDS   = [
+  "fldyfdARou97eeNwZ",  // Société
+  "fldyRboVvLF4UQopO",  // Poste
+  "fldHwZzThAP7PWXrK",  // Lieu
+  "fldyDG2VZ70rI1TBP",  // Mode
+  "fldqxsIOvQaHnlRDq",  // URL
+  "fldHfKJYJtZvioLaN",  // Date postulé
+  "fldB90eSH8d0nVJoA"   // Réponse
+];
+
+const STALE_DAYS = 14;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function daysSince(dateStr) {
+  if (!dateStr) return null;
+  return Math.floor((Date.now() - new Date(dateStr)) / 86400000);
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function statusBadge(name) {
+  if (!name || name === "Néant") return `<span class="badge badge-neant">${name || "Néant"}</span>`;
+  if (name === "A/R")            return `<span class="badge badge-ar">A/R</span>`;
+  const lc = name.toLowerCase();
+  if (lc.includes("entretien") || lc.includes("oui") || lc.includes("positif") || lc.includes("intérêt"))
+    return `<span class="badge badge-pos">${name}</span>`;
+  if (lc.includes("refus") || lc.includes("non") || lc.includes("négatif"))
+    return `<span class="badge badge-neg">${name}</span>`;
+  return `<span class="badge badge-neant">${name}</span>`;
+}
+
+// ── Data fetch ────────────────────────────────────────────────────────────────
+async function fetchAllRecords() {
+  let all = [], cursor = null;
+  do {
+    const params = {
+      baseId:   BASE_ID,
+      tableId:  TABLE_ID,
+      fieldIds: FIELDS,
+      pageSize: 100,
+      sort: [{ fieldId: "fldHfKJYJtZvioLaN", direction: "desc" }]
+    };
+    if (cursor) params.cursor = cursor;
+
+    const r = await window.cowork.callMcpTool(
+      "mcp__1efbcac8-6973-473a-8b67-ed8c9049d15d__list_records_for_table",
+      params
+    );
+    if (r.isError) throw new Error(r.content?.[0]?.text || "Erreur Airtable");
+
+    const data = r.structuredContent ?? JSON.parse(r.content[0].text);
+    all = all.concat(data.records || []);
+    cursor = data.nextCursor || null;
+  } while (cursor);
+  return all;
+}
+
+function normalize(records) {
+  return records.map(rec => {
+    const f = rec.cellValuesByFieldId || {};
+    const reponseObj = f["fldB90eSH8d0nVJoA"];
+    return {
+      societe:     f["fldyfdARou97eeNwZ"] || "—",
+      poste:       f["fldyRboVvLF4UQopO"] || "—",
+      lieu:        f["fldHwZzThAP7PWXrK"] || "—",
+      mode:        f["fldyDG2VZ70rI1TBP"] || "—",
+      url:         f["fldqxsIOvQaHnlRDq"] || null,
+      datePostule: f["fldHfKJYJtZvioLaN"] || null,
+      reponse:     (reponseObj && typeof reponseObj === "object") ? reponseObj.name : (reponseObj || "Néant"),
+    };
+  });
+}
+
+// ── Render KPIs ───────────────────────────────────────────────────────────────
+function renderKPIs(data) {
+  const total  = data.length;
+  const ar     = data.filter(d => d.reponse === "A/R").length;
+  const neant  = data.filter(d => !d.reponse || d.reponse === "Néant").length;
+  const stale  = data.filter(d =>
+    (!d.reponse || d.reponse === "Néant") && daysSince(d.datePostule) > STALE_DAYS
+  ).length;
+
+  const dates  = data.filter(d => d.datePostule).map(d => new Date(d.datePostule));
+  const oldest = dates.length ? new Date(Math.min(...dates)).toLocaleDateString("fr-FR") : "—";
+
+  document.getElementById("kpi-total").textContent = total;
+  document.getElementById("kpi-period").textContent  = `Depuis le ${oldest}`;
+  document.getElementById("kpi-ar").textContent      = ar;
+  document.getElementById("kpi-neant").textContent   = neant;
+  document.getElementById("kpi-stale").textContent   = stale;
+}
+
+// ── Render Charts ─────────────────────────────────────────────────────────────
+let chartStatut = null;
+let chartMode   = null;
+
+function renderCharts(data) {
+  // Statut distribution
+  const statutMap = {};
+  data.forEach(d => {
+    const s = d.reponse || "Néant";
+    statutMap[s] = (statutMap[s] || 0) + 1;
+  });
+  const colors = { "Néant": "#e2e2e7", "A/R": "#fde68a", "Entretien": "#86efac", "Refus": "#fca5a5" };
+  const getColor = (k, i) => colors[k] || ["#93c5fd","#c4b5fd","#fdba74","#6ee7b7","#f9a8d4"][i % 5];
+
+  if (chartStatut) chartStatut.destroy();
+  chartStatut = new Chart(document.getElementById("chart-statut"), {
+    type: "doughnut",
+    data: {
+      labels: Object.keys(statutMap),
+      datasets: [{
+        data: Object.values(statutMap),
+        backgroundColor: Object.keys(statutMap).map((k, i) => getColor(k, i)),
+        borderWidth: 2,
+        borderColor: "#fff"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "right", labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } }
+      }
+    }
+  });
+
+  // Mode distribution
+  const modeMap = {};
+  data.forEach(d => {
+    const m = d.mode || "Non précisé";
+    modeMap[m] = (modeMap[m] || 0) + 1;
+  });
+  const sortedModes = Object.entries(modeMap).sort((a, b) => b[1] - a[1]);
+
+  if (chartMode) chartMode.destroy();
+  chartMode = new Chart(document.getElementById("chart-mode"), {
+    type: "bar",
+    data: {
+      labels: sortedModes.map(e => e[0]),
+      datasets: [{
+        data: sortedModes.map(e => e[1]),
+        backgroundColor: "#0f172a",
+        hoverBackgroundColor: "#334155",
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: "y",
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: "#f1f1f4" }, ticks: { font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// ── Render Alerts ─────────────────────────────────────────────────────────────
+function renderAlerts(data) {
+  const stale = data
+    .filter(d => (!d.reponse || d.reponse === "Néant") && daysSince(d.datePostule) > STALE_DAYS)
+    .sort((a, b) => daysSince(b.datePostule) - daysSince(a.datePostule))
+    .slice(0, 8);
+
+  if (!stale.length) return;
+  document.getElementById("alerts-section").style.display = "block";
+  document.getElementById("alerts-list").innerHTML = stale.map(d => {
+    const days = daysSince(d.datePostule);
+    const cls  = days > 30 ? "critical" : "";
+    return `
+      <div class="alert-item">
+        <div class="info">
+          <div class="co">${d.societe}</div>
+          <div class="role">${d.poste} · ${d.lieu}</div>
+        </div>
+        <span class="days-badge ${cls}">${days}j sans réponse</span>
+      </div>`;
+  }).join("");
+}
+
+// ── Render Filters ────────────────────────────────────────────────────────────
+let currentFilter = "Tous";
+let gridInstance  = null;
+let allData       = [];
+
+function renderFilters(data) {
+  const statuts  = ["Tous", ...new Set(data.map(d => d.reponse || "Néant"))];
+  const counts   = {};
+  data.forEach(d => { const s = d.reponse || "Néant"; counts[s] = (counts[s]||0)+1; });
+
+  document.getElementById("filter-row").innerHTML = statuts.map(s => {
+    const label = s === "Tous" ? `Tous (${data.length})` : `${s} (${counts[s]||0})`;
+    return `<button class="filter-btn ${s === currentFilter ? 'active' : ''}"
+      onclick="applyFilter('${s}')">${label}</button>`;
+  }).join("");
+}
+
+function renderGrid(data) {
+  if (gridInstance) {
+    try { gridInstance.destroy(); } catch(e) {}
+    document.getElementById("grid-container").innerHTML = "";
+  }
+
+  const rows = data.map(d => [
+    d.societe,
+    d.poste,
+    d.lieu,
+    d.mode,
+    d.datePostule ? fmtDate(d.datePostule) : "—",
+    d.reponse || "Néant",
+    d.url || ""
+  ]);
+
+  gridInstance = new gridjs.Grid({
+    columns: [
+      { name: "Société",   width: "160px" },
+      { name: "Poste",     width: "230px" },
+      { name: "Lieu",      width: "130px" },
+      { name: "Mode",      width: "100px" },
+      { name: "Postulé le",width: "90px" },
+      {
+        name: "Réponse",
+        width: "90px",
+        formatter: (cell) => gridjs.html(statusBadge(cell))
+      },
+      {
+        name: "Offre",
+        width: "55px",
+        formatter: (cell) => cell
+          ? gridjs.html(`<a href="${cell}" target="_blank" style="color:#2563eb;text-decoration:none;font-size:0.78rem">↗ Lien</a>`)
+          : gridjs.html(`<span style="color:#ccc">—</span>`)
+      }
+    ],
+    data: rows,
+    search: { placeholder: "Rechercher…" },
+    pagination: { limit: 15, summary: false },
+    sort: true,
+    language: { search: { placeholder: "Rechercher…" }, pagination: { previous: "‹", next: "›" } },
+    style: {
+      table: { "font-size": "0.78rem", "border-collapse": "collapse" },
+      th:    { "background": "#f5f5f7", "color": "#636366", "font-weight": "600" },
+    }
+  }).render(document.getElementById("grid-container"));
+}
+
+window.applyFilter = function(statut) {
+  currentFilter = statut;
+  renderFilters(allData);
+  const filtered = statut === "Tous"
+    ? allData
+    : allData.filter(d => (d.reponse || "Néant") === statut);
+  renderGrid(filtered);
+};
+
+// ── AI Summary ────────────────────────────────────────────────────────────────
+async function renderAISummary(data) {
+  try {
+    const rows = data.map(d =>
+      `${d.societe} | ${d.poste} | ${d.mode} | postulé: ${d.datePostule || "?"} | réponse: ${d.reponse || "Néant"}`
+    );
+    const raw = await window.cowork.askClaude(
+      `Tu es l'assistant de Xavier Robitaille, consultant freelance senior en finance/assurance/transformation (IFRS 17, Solvency II, PMO, investment accounting) qui cherche activement une nouvelle mission.
+Voici son pipeline de candidatures. Donne une synthèse directe en 2-3 phrases : état général (volume, taux de retour), alertes prioritaires, et UNE recommandation actionnable pour aujourd'hui.
+Sois direct, sans fioritures. Réponds en français.`,
+      rows
+    );
+    // askClaude may return a string or an object — extract text robustly
+    const summary = typeof raw === "string"
+      ? raw
+      : (raw?.text ?? raw?.content ?? raw?.message ?? JSON.stringify(raw));
+    document.getElementById("ai-summary").textContent = summary;
+  } catch(e) {
+    document.getElementById("ai-summary").textContent = "Synthèse IA indisponible.";
+  }
+}
+
+// ── LinkedIn Sync ─────────────────────────────────────────────────────────────
+function triggerLinkedInSync() {
+  const btn   = document.getElementById("sync-btn");
+  const toast = document.getElementById("sync-toast");
+
+  // Disable button to prevent double-click
+  btn.disabled = true;
+  btn.innerHTML = `<span style="animation:spin 1s linear infinite;display:inline-block">⏳</span> Déclenchement…`;
+
+  // Show toast
+  toast.classList.add("visible");
+
+  // Send prompt to Claude in chat — triggers the sync workflow
+  sendPrompt(
+    "🔄 SYNC LINKEDIN → AIRTABLE\n" +
+    "Navigue sur https://www.linkedin.com/jobs-tracker/?stage=applied via Claude in Chrome.\n" +
+    "Extrais toutes les candidatures visibles (société, poste, lieu, URL, date).\n" +
+    "Récupère les enregistrements existants dans Airtable (base apphTpnW5vu0OdnfC, table tblF3jpncEXA647ou), " +
+    "champ URL = fldqxsIOvQaHnlRDq.\n" +
+    "Déduplication par URL : n'insère que les candidatures dont l'URL n'existe pas encore dans Airtable.\n" +
+    "Insère les nouvelles via create_records_for_table avec les champs : Société, Poste, Lieu, Mode, URL, Date postulé, Réponse=Néant.\n" +
+    "Donne-moi un bilan : X nouvelles importées, Y doublons ignorés."
+  );
+
+  // Re-enable button after 5s (sync happens in chat)
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = `<span class="li-icon">💼</span> Sync LinkedIn`;
+    setTimeout(() => toast.classList.remove("visible"), 300);
+  }, 5000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const raw    = await fetchAllRecords();
+    allData      = normalize(raw);
+
+    // Switch view
+    document.getElementById("state-loading").style.display = "none";
+    document.getElementById("state-content").style.display = "block";
+
+    // Timestamp
+    document.getElementById("last-refresh").textContent =
+      `Actualisé le ${new Date().toLocaleString("fr-FR", { dateStyle:"short", timeStyle:"short" })} · ${allData.length} candidatures`;
+
+    renderKPIs(allData);
+    renderCharts(allData);
+    renderAlerts(allData);
+    renderFilters(allData);
+    renderGrid(allData);
+
+    // AI async (non-blocking)
+    renderAISummary(allData);
+
+  } catch(err) {
+    document.getElementById("state-loading").style.display = "none";
+    document.getElementById("state-error").style.display  = "block";
+    document.getElementById("error-msg").textContent = `Erreur de chargement : ${err.message}`;
+    console.error(err);
+  }
+}
+
+init();
+</script>
+</body>
+</html>

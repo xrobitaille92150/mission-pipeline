@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__1efbcac8-6973-473a-8b67-ed8c9049d15d__list_tables_for_base",
+      "mcp__1efbcac8-6973-473a-8b67-ed8c9049d15d__get_table_schema",
+      "Bash(python3 _build_workflow.py)",
+      "Bash(python3 _build_realtime.py)",
+      "Bash(cd /Users/xavierrobitaille/.claude/projects/-Users-xavierrobitaille-Claude-Artifacts-mission-pipeline/memory/)",
+      "Bash(cat MEMORY.md)",
+      "Bash(mkdir -p \"/Users/xavierrobitaille/.claude/projects/-Users-xavierrobitaille-Claude-Artifacts-mission-pipeline/memory/\" && echo \"créé\")",
+      "mcp__d117ee5a-e8ad-4cc9-a509-adc062d8c1a8__search_workflows",
+      "Bash(cp '/Users/xavierrobitaille/Downloads/Gmail → Airtable _ Backfill depuis le 1er mai 2026 \\(batch\\)\\(Jun 15 at 14_28_18\\).json' /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/candidatures.workflow.json)",
+      "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline init -q)",
+      "Bash(git add *)",
+      "Bash(git -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'Baseline: workflow candidatures \\(export n8n du 15 juin, semaine 2 backfill\\) *)",
+      "Bash(git -C . log --oneline)"
+    ]
+  }
+}
