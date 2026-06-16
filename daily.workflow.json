@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-16T14:03:05.631Z",
+  "updatedAt": "2026-06-16T14:48:52.445Z",
   "createdAt": "2026-06-15T13:57:13.185Z",
   "id": "BsXYMJdidg8tej9i",
   "name": "Gmail → Airtable : Run quotidien (mails de la veille)",
@@ -21,7 +21,7 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -1408,
+        -1616,
         -112
       ],
       "id": "5c3adb21-d45c-4586-b560-8d1b643c7541",
@@ -41,7 +41,7 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2,
       "position": [
-        -1200,
+        -1408,
         -112
       ],
       "id": "690dcfb6-69e8-4c75-8554-12c342472ba9",
@@ -64,7 +64,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1008,
+        -1200,
         -112
       ],
       "id": "3047950d-5af9-4994-9218-65617b0ec29c"
@@ -78,7 +78,7 @@
       "typeVersion": 2,
       "position": [
         -800,
-        -112
+        16
       ],
       "id": "3321c773-71aa-4315-bc36-467b086e31fe"
     },
@@ -107,7 +107,7 @@
       "typeVersion": 4.2,
       "position": [
         -608,
-        -112
+        16
       ],
       "id": "57bb0470-73d3-4994-b85a-c5ba32c5c7f4",
       "retryOnFail": true,
@@ -140,8 +140,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -400,
-        -112
+        -416,
+        16
       ],
       "id": "3e572ea9-03a0-401c-9999-2aa591cfd707",
       "retryOnFail": true,
@@ -162,8 +162,8 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        -208,
-        96
+        -192,
+        112
       ],
       "id": "572539d9-b461-4d88-a820-168823adb1dc",
       "webhookId": "wait-batch-poll"
@@ -194,8 +194,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        208,
-        -112
+        96,
+        -128
       ],
       "id": "edac904e-4b9b-4480-9dbc-9bb8689d5d4f",
       "retryOnFail": true,
@@ -233,8 +233,8 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2,
       "position": [
-        416,
-        -112
+        320,
+        -128
       ],
       "id": "8ee13f5e-6596-48bb-a849-69d0fa34cfef",
       "retryOnFail": true,
@@ -255,8 +255,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        608,
-        -112
+        560,
+        -128
       ],
       "id": "a8b8ddc1-3008-481f-ab9b-612c2f69a5e1"
     },
@@ -632,7 +632,7 @@
       "typeVersion": 1,
       "position": [
         1456,
-        64
+        16
       ],
       "id": "af375f78-fc44-49b2-bf64-c24c71f2e54c"
     },
@@ -666,7 +666,7 @@
       "typeVersion": 2.2,
       "position": [
         1008,
-        -240
+        -176
       ],
       "id": "5d6a6112-5688-4f22-b0fb-9891f71e2754",
       "name": "Créer ?"
@@ -700,8 +700,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1232,
-        -112
+        1216,
+        -48
       ],
       "id": "32abffbb-c8ca-4a8d-bc58-1dc1a0db3763",
       "name": "Mettre à jour ?"
@@ -950,7 +950,7 @@
       "typeVersion": 2.2,
       "position": [
         1008,
-        -432
+        -448
       ],
       "id": "c19fa31f-91bc-4c14-8621-e7772321ae92",
       "name": "Créer un enregistrement à checker",
@@ -994,21 +994,21 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -860,
-        60
+        -1008,
+        -112
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Construit le prompt de triage Veille (pertinence vs profil cible) par carte.\nconst PROFIL = `Consultant senior independant, 25 ans d'experience, 100% assurance & finance. Cherche mission freelance/contract/interim (CDI senior finance possible), full remote ou hybride privilegie, TJM >= 1000 EUR/j.\\nCOEUR DE CIBLE (Haute): roles SENIORS de transformation finance/assurance — PMO / Program / Project Manager, AMOA / Business Analyst finance, Interim Finance Manager / Head of, comptabilite des investissements (IFRS 9 ECL/cout amorti, IFRS 17, Solvency II, sous-ledger titres), reporting reglementaire (ACPR, ORSA, QRT, RSR/SFCR, fast-close), implementation SimCorp Dimension / Clearwater / Bloomberg / OMS, migration & apurement comptable, recette UAT, transformation operating model. Secteurs: assurance, reassurance, mutuelle, banque, asset management.\\nPERIPHERIE (Moyenne): finance/PMO senior hors assurance, controle de gestion/FP&A senior, data/IT explicitement orientee finance, conseil finance sans secteur precise, lieu lointain sans remote, seniorite ambigue.\\nHORS-CIBLE: junior/stage/alternance (<8 ans), dev/IT pur, data scientist non-finance, marketing, RH, commercial, support, ops non-finance, compta generale PME hors assurance, metiers non-finance, role sous niveau directeur/lead/expert.\\nGEO/MODE: France (Paris/IdF) + remote OK; international remote OK. Sur site hors IdF sans remote -> retrograder d'un cran.`;\nconst INSTR = `Juge la pertinence de l'offre pour ce profil, sur le TITRE + EMPLOYEUR + LIEU uniquement (pas de description disponible). Reponds UNIQUEMENT avec ce JSON, sans texte autour: {\\\"pertinence\\\":\\\"Haute|Moyenne|Hors-cible\\\",\\\"raison\\\":\\\"<=15 mots, en francais\\\"}. En cas de doute entre deux niveaux, choisis le plus bas.`;\nreturn $input.all().map(it => {\n  const j = it.json;\n  const triagePrompt = `${PROFIL}\\n\\n${INSTR}\\n\\nOFFRE\\nPoste : ${j.poste||''}\\nEmployeur : ${j.employeur||''}\\nLieu : ${j.lieu||''}\\nAlerte LinkedIn : ${j.alertName||''}`;\n  return { json: { ...j, triagePrompt } };\n});\n"
+        "jsCode": "// Nœud n8n \"Prépa triage Veille\" (Code, runOnceForAllItems)\n// Construit UNE seule requête de triage pour TOUTES les offres du jour (évite le\n// rate-limit Anthropic d'un appel par carte, et laisse l'IA comparer les offres\n// entre elles). Sort un unique item { prompt, cards } consommé par l'appel Claude.\n\nconst cards = $input.all().map((it) => it.json);\n\nconst PROFIL = `Profil candidat : consultant senior independant, 25 ans d'experience, 100% assurance & finance. Cherche mission freelance/contract/interim (CDI senior finance possible), full remote ou hybride privilegie, TJM >= 1000 EUR/j. Ouvert a l'international en remote (EMEA, Amerique du Nord, APAC).`;\n\nconst RUBRIQUE = `Classe CHAQUE offre par pertinence pour ce profil, en te basant sur titre + employeur + lieu UNIQUEMENT (pas de description disponible).\n- \"Haute\" = coeur de cible a seniorite senior : transformation finance/assurance, PMO / Program / Project Manager en finance/assurance/banque/asset management, AMOA / Business Analyst finance, Interim Finance Manager / Head of, comptabilite des investissements (IFRS 9, IFRS 17, Solvency II, fund accounting, sous-ledger titres), reporting reglementaire (ACPR, ORSA, QRT, RSR/SFCR), implementation SimCorp / Clearwater / Bloomberg / OMS, migration & apurement comptable. Un lieu en Europe/EMEA, a l'etranger ou non precise NE PENALISE PAS (remote international accepte).\n- \"Moyenne\" = finance/PMO senior hors assurance stricte (corporate finance, banque generaliste, FP&A senior), ou coeur de cible avec un doute reel sur la seniorite.\n- \"Hors-cible\" = junior/stage/alternance, OU metier hors finance/assurance : IT/dev pur, e-commerce, energie, marketing, RH, commercial, conseil generaliste sans ancrage finance/assurance.\nREGLES : ne pas inventer d'info ; l'ABSENCE de mention \"remote/teletravail\" n'est PAS un signal negatif (les alertes ne le precisent jamais) ; un \"Project Manager\" sans secteur finance/assurance identifiable = Hors-cible ; en cas d'hesitation entre Haute et Moyenne sur une offre clairement finance/assurance senior, choisir Haute.`;\n\nconst lignes = cards\n  .map((c, i) => `${i + 1}. Poste: ${c.poste || ''} | Employeur: ${c.employeur || ''} | Lieu: ${c.lieu || ''}`)\n  .join('\\n');\n\nconst prompt = `${PROFIL}\\n\\n${RUBRIQUE}\\n\\nReponds UNIQUEMENT avec un tableau JSON, un objet par offre, DANS L'ORDRE, sans texte autour :\\n[{\"i\":1,\"pertinence\":\"Haute|Moyenne|Hors-cible\",\"raison\":\"<=12 mots en francais\"}]\\n\\nOFFRES :\\n${lignes}`;\n\nreturn [{ json: { prompt, cards, count: cards.length } }];"
       },
       "id": "e433a97a-e596-47ce-86a7-b7c5234b5644",
       "name": "Prépa triage Veille",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -680,
-        200
+        -784,
+        -368
       ]
     },
     {
@@ -1028,7 +1028,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: $json.triagePrompt }] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1500, messages: [{ role: 'user', content: $json.prompt }] }) }}",
         "options": {}
       },
       "id": "8d6bb55f-c5c6-4222-8823-fac018cde7db",
@@ -1036,29 +1036,31 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -480,
-        200
+        -592,
+        -368
       ],
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "tb4jH2LrqUFwnjrM",
           "name": "Anthropic API Key"
         }
-      }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 4000
     },
     {
       "parameters": {
-        "jsCode": "// Parse la reponse de triage Claude et reattache les champs de la carte (paire).\nconst card = $('Prépa triage Veille').item.json;\nlet pertinence='', raison='';\ntry {\n  const txt = ($json && $json.content && $json.content[0] && $json.content[0].text) || '';\n  const m = txt.match(/\\{[\\s\\S]*\\}/);\n  if (m) { const o = JSON.parse(m[0]); pertinence = o.pertinence||''; raison = o.raison||''; }\n} catch(e) {}\nif (!['Haute','Moyenne','Hors-cible'].includes(pertinence)) pertinence='';\nconst toIso=(s)=>{ if(!s) return ''; const d=new Date(s); return isNaN(d.getTime())?'':d.toISOString().slice(0,10); };\nreturn { json: { jobId:card.jobId, employeur:card.employeur, poste:card.poste, lieu:card.lieu, mode:card.mode, url:card.url, alertName:card.alertName, date:toIso(card.date), pertinence, raison } };\n",
-        "mode": "runOnceForEachItem"
+        "jsCode": "// Nœud n8n \"Parser triage Veille\" (Code, runOnceForAllItems)\n// Lit la réponse unique du triage (tableau JSON, un objet par offre dans l'ordre)\n// et la rattache à chaque carte par index. Sort une carte par offre (jobId + pertinence).\nconst src = $('Prépa triage Veille').first().json;\nconst cards = src.cards || [];\n\nlet arr = [];\ntry {\n  const txt = ($json && $json.content && $json.content[0] && $json.content[0].text) || '';\n  const m = txt.match(/\\[[\\s\\S]*\\]/);\n  if (m) arr = JSON.parse(m[0]);\n} catch (e) { /* tableau vide => pertinence vide, à trier à la main */ }\n\nconst byI = {};\nfor (const o of arr) { if (o && o.i != null) byI[Number(o.i)] = o; }\n\nconst valid = ['Haute', 'Moyenne', 'Hors-cible'];\nconst toIso = (s) => { if (!s) return ''; const d = new Date(s); return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10); };\n\nreturn cards.map((c, idx) => {\n  const o = byI[idx + 1] || {};\n  let pertinence = o.pertinence;\n  if (!valid.includes(pertinence)) pertinence = '';\n  return {\n    json: {\n      jobId: c.jobId, employeur: c.employeur, poste: c.poste, lieu: c.lieu,\n      mode: c.mode, url: c.url, alertName: c.alertName, date: toIso(c.date),\n      pertinence, raison: o.raison || '',\n    },\n  };\n});"
       },
       "id": "4f1f8782-a4ac-4b85-8f0f-536f34c76103",
       "name": "Parser triage Veille",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -280,
-        200
+        -400,
+        -368
       ]
     },
     {
@@ -1079,8 +1081,7 @@
           "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblrXH5Jiyg6w21lW"
         },
         "options": {
-          "fields": [],
-          "filterByFormula": "={{ \"{jobId}='\" + $json.jobId + \"'\" }}"
+          "fields": []
         }
       },
       "id": "5291db1c-fa7f-4c71-b28c-39645a5b4205",
@@ -1088,8 +1089,8 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2,
       "position": [
-        -80,
-        200
+        -176,
+        -368
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -1097,20 +1098,22 @@
           "id": "bQLoL1mZbqEFDoKw",
           "name": "Airtable Personal Access Token account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "jsCode": "// Decide create vs update selon la presence d'une ligne Veille avec ce jobId.\nconst card = $('Parser triage Veille').item.json;\nconst foundId = ($json && $json.id) ? $json.id : null;\nreturn { json: { ...card, action: foundId ? 'update' : 'create', airtableId: foundId } };\n",
-        "mode": "runOnceForEachItem"
+        "jsCode": "// Nœud n8n \"Veille décider\" (Code, runOnceForAllItems)\n// Décide create vs update pour chaque carte, SANS dépendre du pairedItem :\n// le nœud \"Chercher Veille\" (search Airtable) casse l'appariement 1-pour-1, donc\n// on rapproche en JS via .all() (même principe que \"Matcher & décider\").\n// Index des lignes Veille existantes (résultats du search) : jobId -> id Airtable.\nconst existing = {};\nfor (const it of $('Chercher Veille').all()) {\n  const j = it.json || {};\n  if (j.id && j.jobId != null) existing[String(j.jobId)] = j.id;\n}\n\nreturn $('Parser triage Veille').all().map((it) => {\n  const c = it.json;\n  const airtableId = existing[String(c.jobId)] || null;\n  return { json: { ...c, action: airtableId ? 'update' : 'create', airtableId } };\n});"
       },
       "id": "fa2296d0-0e31-4636-8826-2604b32659ab",
       "name": "Veille décider",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        120,
-        200
+        48,
+        -368
       ]
     },
     {
@@ -1144,8 +1147,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        320,
-        200
+        288,
+        -368
       ]
     },
     {
@@ -1344,8 +1347,8 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2,
       "position": [
-        520,
-        120
+        528,
+        -464
       ],
       "credentials": {
         "airtableTokenApi": {
@@ -1510,8 +1513,8 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2,
       "position": [
-        520,
-        300
+        528,
+        -304
       ],
       "credentials": {
         "airtableTokenApi": {
@@ -1810,10 +1813,10 @@
   },
   "meta": null,
   "nodeGroups": [],
-  "pinData": null,
-  "versionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
-  "activeVersionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
-  "versionCounter": 7,
+  "pinData": {},
+  "versionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
+  "activeVersionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
+  "versionCounter": 43,
   "triggerCount": 1,
   "sourceWorkflowId": null,
   "shared": [
@@ -1838,9 +1841,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-06-16T14:03:05.634Z",
-    "createdAt": "2026-06-16T14:03:05.634Z",
-    "versionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
+    "updatedAt": "2026-06-16T14:48:52.449Z",
+    "createdAt": "2026-06-16T14:48:52.449Z",
+    "versionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
     "workflowId": "BsXYMJdidg8tej9i",
     "nodes": [
       {
@@ -1857,7 +1860,7 @@
         "type": "n8n-nodes-base.scheduleTrigger",
         "typeVersion": 1.2,
         "position": [
-          -1408,
+          -1616,
           -112
         ],
         "id": "5c3adb21-d45c-4586-b560-8d1b643c7541",
@@ -1877,7 +1880,7 @@
         "type": "n8n-nodes-base.gmail",
         "typeVersion": 2,
         "position": [
-          -1200,
+          -1408,
           -112
         ],
         "id": "690dcfb6-69e8-4c75-8554-12c342472ba9",
@@ -1900,7 +1903,7 @@
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          -1008,
+          -1200,
           -112
         ],
         "id": "3047950d-5af9-4994-9218-65617b0ec29c"
@@ -1914,7 +1917,7 @@
         "typeVersion": 2,
         "position": [
           -800,
-          -112
+          16
         ],
         "id": "3321c773-71aa-4315-bc36-467b086e31fe"
       },
@@ -1943,7 +1946,7 @@
         "typeVersion": 4.2,
         "position": [
           -608,
-          -112
+          16
         ],
         "id": "57bb0470-73d3-4994-b85a-c5ba32c5c7f4",
         "retryOnFail": true,
@@ -1976,8 +1979,8 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
         "position": [
-          -400,
-          -112
+          -416,
+          16
         ],
         "id": "3e572ea9-03a0-401c-9999-2aa591cfd707",
         "retryOnFail": true,
@@ -1998,8 +2001,8 @@
         "type": "n8n-nodes-base.wait",
         "typeVersion": 1.1,
         "position": [
-          -208,
-          96
+          -192,
+          112
         ],
         "id": "572539d9-b461-4d88-a820-168823adb1dc",
         "webhookId": "wait-batch-poll"
@@ -2030,8 +2033,8 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
         "position": [
-          208,
-          -112
+          96,
+          -128
         ],
         "id": "edac904e-4b9b-4480-9dbc-9bb8689d5d4f",
         "retryOnFail": true,
@@ -2069,8 +2072,8 @@
         "type": "n8n-nodes-base.airtable",
         "typeVersion": 2,
         "position": [
-          416,
-          -112
+          320,
+          -128
         ],
         "id": "8ee13f5e-6596-48bb-a849-69d0fa34cfef",
         "retryOnFail": true,
@@ -2091,8 +2094,8 @@
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          608,
-          -112
+          560,
+          -128
         ],
         "id": "a8b8ddc1-3008-481f-ab9b-612c2f69a5e1"
       },
@@ -2468,7 +2471,7 @@
         "typeVersion": 1,
         "position": [
           1456,
-          64
+          16
         ],
         "id": "af375f78-fc44-49b2-bf64-c24c71f2e54c"
       },
@@ -2502,7 +2505,7 @@
         "typeVersion": 2.2,
         "position": [
           1008,
-          -240
+          -176
         ],
         "id": "5d6a6112-5688-4f22-b0fb-9891f71e2754",
         "name": "Créer ?"
@@ -2536,8 +2539,8 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.2,
         "position": [
-          1232,
-          -112
+          1216,
+          -48
         ],
         "id": "32abffbb-c8ca-4a8d-bc58-1dc1a0db3763",
         "name": "Mettre à jour ?"
@@ -2786,7 +2789,7 @@
         "typeVersion": 2.2,
         "position": [
           1008,
-          -432
+          -448
         ],
         "id": "c19fa31f-91bc-4c14-8621-e7772321ae92",
         "name": "Créer un enregistrement à checker",
@@ -2830,21 +2833,21 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.2,
         "position": [
-          -860,
-          60
+          -1008,
+          -112
         ]
       },
       {
         "parameters": {
-          "jsCode": "// Construit le prompt de triage Veille (pertinence vs profil cible) par carte.\nconst PROFIL = `Consultant senior independant, 25 ans d'experience, 100% assurance & finance. Cherche mission freelance/contract/interim (CDI senior finance possible), full remote ou hybride privilegie, TJM >= 1000 EUR/j.\\nCOEUR DE CIBLE (Haute): roles SENIORS de transformation finance/assurance — PMO / Program / Project Manager, AMOA / Business Analyst finance, Interim Finance Manager / Head of, comptabilite des investissements (IFRS 9 ECL/cout amorti, IFRS 17, Solvency II, sous-ledger titres), reporting reglementaire (ACPR, ORSA, QRT, RSR/SFCR, fast-close), implementation SimCorp Dimension / Clearwater / Bloomberg / OMS, migration & apurement comptable, recette UAT, transformation operating model. Secteurs: assurance, reassurance, mutuelle, banque, asset management.\\nPERIPHERIE (Moyenne): finance/PMO senior hors assurance, controle de gestion/FP&A senior, data/IT explicitement orientee finance, conseil finance sans secteur precise, lieu lointain sans remote, seniorite ambigue.\\nHORS-CIBLE: junior/stage/alternance (<8 ans), dev/IT pur, data scientist non-finance, marketing, RH, commercial, support, ops non-finance, compta generale PME hors assurance, metiers non-finance, role sous niveau directeur/lead/expert.\\nGEO/MODE: France (Paris/IdF) + remote OK; international remote OK. Sur site hors IdF sans remote -> retrograder d'un cran.`;\nconst INSTR = `Juge la pertinence de l'offre pour ce profil, sur le TITRE + EMPLOYEUR + LIEU uniquement (pas de description disponible). Reponds UNIQUEMENT avec ce JSON, sans texte autour: {\\\"pertinence\\\":\\\"Haute|Moyenne|Hors-cible\\\",\\\"raison\\\":\\\"<=15 mots, en francais\\\"}. En cas de doute entre deux niveaux, choisis le plus bas.`;\nreturn $input.all().map(it => {\n  const j = it.json;\n  const triagePrompt = `${PROFIL}\\n\\n${INSTR}\\n\\nOFFRE\\nPoste : ${j.poste||''}\\nEmployeur : ${j.employeur||''}\\nLieu : ${j.lieu||''}\\nAlerte LinkedIn : ${j.alertName||''}`;\n  return { json: { ...j, triagePrompt } };\n});\n"
+          "jsCode": "// Nœud n8n \"Prépa triage Veille\" (Code, runOnceForAllItems)\n// Construit UNE seule requête de triage pour TOUTES les offres du jour (évite le\n// rate-limit Anthropic d'un appel par carte, et laisse l'IA comparer les offres\n// entre elles). Sort un unique item { prompt, cards } consommé par l'appel Claude.\n\nconst cards = $input.all().map((it) => it.json);\n\nconst PROFIL = `Profil candidat : consultant senior independant, 25 ans d'experience, 100% assurance & finance. Cherche mission freelance/contract/interim (CDI senior finance possible), full remote ou hybride privilegie, TJM >= 1000 EUR/j. Ouvert a l'international en remote (EMEA, Amerique du Nord, APAC).`;\n\nconst RUBRIQUE = `Classe CHAQUE offre par pertinence pour ce profil, en te basant sur titre + employeur + lieu UNIQUEMENT (pas de description disponible).\n- \"Haute\" = coeur de cible a seniorite senior : transformation finance/assurance, PMO / Program / Project Manager en finance/assurance/banque/asset management, AMOA / Business Analyst finance, Interim Finance Manager / Head of, comptabilite des investissements (IFRS 9, IFRS 17, Solvency II, fund accounting, sous-ledger titres), reporting reglementaire (ACPR, ORSA, QRT, RSR/SFCR), implementation SimCorp / Clearwater / Bloomberg / OMS, migration & apurement comptable. Un lieu en Europe/EMEA, a l'etranger ou non precise NE PENALISE PAS (remote international accepte).\n- \"Moyenne\" = finance/PMO senior hors assurance stricte (corporate finance, banque generaliste, FP&A senior), ou coeur de cible avec un doute reel sur la seniorite.\n- \"Hors-cible\" = junior/stage/alternance, OU metier hors finance/assurance : IT/dev pur, e-commerce, energie, marketing, RH, commercial, conseil generaliste sans ancrage finance/assurance.\nREGLES : ne pas inventer d'info ; l'ABSENCE de mention \"remote/teletravail\" n'est PAS un signal negatif (les alertes ne le precisent jamais) ; un \"Project Manager\" sans secteur finance/assurance identifiable = Hors-cible ; en cas d'hesitation entre Haute et Moyenne sur une offre clairement finance/assurance senior, choisir Haute.`;\n\nconst lignes = cards\n  .map((c, i) => `${i + 1}. Poste: ${c.poste || ''} | Employeur: ${c.employeur || ''} | Lieu: ${c.lieu || ''}`)\n  .join('\\n');\n\nconst prompt = `${PROFIL}\\n\\n${RUBRIQUE}\\n\\nReponds UNIQUEMENT avec un tableau JSON, un objet par offre, DANS L'ORDRE, sans texte autour :\\n[{\"i\":1,\"pertinence\":\"Haute|Moyenne|Hors-cible\",\"raison\":\"<=12 mots en francais\"}]\\n\\nOFFRES :\\n${lignes}`;\n\nreturn [{ json: { prompt, cards, count: cards.length } }];"
         },
         "id": "e433a97a-e596-47ce-86a7-b7c5234b5644",
         "name": "Prépa triage Veille",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          -680,
-          200
+          -784,
+          -368
         ]
       },
       {
@@ -2864,7 +2867,7 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: $json.triagePrompt }] }) }}",
+          "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1500, messages: [{ role: 'user', content: $json.prompt }] }) }}",
           "options": {}
         },
         "id": "8d6bb55f-c5c6-4222-8823-fac018cde7db",
@@ -2872,29 +2875,31 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
         "position": [
-          -480,
-          200
+          -592,
+          -368
         ],
-        "onError": "continueRegularOutput",
         "credentials": {
           "httpHeaderAuth": {
             "id": "tb4jH2LrqUFwnjrM",
             "name": "Anthropic API Key"
           }
-        }
+        },
+        "onError": "continueRegularOutput",
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 4000
       },
       {
         "parameters": {
-          "jsCode": "// Parse la reponse de triage Claude et reattache les champs de la carte (paire).\nconst card = $('Prépa triage Veille').item.json;\nlet pertinence='', raison='';\ntry {\n  const txt = ($json && $json.content && $json.content[0] && $json.content[0].text) || '';\n  const m = txt.match(/\\{[\\s\\S]*\\}/);\n  if (m) { const o = JSON.parse(m[0]); pertinence = o.pertinence||''; raison = o.raison||''; }\n} catch(e) {}\nif (!['Haute','Moyenne','Hors-cible'].includes(pertinence)) pertinence='';\nconst toIso=(s)=>{ if(!s) return ''; const d=new Date(s); return isNaN(d.getTime())?'':d.toISOString().slice(0,10); };\nreturn { json: { jobId:card.jobId, employeur:card.employeur, poste:card.poste, lieu:card.lieu, mode:card.mode, url:card.url, alertName:card.alertName, date:toIso(card.date), pertinence, raison } };\n",
-          "mode": "runOnceForEachItem"
+          "jsCode": "// Nœud n8n \"Parser triage Veille\" (Code, runOnceForAllItems)\n// Lit la réponse unique du triage (tableau JSON, un objet par offre dans l'ordre)\n// et la rattache à chaque carte par index. Sort une carte par offre (jobId + pertinence).\nconst src = $('Prépa triage Veille').first().json;\nconst cards = src.cards || [];\n\nlet arr = [];\ntry {\n  const txt = ($json && $json.content && $json.content[0] && $json.content[0].text) || '';\n  const m = txt.match(/\\[[\\s\\S]*\\]/);\n  if (m) arr = JSON.parse(m[0]);\n} catch (e) { /* tableau vide => pertinence vide, à trier à la main */ }\n\nconst byI = {};\nfor (const o of arr) { if (o && o.i != null) byI[Number(o.i)] = o; }\n\nconst valid = ['Haute', 'Moyenne', 'Hors-cible'];\nconst toIso = (s) => { if (!s) return ''; const d = new Date(s); return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10); };\n\nreturn cards.map((c, idx) => {\n  const o = byI[idx + 1] || {};\n  let pertinence = o.pertinence;\n  if (!valid.includes(pertinence)) pertinence = '';\n  return {\n    json: {\n      jobId: c.jobId, employeur: c.employeur, poste: c.poste, lieu: c.lieu,\n      mode: c.mode, url: c.url, alertName: c.alertName, date: toIso(c.date),\n      pertinence, raison: o.raison || '',\n    },\n  };\n});"
         },
         "id": "4f1f8782-a4ac-4b85-8f0f-536f34c76103",
         "name": "Parser triage Veille",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          -280,
-          200
+          -400,
+          -368
         ]
       },
       {
@@ -2915,8 +2920,7 @@
             "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblrXH5Jiyg6w21lW"
           },
           "options": {
-            "fields": [],
-            "filterByFormula": "={{ \"{jobId}='\" + $json.jobId + \"'\" }}"
+            "fields": []
           }
         },
         "id": "5291db1c-fa7f-4c71-b28c-39645a5b4205",
@@ -2924,8 +2928,8 @@
         "type": "n8n-nodes-base.airtable",
         "typeVersion": 2,
         "position": [
-          -80,
-          200
+          -176,
+          -368
         ],
         "alwaysOutputData": true,
         "credentials": {
@@ -2933,20 +2937,22 @@
             "id": "bQLoL1mZbqEFDoKw",
             "name": "Airtable Personal Access Token account"
           }
-        }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
       },
       {
         "parameters": {
-          "jsCode": "// Decide create vs update selon la presence d'une ligne Veille avec ce jobId.\nconst card = $('Parser triage Veille').item.json;\nconst foundId = ($json && $json.id) ? $json.id : null;\nreturn { json: { ...card, action: foundId ? 'update' : 'create', airtableId: foundId } };\n",
-          "mode": "runOnceForEachItem"
+          "jsCode": "// Nœud n8n \"Veille décider\" (Code, runOnceForAllItems)\n// Décide create vs update pour chaque carte, SANS dépendre du pairedItem :\n// le nœud \"Chercher Veille\" (search Airtable) casse l'appariement 1-pour-1, donc\n// on rapproche en JS via .all() (même principe que \"Matcher & décider\").\n// Index des lignes Veille existantes (résultats du search) : jobId -> id Airtable.\nconst existing = {};\nfor (const it of $('Chercher Veille').all()) {\n  const j = it.json || {};\n  if (j.id && j.jobId != null) existing[String(j.jobId)] = j.id;\n}\n\nreturn $('Parser triage Veille').all().map((it) => {\n  const c = it.json;\n  const airtableId = existing[String(c.jobId)] || null;\n  return { json: { ...c, action: airtableId ? 'update' : 'create', airtableId } };\n});"
         },
         "id": "fa2296d0-0e31-4636-8826-2604b32659ab",
         "name": "Veille décider",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          120,
-          200
+          48,
+          -368
         ]
       },
       {
@@ -2980,8 +2986,8 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.2,
         "position": [
-          320,
-          200
+          288,
+          -368
         ]
       },
       {
@@ -3180,8 +3186,8 @@
         "type": "n8n-nodes-base.airtable",
         "typeVersion": 2,
         "position": [
-          520,
-          120
+          528,
+          -464
         ],
         "credentials": {
           "airtableTokenApi": {
@@ -3346,8 +3352,8 @@
         "type": "n8n-nodes-base.airtable",
         "typeVersion": 2,
         "position": [
-          520,
-          300
+          528,
+          -304
         ],
         "credentials": {
           "airtableTokenApi": {
@@ -3639,18 +3645,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-06-16T14:03:05.713Z",
-        "id": 25,
+        "createdAt": "2026-06-16T14:48:52.516Z",
+        "id": 29,
         "workflowId": "BsXYMJdidg8tej9i",
-        "versionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
+        "versionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
         "event": "activated",
         "userId": "327b8291-3be6-4beb-a31b-67dda7c79279"
       },
       {
-        "createdAt": "2026-06-16T14:03:05.688Z",
-        "id": 24,
+        "createdAt": "2026-06-16T14:48:52.497Z",
+        "id": 28,
         "workflowId": "BsXYMJdidg8tej9i",
-        "versionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
+        "versionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
         "event": "deactivated",
         "userId": "327b8291-3be6-4beb-a31b-67dda7c79279"
       }
