@@ -1,7 +1,51 @@
 # Feature — Veille / Opportunités (alertes LinkedIn `jobalerts-noreply`)
 
-> **Statut : conçu, non démarré.** Proposition validée comme cadre ; 6 décisions en
-> attente (voir bas). Sous-projet isolé dans une conversation dédiée.
+> **Statut : v1 DÉPLOYÉE sur l'instance n8n (2026-06-16), active.**
+> Décisions tranchées : branchement = redirection depuis « Filtrer & préparer »
+> (Switch `kind`) ; table Airtable créée d'abord ; profil de triage condensé depuis
+> `context.md`. 1ʳᵉ exécution = run planifié de 4h (ou « Execute workflow » manuel pour tester).
+> Reste 4 décisions pour v2/v3 (notes auto/demande, skills CV/CL, promotion auto/manuelle, volume).
+
+## Architecture déployée (branche Veille du workflow daily)
+
+`Filtrer & préparer` (parse digest, tag `kind`) → **`Veille ?`** (IF sur `kind`) :
+- `kind=candidature` → `Construire requêtes batch` … (flux existant inchangé) ;
+- `kind=veille` → `Prépa triage Veille` (prompt) → `Triage Veille (Claude)` (HTTP haiku,
+  `onError:continueRegularOutput`) → `Parser triage Veille` → `Chercher Veille` (search
+  Airtable par `jobId`, `alwaysOutputData`) → `Veille décider` (create/update) →
+  **`Veille créer ?`** (IF) → `Créer Veille` (Statut=À étudier, Date 1ère vue) / `MàJ Veille`
+  (rafraîchit descriptif + Pertinence/Raison **uniquement** ; ne touche jamais Statut, Date,
+  cases → triage manuel préservé sur les ré-apparitions de l'offre).
+
+Workflow daily n8n : id `BsXYMJdidg8tej9i`. Mirrors repo : `nodes/veille-prepa-triage.js`,
+`nodes/veille-parser-triage.js`, `nodes/veille-decider.js`, `nodes/filtrer-preparer.js`.
+`daily.workflow.json` resynchronisé au live (27 nœuds).
+
+**⚠️ Edge connu (pré-existant, aggravé)** : `Construire requêtes batch` lève une erreur si
+0 email Candidature. Un jour avec **uniquement** des alertes jobalerts → la branche
+Candidature erre (mais la branche Veille écrit quand même). À durcir si gênant.
+
+## Avancement v1
+
+- ✅ **Table Airtable « Veille »** créée — tableId `tblrXH5Jiyg6w21lW` (base `apphTpnW5vu0OdnfC`).
+  Champ primaire/upsert `jobId` (`fldw7NH5gGRREOC4m`). Selects : Pertinence
+  (Haute/Moyenne/Hors-cible), Statut (À étudier/Dossier prêt/Postulé/Écarté).
+  Colonnes Note rôle/critères + CV + Cover letter posées (vides jusqu'à v2/v3).
+- ✅ **Profil cible de triage** condensé → `nodes/veille-profil-cible.md` (réf. embarquée
+  dans le prompt du nœud de triage Claude).
+- ✅ **Parseur de digest** intégré à `nodes/filtrer-preparer.js` (remplace le `continue` :
+  parse cartes → push items `kind:'veille'` ; items Candidatures tagués `kind:'candidature'`).
+  **Validé sur 2 vrais mails** (2026-06-16) : 6 cartes chacun, footer/badges/lignes parasites
+  exclus, jobId/Poste/Employeur/Lieu propres. Confirmé : **pas de description dans l'email**
+  (préheader = teaser du 1ᵉʳ poste seulement) → la contrainte fiche tient, v2 = fetch requis.
+  Structure réelle du digest : blocs séparés par lignes de tirets, `Poste / Employeur / Lieu /
+  [badge] / "Voir l'offre : URL(/jobs/view/JOBID/)"`, en-tête « Votre alerte Emploi pour <nom> ».
+- ✅ **Switch « Veille ? »** + **sous-chaîne Veille** (triage Claude + create/update Airtable)
+  câblés dans `daily.workflow.json` et **poussés sur l'instance n8n** (HTTP 200, actif).
+  Credentials Anthropic + Airtable rattachés et vérifiés côté live.
+- ⏳ **À valider** : 1ʳᵉ exécution réelle (run 4h ou « Execute workflow » manuel) → vérifier que
+  la table Veille se remplit (jobId/Pertinence/Raison) ; points à l'œil = `filterByFormula`
+  du search, write single-select Pertinence, comportement `alwaysOutputData` sur 0 match.
 
 ## Vision (mots de Xavier)
 
