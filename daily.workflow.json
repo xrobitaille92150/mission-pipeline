@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-16T14:48:52.445Z",
+  "updatedAt": "2026-06-16T21:56:15.727Z",
   "createdAt": "2026-06-15T13:57:13.185Z",
   "id": "BsXYMJdidg8tej9i",
   "name": "Gmail → Airtable : Run quotidien (mails de la veille)",
@@ -80,7 +80,8 @@
         -800,
         16
       ],
-      "id": "3321c773-71aa-4315-bc36-467b086e31fe"
+      "id": "3321c773-71aa-4315-bc36-467b086e31fe",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -118,7 +119,8 @@
           "id": "tb4jH2LrqUFwnjrM",
           "name": "Anthropic API Key"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -166,7 +168,8 @@
         112
       ],
       "id": "572539d9-b461-4d88-a820-168823adb1dc",
-      "webhookId": "wait-batch-poll"
+      "webhookId": "wait-batch-poll",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -206,7 +209,8 @@
           "id": "tb4jH2LrqUFwnjrM",
           "name": "Anthropic API Key"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -245,7 +249,8 @@
           "id": "bQLoL1mZbqEFDoKw",
           "name": "Airtable Personal Access Token account"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -258,7 +263,8 @@
         560,
         -128
       ],
-      "id": "a8b8ddc1-3008-481f-ab9b-612c2f69a5e1"
+      "id": "a8b8ddc1-3008-481f-ab9b-612c2f69a5e1",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -435,7 +441,8 @@
           "id": "bQLoL1mZbqEFDoKw",
           "name": "Airtable Personal Access Token account"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -623,7 +630,8 @@
           "id": "bQLoL1mZbqEFDoKw",
           "name": "Airtable Personal Access Token account"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {},
@@ -634,7 +642,8 @@
         1456,
         16
       ],
-      "id": "af375f78-fc44-49b2-bf64-c24c71f2e54c"
+      "id": "af375f78-fc44-49b2-bf64-c24c71f2e54c",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -669,7 +678,8 @@
         -176
       ],
       "id": "5d6a6112-5688-4f22-b0fb-9891f71e2754",
-      "name": "Créer ?"
+      "name": "Créer ?",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -704,7 +714,8 @@
         -48
       ],
       "id": "32abffbb-c8ca-4a8d-bc58-1dc1a0db3763",
-      "name": "Mettre à jour ?"
+      "name": "Mettre à jour ?",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -739,7 +750,8 @@
         -112
       ],
       "id": "4a0209a3-bd75-4e37-ab27-eb805a976d5c",
-      "name": "Batch terminé ?"
+      "name": "Batch terminé ?",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -773,7 +785,8 @@
         -288
       ],
       "id": "a79025c1-763a-4c54-9269-97a3aa480c7f",
-      "name": "A traiter ?"
+      "name": "A traiter ?",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -961,7 +974,8 @@
           "id": "bQLoL1mZbqEFDoKw",
           "name": "Airtable Personal Access Token account"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1009,7 +1023,8 @@
       "position": [
         -784,
         -368
-      ]
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1061,7 +1076,8 @@
       "position": [
         -400,
         -368
-      ]
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1101,7 +1117,8 @@
       },
       "retryOnFail": true,
       "maxTries": 3,
-      "waitBetweenTries": 2000
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1114,7 +1131,8 @@
       "position": [
         48,
         -368
-      ]
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1149,7 +1167,8 @@
       "position": [
         288,
         -368
-      ]
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1355,7 +1374,8 @@
           "id": "bQLoL1mZbqEFDoKw",
           "name": "Airtable Personal Access Token account"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1521,7 +1541,8 @@
           "id": "bQLoL1mZbqEFDoKw",
           "name": "Airtable Personal Access Token account"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
@@ -1814,9 +1835,9 @@
   "meta": null,
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
-  "activeVersionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
-  "versionCounter": 43,
+  "versionId": "f4a532ce-16c0-4d61-bcaa-ffe1cc7921c1",
+  "activeVersionId": "f4a532ce-16c0-4d61-bcaa-ffe1cc7921c1",
+  "versionCounter": 45,
   "triggerCount": 1,
   "sourceWorkflowId": null,
   "shared": [
@@ -1841,9 +1862,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-06-16T14:48:52.449Z",
-    "createdAt": "2026-06-16T14:48:52.449Z",
-    "versionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
+    "updatedAt": "2026-06-16T21:56:15.730Z",
+    "createdAt": "2026-06-16T21:56:15.730Z",
+    "versionId": "f4a532ce-16c0-4d61-bcaa-ffe1cc7921c1",
     "workflowId": "BsXYMJdidg8tej9i",
     "nodes": [
       {
@@ -1919,7 +1940,8 @@
           -800,
           16
         ],
-        "id": "3321c773-71aa-4315-bc36-467b086e31fe"
+        "id": "3321c773-71aa-4315-bc36-467b086e31fe",
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -1957,7 +1979,8 @@
             "id": "tb4jH2LrqUFwnjrM",
             "name": "Anthropic API Key"
           }
-        }
+        },
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2005,7 +2028,8 @@
           112
         ],
         "id": "572539d9-b461-4d88-a820-168823adb1dc",
-        "webhookId": "wait-batch-poll"
+        "webhookId": "wait-batch-poll",
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2045,7 +2069,8 @@
             "id": "tb4jH2LrqUFwnjrM",
             "name": "Anthropic API Key"
           }
-        }
+        },
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2084,7 +2109,8 @@
             "id": "bQLoL1mZbqEFDoKw",
             "name": "Airtable Personal Access Token account"
           }
-        }
+        },
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2097,7 +2123,8 @@
           560,
           -128
         ],
-        "id": "a8b8ddc1-3008-481f-ab9b-612c2f69a5e1"
+        "id": "a8b8ddc1-3008-481f-ab9b-612c2f69a5e1",
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2274,7 +2301,8 @@
             "id": "bQLoL1mZbqEFDoKw",
             "name": "Airtable Personal Access Token account"
           }
-        }
+        },
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2462,7 +2490,8 @@
             "id": "bQLoL1mZbqEFDoKw",
             "name": "Airtable Personal Access Token account"
           }
-        }
+        },
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {},
@@ -2473,7 +2502,8 @@
           1456,
           16
         ],
-        "id": "af375f78-fc44-49b2-bf64-c24c71f2e54c"
+        "id": "af375f78-fc44-49b2-bf64-c24c71f2e54c",
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2508,7 +2538,8 @@
           -176
         ],
         "id": "5d6a6112-5688-4f22-b0fb-9891f71e2754",
-        "name": "Créer ?"
+        "name": "Créer ?",
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2543,7 +2574,8 @@
           -48
         ],
         "id": "32abffbb-c8ca-4a8d-bc58-1dc1a0db3763",
-        "name": "Mettre à jour ?"
+        "name": "Mettre à jour ?",
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2578,7 +2610,8 @@
           -112
         ],
         "id": "4a0209a3-bd75-4e37-ab27-eb805a976d5c",
-        "name": "Batch terminé ?"
+        "name": "Batch terminé ?",
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2612,7 +2645,8 @@
           -288
         ],
         "id": "a79025c1-763a-4c54-9269-97a3aa480c7f",
-        "name": "A traiter ?"
+        "name": "A traiter ?",
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2800,7 +2834,8 @@
             "id": "bQLoL1mZbqEFDoKw",
             "name": "Airtable Personal Access Token account"
           }
-        }
+        },
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2848,7 +2883,8 @@
         "position": [
           -784,
           -368
-        ]
+        ],
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2900,7 +2936,8 @@
         "position": [
           -400,
           -368
-        ]
+        ],
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2940,7 +2977,8 @@
         },
         "retryOnFail": true,
         "maxTries": 3,
-        "waitBetweenTries": 2000
+        "waitBetweenTries": 2000,
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2953,7 +2991,8 @@
         "position": [
           48,
           -368
-        ]
+        ],
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -2988,7 +3027,8 @@
         "position": [
           288,
           -368
-        ]
+        ],
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -3194,7 +3234,8 @@
             "id": "bQLoL1mZbqEFDoKw",
             "name": "Airtable Personal Access Token account"
           }
-        }
+        },
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -3360,7 +3401,8 @@
             "id": "bQLoL1mZbqEFDoKw",
             "name": "Airtable Personal Access Token account"
           }
-        }
+        },
+        "onError": "continueRegularOutput"
       }
     ],
     "connections": {
@@ -3645,18 +3687,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-06-16T14:48:52.516Z",
-        "id": 29,
+        "createdAt": "2026-06-16T21:56:15.836Z",
+        "id": 33,
         "workflowId": "BsXYMJdidg8tej9i",
-        "versionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
+        "versionId": "f4a532ce-16c0-4d61-bcaa-ffe1cc7921c1",
         "event": "activated",
         "userId": "327b8291-3be6-4beb-a31b-67dda7c79279"
       },
       {
-        "createdAt": "2026-06-16T14:48:52.497Z",
-        "id": 28,
+        "createdAt": "2026-06-16T21:56:15.812Z",
+        "id": 32,
         "workflowId": "BsXYMJdidg8tej9i",
-        "versionId": "6931a798-25ee-4113-bbe6-1bc48157d0aa",
+        "versionId": "f4a532ce-16c0-4d61-bcaa-ffe1cc7921c1",
         "event": "deactivated",
         "userId": "327b8291-3be6-4beb-a31b-67dda7c79279"
       }
