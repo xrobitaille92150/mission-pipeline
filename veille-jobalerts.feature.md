@@ -19,7 +19,20 @@
 
 Workflow daily n8n : id `BsXYMJdidg8tej9i`. Mirrors repo : `nodes/veille-prepa-triage.js`,
 `nodes/veille-parser-triage.js`, `nodes/veille-decider.js`, `nodes/filtrer-preparer.js`.
-`daily.workflow.json` resynchronisé au live (27 nœuds).
+`daily.workflow.json` resynchronisé au live (28 nœuds).
+
+### Robustesse ajoutée (2026-06-16/17)
+
+- **Triage en 1 seul appel IA** (au lieu d'1/carte) : évite le rate-limit 429. `Prépa triage Veille`
+  construit un prompt avec toutes les offres numérotées ; `Triage Veille (Claude)` = 1 appel
+  (`max_tokens:1500`, `retryOnFail`) ; `Parser triage Veille` lit le tableau JSON et rattache par index.
+- **`Veille décider` en `.all()`** (runOnceForAllItems) : corrige l'erreur n8n « Multiple matches »
+  (ne jamais utiliser `$('...').item` après un nœud search qui casse l'appariement).
+- **Isolation des branches** : 22 nœuds après `Veille ?` en `onError` (ne s'arrêtent plus mutuellement).
+  Exclu : `Statut batch` (gardé bloquant pour éviter une boucle de polling infinie).
+- **Alerte email** : nœud `⚠️ Alerte erreur` (Gmail send → xrobitaille92150@gmail.com). 17 étapes
+  « actives » (Gmail, Filtrer, branches Veille + Candidatures) en `continueErrorOutput` → sortie
+  erreur câblée vers l'alerte. Une étape qui échoue → mail + branche stoppée proprement, l'autre continue.
 
 **⚠️ Edge connu (pré-existant, aggravé)** : `Construire requêtes batch` lève une erreur si
 0 email Candidature. Un jour avec **uniquement** des alertes jobalerts → la branche
