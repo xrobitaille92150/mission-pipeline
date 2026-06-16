@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-15T15:19:25.939Z",
+  "updatedAt": "2026-06-16T14:03:05.631Z",
   "createdAt": "2026-06-15T13:57:13.185Z",
   "id": "BsXYMJdidg8tej9i",
   "name": "Gmail → Airtable : Run quotidien (mails de la veille)",
@@ -58,7 +58,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Nœud n8n \"Filtrer & préparer\" (Code, runOnceForAllItems)\n// Décode le corps des emails, applique les règles déterministes LinkedIn,\n// extrait URL/Poste/Lieu/Mode pour les confirmations Envoyé, et construit\n// le prompt Claude. Sortie : un item par email à classifier.\n\nconst items = $input.all();\nconst results = [];\n\nconst decodeB64 = (data) => {\n  if (!data) return '';\n  try { return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'); }\n  catch (e) { return ''; }\n};\n\nconst extractText = (parts) => {\n  if (!Array.isArray(parts)) return '';\n  let text = '';\n  for (const part of parts) {\n    if (part.mimeType === 'text/plain' && part.body?.data) text += decodeB64(part.body.data) + ' ';\n    else if (Array.isArray(part.parts)) text += extractText(part.parts);\n  }\n  return text;\n};\n\nconst getHeader = (email, name) => {\n  const headers = email.payload?.headers;\n  if (Array.isArray(headers)) {\n    const found = headers.find(h => (h.name || '').toLowerCase() === name.toLowerCase());\n    if (found) return found.value || '';\n  }\n  const cap = name.charAt(0).toUpperCase() + name.slice(1);\n  return email[name] || email[cap] || '';\n};\n\nconst cutName = (s) => s.split(/\\s[-|–—:]\\s|\\n|\\bpour\\b|\\bfor\\b/i)[0].trim().slice(0, 60);\nconst escRe = (s) => String(s).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n\n// Normalise vers les valeurs FR utilisées dans Airtable Candidatures : \"À distance\" / \"Hybride\" / \"Sur site\"\nconst cleanMode = (raw) => {\n  const m = String(raw || '').toLowerCase();\n  if (/(à\\s*distance|\\ba\\s*distance\\b|remote|télétravail|teletravail|full\\s*remote)/.test(m)) return 'À distance';\n  if (/(hybride|hybrid)/.test(m)) return 'Hybride';\n  if (/(sur\\s*(?:site|place)|on[-\\s]?site|présentiel|presentiel)/.test(m)) return 'Sur site';\n  return '';\n};\n\n// Trouve une URL d'offre LinkedIn dans un texte (HTML ou plain)\nconst findLinkedInJobUrl = (text) => {\n  if (!text) return '';\n  const m = String(text).match(/https?:\\/\\/(?:[\\w.-]+\\.)?linkedin\\.com\\/(?:comm\\/)?jobs\\/view\\/(\\d+)/i);\n  return m ? `https://www.linkedin.com/jobs/view/${m[1]}/` : '';\n};\n\n// Cherche l'URL d'offre dans toutes les parties du payload (plain + html)\nconst findLinkedInJobUrlInPayload = (payload) => {\n  if (!payload) return '';\n  if (payload.body?.data) {\n    const u = findLinkedInJobUrl(decodeB64(payload.body.data));\n    if (u) return u;\n  }\n  if (Array.isArray(payload.parts)) {\n    for (const p of payload.parts) {\n      const u = findLinkedInJobUrlInPayload(p);\n      if (u) return u;\n    }\n  }\n  return '';\n};\n\nfor (const item of items) {\n  const email = item.json;\n\n  const subject = getHeader(email, 'Subject');\n  const fromRaw = getHeader(email, 'From');\n  const dateRaw = getHeader(email, 'Date');\n  const fromEmail = (fromRaw ? ((fromRaw.match(/<([^>]+)>/) || [])[1] || fromRaw.trim()) : '').toLowerCase();\n  const domain = fromEmail.includes('@') ? fromEmail.split('@')[1] : '';\n  const snippet = email.snippet || '';\n  const isLinkedIn = domain.includes('linkedin.com');\n\n  // Règles déterministes LinkedIn (sur sujet + aperçu)\n  let forcedReponse = null;\n  let forcedSociete = null;\n  if (isLinkedIn) {\n    const head = `${subject}\\n${snippet}`;\n    let m;\n    if ((m = head.match(/your application was sent to\\s+(.+)/i)) ||\n        (m = head.match(/votre candidature a été envoyée à\\s+(.+)/i)) ||\n        (m = head.match(/candidature(?:\\s+a(?:\\s+bien)?\\s+été)?\\s+envoyée\\s+à\\s+(.+)/i))) {\n      forcedReponse = 'Envoyé'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/your application was viewed by\\s+(.+)/i)) ||\n               (m = head.match(/candidature a été consultée par\\s+(.+)/i))) {\n      forcedReponse = 'A/R'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/derni[eè]re nouvelle de\\s+(.+)/i))) {\n      forcedReponse = 'Non'; forcedSociete = cutName(m[1]);\n    }\n  }\n\n  // Alertes d'offres LinkedIn -> mises de côté\n  if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') continue;\n\n  let bodyRaw = '';\n  if (email.payload) {\n    if (Array.isArray(email.payload.parts)) bodyRaw = extractText(email.payload.parts);\n    else if (email.payload.body?.data) bodyRaw = decodeB64(email.payload.body.data);\n  }\n  if (!bodyRaw) bodyRaw = email.text || email.html || snippet || '';\n\n  let bodyClean = String(bodyRaw).replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n  if (bodyClean.length > 2500) bodyClean = bodyClean.slice(0, 1800) + ' […] ' + bodyClean.slice(-700);\n\n  // Enrichissement LinkedIn (Envoyé uniquement) — URL / Poste / Lieu / Mode\n  let forcedUrl = '';\n  let forcedPoste = null;\n  let forcedLieu = null;\n  let forcedMode = null;\n  if (isLinkedIn && forcedReponse === 'Envoyé' && forcedSociete) {\n    forcedUrl = findLinkedInJobUrlInPayload(email.payload);\n\n    // Pattern : \"<Société> <Poste> <Société> · <Lieu> (<Mode>?) ... Candidature/Application/Voir/View\"\n    const escSoc = escRe(forcedSociete);\n    const stop = '(?:\\\\s+Candidature\\\\s+envoyée|\\\\s+Application\\\\s+sent|\\\\s+View\\\\s+job|\\\\s+Voir\\\\s+l|\\\\s+Postuler|$)';\n    const re = new RegExp(\n      `${escSoc}\\\\s+([^·•]+?)\\\\s+${escSoc}\\\\s*[·•]\\\\s*([^·•]+?)${stop}`,\n      'i'\n    );\n    const mm = bodyClean.match(re);\n    if (mm) {\n      forcedPoste = mm[1].trim().slice(0, 200);\n      const meta = mm[2].trim();\n      const lm = meta.match(/^(.+?)\\s*(?:\\(([^)]+)\\))?\\s*$/);\n      if (lm) {\n        forcedLieu = lm[1].trim().slice(0, 100);\n        forcedMode = cleanMode(lm[2] || meta);\n      }\n    }\n  }\n\n  const customId = ('m_' + (email.id || String(results.length)))\n    .replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);\n\n  const claudePrompt = `Analyse cet email de candidature à l'emploi (en français) et classe la réponse de l'employeur.\n\nExpéditeur : ${fromRaw}\nDomaine expéditeur : ${domain}\nSujet : ${subject}\nCorps : ${bodyClean || snippet}\n\nRéponds UNIQUEMENT avec ce JSON, sans texte ni balises autour :\n{\"recrutement\": true/false, \"societe\": \"... ou null\", \"poste\": \"... ou null\", \"reponse\": \"A/R|Oui|Non\", \"confidence\": \"high|medium|low\", \"note\": \"1 phrase\"}\n\nDÉFINITIONS\n- recrutement=true : email lié à une candidature précise (accusé de réception d'ATS, refus, invitation entretien, message d'un recruteur sur une candidature).\n- recrutement=false : alertes/offres non sollicitées, newsletters ; emails d'AUTHENTIFICATION / code de connexion / vérification ; emails de BIENVENUE / création de compte / inscription à une plateforme ; invitations à une CONFÉRENCE / webinaire / événement (≠ entretien d'embauche) ; notifs bancaires, factures, pub, réseaux sociaux.\n- societe : l'ENTREPRISE qui recrute. Si elle n'est pas explicite, DÉDUIS-LA de la signature, de l'adresse postale, du logo/nom cité dans le corps, ou du domaine de l'expéditeur. Jamais la plateforme/ATS ni le cabinet (ignorer Welcome to the Jungle, Greenhouse, Lever, Workday, LinkedIn). null seulement si vraiment introuvable.\n- poste : déduis l'intitulé depuis le sujet, le corps ou la signature. null si introuvable.\n\nCLASSEMENT DE reponse — lis le CORPS, pas seulement l'objet :\n- \"A/R\" = accusé de réception, AUCUNE décision : « bien reçu votre candidature », « candidature enregistrée », « merci pour votre candidature », confirmation automatique.\n- \"Non\" = refus : « ne donnerons pas suite », « profil n'a pas été retenu », « malheureusement », « regret », « unfortunately ».\n- \"Oui\" = suite positive RÉELLE : invitation entretien/échange/appel/visio, test ou screening de sélection, « souhaitons vous rencontrer », « vos disponibilités », « prochaine étape ». PAS une invitation à une conférence/événement ni une simple inscription.\n\nRÈGLES\n- Un accusé de réception n'est PAS un refus. A/R ≠ Non ≠ Oui.\n- En cas de doute entre les trois (si c'est bien du recrutement) → \"A/R\".`;\n\n  results.push({\n    json: {\n      customId, emailId: email.id || '', subject, fromRaw, fromEmail,\n      date: dateRaw, domain, snippet, bodyClean, claudePrompt,\n      forcedReponse, forcedSociete, forcedUrl, forcedPoste, forcedLieu, forcedMode,\n    },\n  });\n}\n\nreturn results;\n"
+        "jsCode": "// Nœud n8n \"Filtrer & préparer\" (Code, runOnceForAllItems)\n// Décode le corps des emails, applique les règles déterministes LinkedIn,\n// extrait URL/Poste/Lieu/Mode pour les confirmations Envoyé, et construit\n// le prompt Claude. Sortie : un item par email à classifier.\n//\n// Les alertes d'offres LinkedIn (jobalerts-noreply) ne sont plus ignorées :\n// leur digest text/plain est découpé en cartes (une par offre) taguées\n// kind:'veille'. Un Switch en aval (\"Veille ?\") sépare kind:'veille' du flux\n// Candidatures (kind:'candidature'). Cf. veille-jobalerts.feature.md.\n\nconst items = $input.all();\nconst results = [];\n\nconst decodeB64 = (data) => {\n  if (!data) return '';\n  try { return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'); }\n  catch (e) { return ''; }\n};\n\nconst extractText = (parts) => {\n  if (!Array.isArray(parts)) return '';\n  let text = '';\n  for (const part of parts) {\n    if (part.mimeType === 'text/plain' && part.body?.data) text += decodeB64(part.body.data) + ' ';\n    else if (Array.isArray(part.parts)) text += extractText(part.parts);\n  }\n  return text;\n};\n\n// Lit un en-tête depuis le dict normalisé du nœud Gmail v2 (clés minuscules,\n// valeurs de la forme \"Nom: valeur\").\nconst headerFromMap = (email, name) => {\n  const h = email.headers;\n  if (h && typeof h === 'object' && !Array.isArray(h)) {\n    const raw = h[name.toLowerCase()];\n    if (raw) return String(raw).replace(new RegExp('^\\\\s*' + name + '\\\\s*:\\\\s*', 'i'), '').trim();\n  }\n  return '';\n};\n\n// Récupère un en-tête quel que soit le format de sortie du nœud Gmail :\n//  - brut (get full)            : email.payload.headers = [{name, value}]\n//  - normalisé (node v2, simple:false) : champ direct minuscule (email.subject / email.date / …)\n//    + dict email.headers {<nom-minuscule>: \"Nom: valeur\"}\n// ⚠️ Le nœud \"Gmail — Emails de la veille\" renvoie la forme NORMALISÉE (pas de payload) :\n// sans ce support, subject/from/date/domain remontaient tous vides (dates jamais écrites,\n// règles LinkedIn forcées et filtrage jobalerts inopérants).\nconst getHeader = (email, name) => {\n  const headers = email.payload?.headers;\n  if (Array.isArray(headers)) {\n    const found = headers.find(h => (h.name || '').toLowerCase() === name.toLowerCase());\n    if (found) return found.value || '';\n  }\n  const low = name.toLowerCase();\n  if (typeof email[low] === 'string' && email[low]) return email[low];\n  const fromMap = headerFromMap(email, name);\n  if (fromMap) return fromMap;\n  const cap = name.charAt(0).toUpperCase() + name.slice(1);\n  return email[name] || email[cap] || '';\n};\n\nconst cutName = (s) => s.split(/\\s[-|–—:]\\s|\\n|\\bpour\\b|\\bfor\\b/i)[0].trim().slice(0, 60);\nconst escRe = (s) => String(s).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n\n// Normalise vers les valeurs FR utilisées dans Airtable Candidatures : \"À distance\" / \"Hybride\" / \"Sur site\"\nconst cleanMode = (raw) => {\n  const m = String(raw || '').toLowerCase();\n  if (/(à\\s*distance|\\ba\\s*distance\\b|remote|télétravail|teletravail|full\\s*remote)/.test(m)) return 'À distance';\n  if (/(hybride|hybrid)/.test(m)) return 'Hybride';\n  if (/(sur\\s*(?:site|place)|on[-\\s]?site|présentiel|presentiel)/.test(m)) return 'Sur site';\n  return '';\n};\n\n// Trouve une URL d'offre LinkedIn dans un texte (HTML ou plain)\nconst findLinkedInJobUrl = (text) => {\n  if (!text) return '';\n  const m = String(text).match(/https?:\\/\\/(?:[\\w.-]+\\.)?linkedin\\.com\\/(?:comm\\/)?jobs\\/view\\/(\\d+)/i);\n  return m ? `https://www.linkedin.com/jobs/view/${m[1]}/` : '';\n};\n\n// Cherche l'URL d'offre dans toutes les parties du payload (plain + html)\nconst findLinkedInJobUrlInPayload = (payload) => {\n  if (!payload) return '';\n  if (payload.body?.data) {\n    const u = findLinkedInJobUrl(decodeB64(payload.body.data));\n    if (u) return u;\n  }\n  if (Array.isArray(payload.parts)) {\n    for (const p of payload.parts) {\n      const u = findLinkedInJobUrlInPayload(p);\n      if (u) return u;\n    }\n  }\n  return '';\n};\n\n// --- Parseur de digest d'alertes emploi LinkedIn (jobalerts-noreply) ---\n// Le corps text/plain liste les offres en blocs séparés par des lignes de tirets :\n//   <Poste> / <Employeur> / <Lieu> / [badge…] / \"Voir l'offre d'emploi : <URL …/jobs/view/JOBID/…>\"\n// Validé sur emails réels (2026-06-16). Pas de description du poste dans l'email\n// (contrainte fiche) → on n'extrait que titre/employeur/lieu/mode + jobId/URL.\n// Renvoie une carte par jobId (dédup intra-email ; dédup inter-jours = upsert Airtable).\nconst VEILLE_BADGES = /^(Top candidat|Croissance rapide|Recrutement actif|Cette entreprise recrute activement|Soyez parmi les premiers|Postulez avec|Candidature simplifiée|Easy Apply|Reprend contact|Forte affinité|Promu|En vedette|Actively recruiting|Be an early applicant|Top applicant|Salaire\\b|\\d+\\s+relation)/i;\n\nconst parseJobAlertDigest = (plain) => {\n  const cards = [];\n  if (!plain) return cards;\n  const seen = new Set();\n  // Nom de l'alerte (recherche LinkedIn enregistrée) — contexte utile au triage\n  const alertM = plain.match(/Votre alerte Emploi pour\\s+(.+)/i);\n  const alertName = alertM ? alertM[1].trim().slice(0, 200) : '';\n  const blocks = plain.split(/\\n[ \\t]*-{3,}[ \\t]*\\n/);\n  for (const block of blocks) {\n    const jm = block.match(/linkedin\\.com\\/(?:comm\\/)?jobs\\/view\\/(\\d+)/i);\n    if (!jm) continue;                       // en-tête / pied de page sans offre\n    const jobId = jm[1];\n    if (seen.has(jobId)) continue;           // dédup intra-email\n    seen.add(jobId);\n    const url = `https://www.linkedin.com/jobs/view/${jobId}/`;\n    const lines = block.split('\\n')\n      .map(l => l.replace(/\\s+/g, ' ').trim())\n      .filter(Boolean)\n      .filter(l => !/^Votre alerte Emploi pour/i.test(l))\n      .filter(l => !/^Voir l.offre d.emploi\\s*:/i.test(l))\n      .filter(l => !VEILLE_BADGES.test(l));\n    const poste = (lines[0] || '').slice(0, 200);\n    const employeur = (lines[1] || '').slice(0, 120);\n    let lieu = (lines[2] || '').slice(0, 120);\n    // Mode parfois accolé au lieu : \"France (à distance)\", \"Paris (Hybride)\"\n    let mode = '';\n    const lp = lieu.match(/^(.*?)\\s*\\(([^)]+)\\)\\s*$/);\n    if (lp) { const m = cleanMode(lp[2]); if (m) { mode = m; lieu = lp[1].trim(); } }\n    if (!mode) mode = cleanMode(lieu);\n    cards.push({ jobId, url, employeur, poste, lieu, mode, alertName });\n  }\n  return cards;\n};\n\nfor (const item of items) {\n  const email = item.json;\n\n  const subject = getHeader(email, 'Subject');\n  // From : objet normalisé {value:[{address,name}]} (node v2) OU en-tête brut.\n  const fromObj = email.from;\n  let fromRaw = '';\n  if (fromObj && typeof fromObj === 'object' && Array.isArray(fromObj.value) && fromObj.value[0]) {\n    const v = fromObj.value[0];\n    fromRaw = v.name ? `${v.name} <${v.address || ''}>` : (v.address || '');\n  } else {\n    fromRaw = getHeader(email, 'From');\n  }\n  const dateRaw = getHeader(email, 'Date'); // node v2 : déjà ISO (ex. 2026-06-15T22:09:30.000Z)\n  const fromEmail = (\n    (fromObj && typeof fromObj === 'object' && fromObj.value && fromObj.value[0] && fromObj.value[0].address)\n    || (fromRaw.match(/<([^>]+)>/) || [])[1]\n    || fromRaw.trim()\n    || ''\n  ).toLowerCase();\n  const domain = fromEmail.includes('@') ? fromEmail.split('@')[1] : '';\n  const snippet = email.snippet\n    || (typeof email.text === 'string' ? email.text.replace(/\\s+/g, ' ').trim().slice(0, 400) : '');\n  const isLinkedIn = domain.includes('linkedin.com');\n\n  // Règles déterministes LinkedIn (sur sujet + aperçu)\n  let forcedReponse = null;\n  let forcedSociete = null;\n  if (isLinkedIn) {\n    const head = `${subject}\\n${snippet}`;\n    let m;\n    if ((m = head.match(/your application was sent to\\s+(.+)/i)) ||\n        (m = head.match(/votre candidature a été envoyée à\\s+(.+)/i)) ||\n        (m = head.match(/candidature(?:\\s+a(?:\\s+bien)?\\s+été)?\\s+envoyée\\s+à\\s+(.+)/i))) {\n      forcedReponse = 'Envoyé'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/your application was viewed by\\s+(.+)/i)) ||\n               (m = head.match(/candidature a été consultée par\\s+(.+)/i))) {\n      forcedReponse = 'A/R'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/derni[eè]re nouvelle de\\s+(.+)/i))) {\n      forcedReponse = 'Non'; forcedSociete = cutName(m[1]);\n    }\n  }\n\n  // Alertes d'offres LinkedIn -> branche Veille (parse du digest en cartes)\n  if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') {\n    let plain = '';\n    if (email.payload && Array.isArray(email.payload.parts)) plain = extractText(email.payload.parts);\n    else if (email.payload?.body?.data) plain = decodeB64(email.payload.body.data);\n    if (!plain) plain = email.plaintextBody || email.text || '';\n    for (const c of parseJobAlertDigest(plain)) {\n      results.push({\n        json: {\n          kind: 'veille',\n          jobId: c.jobId, url: c.url,\n          employeur: c.employeur, poste: c.poste, lieu: c.lieu, mode: c.mode,\n          alertName: c.alertName,\n          emailId: email.id || '', date: dateRaw,\n        },\n      });\n    }\n    continue; // ne pas envoyer ces emails dans le flux Candidatures\n  }\n\n  let bodyRaw = '';\n  if (email.payload) {\n    if (Array.isArray(email.payload.parts)) bodyRaw = extractText(email.payload.parts);\n    else if (email.payload.body?.data) bodyRaw = decodeB64(email.payload.body.data);\n  }\n  if (!bodyRaw) bodyRaw = email.text || email.html || snippet || '';\n\n  let bodyClean = String(bodyRaw).replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n  if (bodyClean.length > 2500) bodyClean = bodyClean.slice(0, 1800) + ' […] ' + bodyClean.slice(-700);\n\n  // Enrichissement LinkedIn (Envoyé uniquement) — URL / Poste / Lieu / Mode\n  let forcedUrl = '';\n  let forcedPoste = null;\n  let forcedLieu = null;\n  let forcedMode = null;\n  if (isLinkedIn && forcedReponse === 'Envoyé' && forcedSociete) {\n    forcedUrl = findLinkedInJobUrlInPayload(email.payload);\n\n    // Pattern : \"<Société> <Poste> <Société> · <Lieu> (<Mode>?) ... Candidature/Application/Voir/View\"\n    const escSoc = escRe(forcedSociete);\n    const stop = '(?:\\\\s+Candidature\\\\s+envoyée|\\\\s+Application\\\\s+sent|\\\\s+View\\\\s+job|\\\\s+Voir\\\\s+l|\\\\s+Postuler|$)';\n    const re = new RegExp(\n      `${escSoc}\\\\s+([^·•]+?)\\\\s+${escSoc}\\\\s*[·•]\\\\s*([^·•]+?)${stop}`,\n      'i'\n    );\n    const mm = bodyClean.match(re);\n    if (mm) {\n      forcedPoste = mm[1].trim().slice(0, 200);\n      const meta = mm[2].trim();\n      const lm = meta.match(/^(.+?)\\s*(?:\\(([^)]+)\\))?\\s*$/);\n      if (lm) {\n        forcedLieu = lm[1].trim().slice(0, 100);\n        forcedMode = cleanMode(lm[2] || meta);\n      }\n    }\n  }\n\n  const customId = ('m_' + (email.id || String(results.length)))\n    .replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);\n\n  const claudePrompt = `Analyse cet email de candidature à l'emploi (en français) et classe la réponse de l'employeur.\n\nExpéditeur : ${fromRaw}\nDomaine expéditeur : ${domain}\nSujet : ${subject}\nCorps : ${bodyClean || snippet}\n\nRéponds UNIQUEMENT avec ce JSON, sans texte ni balises autour :\n{\"recrutement\": true/false, \"societe\": \"... ou null\", \"poste\": \"... ou null\", \"reponse\": \"A/R|Oui|Non\", \"confidence\": \"high|medium|low\", \"note\": \"1 phrase\"}\n\nDÉFINITIONS\n- recrutement=true : email lié à une candidature précise (accusé de réception d'ATS, refus, invitation entretien, message d'un recruteur sur une candidature).\n- recrutement=false : alertes/offres non sollicitées, newsletters ; emails d'AUTHENTIFICATION / code de connexion / vérification ; emails de BIENVENUE / création de compte / inscription à une plateforme ; invitations à une CONFÉRENCE / webinaire / événement (≠ entretien d'embauche) ; notifs bancaires, factures, pub, réseaux sociaux.\n- societe : l'ENTREPRISE qui recrute. Si elle n'est pas explicite, DÉDUIS-LA de la signature, de l'adresse postale, du logo/nom cité dans le corps, ou du domaine de l'expéditeur. Jamais la plateforme/ATS ni le cabinet (ignorer Welcome to the Jungle, Greenhouse, Lever, Workday, LinkedIn). null seulement si vraiment introuvable.\n- poste : déduis l'intitulé depuis le sujet, le corps ou la signature. null si introuvable.\n\nCLASSEMENT DE reponse — lis le CORPS, pas seulement l'objet :\n- \"A/R\" = accusé de réception, AUCUNE décision : « bien reçu votre candidature », « candidature enregistrée », « merci pour votre candidature », confirmation automatique.\n- \"Non\" = refus : « ne donnerons pas suite », « profil n'a pas été retenu », « malheureusement », « regret », « unfortunately ».\n- \"Oui\" = suite positive RÉELLE : invitation entretien/échange/appel/visio, test ou screening de sélection, « souhaitons vous rencontrer », « vos disponibilités », « prochaine étape ». PAS une invitation à une conférence/événement ni une simple inscription.\n\nRÈGLES\n- Un accusé de réception n'est PAS un refus. A/R ≠ Non ≠ Oui.\n- En cas de doute entre les trois (si c'est bien du recrutement) → \"A/R\".`;\n\n  results.push({\n    json: {\n      kind: 'candidature',\n      customId, emailId: email.id || '', subject, fromRaw, fromEmail,\n      date: dateRaw, domain, snippet, bodyClean, claudePrompt,\n      forcedReponse, forcedSociete, forcedUrl, forcedPoste, forcedLieu, forcedMode,\n    },\n  });\n}\n\nreturn results;"
       },
       "name": "Filtrer & préparer",
       "type": "n8n-nodes-base.code",
@@ -962,20 +962,566 @@
           "name": "Airtable Personal Access Token account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "329302d7-5247-42cf-90e9-b419f92acec1",
+              "leftValue": "={{ $json.kind }}",
+              "rightValue": "veille",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "e1a18ca2-37a0-41f4-9361-d6fb74ab902a",
+      "name": "Veille ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -860,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construit le prompt de triage Veille (pertinence vs profil cible) par carte.\nconst PROFIL = `Consultant senior independant, 25 ans d'experience, 100% assurance & finance. Cherche mission freelance/contract/interim (CDI senior finance possible), full remote ou hybride privilegie, TJM >= 1000 EUR/j.\\nCOEUR DE CIBLE (Haute): roles SENIORS de transformation finance/assurance — PMO / Program / Project Manager, AMOA / Business Analyst finance, Interim Finance Manager / Head of, comptabilite des investissements (IFRS 9 ECL/cout amorti, IFRS 17, Solvency II, sous-ledger titres), reporting reglementaire (ACPR, ORSA, QRT, RSR/SFCR, fast-close), implementation SimCorp Dimension / Clearwater / Bloomberg / OMS, migration & apurement comptable, recette UAT, transformation operating model. Secteurs: assurance, reassurance, mutuelle, banque, asset management.\\nPERIPHERIE (Moyenne): finance/PMO senior hors assurance, controle de gestion/FP&A senior, data/IT explicitement orientee finance, conseil finance sans secteur precise, lieu lointain sans remote, seniorite ambigue.\\nHORS-CIBLE: junior/stage/alternance (<8 ans), dev/IT pur, data scientist non-finance, marketing, RH, commercial, support, ops non-finance, compta generale PME hors assurance, metiers non-finance, role sous niveau directeur/lead/expert.\\nGEO/MODE: France (Paris/IdF) + remote OK; international remote OK. Sur site hors IdF sans remote -> retrograder d'un cran.`;\nconst INSTR = `Juge la pertinence de l'offre pour ce profil, sur le TITRE + EMPLOYEUR + LIEU uniquement (pas de description disponible). Reponds UNIQUEMENT avec ce JSON, sans texte autour: {\\\"pertinence\\\":\\\"Haute|Moyenne|Hors-cible\\\",\\\"raison\\\":\\\"<=15 mots, en francais\\\"}. En cas de doute entre deux niveaux, choisis le plus bas.`;\nreturn $input.all().map(it => {\n  const j = it.json;\n  const triagePrompt = `${PROFIL}\\n\\n${INSTR}\\n\\nOFFRE\\nPoste : ${j.poste||''}\\nEmployeur : ${j.employeur||''}\\nLieu : ${j.lieu||''}\\nAlerte LinkedIn : ${j.alertName||''}`;\n  return { json: { ...j, triagePrompt } };\n});\n"
+      },
+      "id": "e433a97a-e596-47ce-86a7-b7c5234b5644",
+      "name": "Prépa triage Veille",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: $json.triagePrompt }] }) }}",
+        "options": {}
+      },
+      "id": "8d6bb55f-c5c6-4222-8823-fac018cde7db",
+      "name": "Triage Veille (Claude)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "tb4jH2LrqUFwnjrM",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse la reponse de triage Claude et reattache les champs de la carte (paire).\nconst card = $('Prépa triage Veille').item.json;\nlet pertinence='', raison='';\ntry {\n  const txt = ($json && $json.content && $json.content[0] && $json.content[0].text) || '';\n  const m = txt.match(/\\{[\\s\\S]*\\}/);\n  if (m) { const o = JSON.parse(m[0]); pertinence = o.pertinence||''; raison = o.raison||''; }\n} catch(e) {}\nif (!['Haute','Moyenne','Hors-cible'].includes(pertinence)) pertinence='';\nconst toIso=(s)=>{ if(!s) return ''; const d=new Date(s); return isNaN(d.getTime())?'':d.toISOString().slice(0,10); };\nreturn { json: { jobId:card.jobId, employeur:card.employeur, poste:card.poste, lieu:card.lieu, mode:card.mode, url:card.url, alertName:card.alertName, date:toIso(card.date), pertinence, raison } };\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "4f1f8782-a4ac-4b85-8f0f-536f34c76103",
+      "name": "Parser triage Veille",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list",
+          "cachedResultName": "Mission Pipeline",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrXH5Jiyg6w21lW",
+          "mode": "list",
+          "cachedResultName": "Veille",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblrXH5Jiyg6w21lW"
+        },
+        "options": {
+          "fields": [],
+          "filterByFormula": "={{ \"{jobId}='\" + $json.jobId + \"'\" }}"
+        }
+      },
+      "id": "5291db1c-fa7f-4c71-b28c-39645a5b4205",
+      "name": "Chercher Veille",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        200
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Decide create vs update selon la presence d'une ligne Veille avec ce jobId.\nconst card = $('Parser triage Veille').item.json;\nconst foundId = ($json && $json.id) ? $json.id : null;\nreturn { json: { ...card, action: foundId ? 'update' : 'create', airtableId: foundId } };\n",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "fa2296d0-0e31-4636-8826-2604b32659ab",
+      "name": "Veille décider",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f53c80ce-f10a-4974-9cb9-88be07151151",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "create",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "1723e600-b068-4b6b-adaa-43b299fe120b",
+      "name": "Veille créer ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list",
+          "cachedResultName": "Mission Pipeline",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrXH5Jiyg6w21lW",
+          "mode": "list",
+          "cachedResultName": "Veille",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblrXH5Jiyg6w21lW"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "jobId": "={{ $json.jobId }}",
+            "Employeur": "={{ $json.employeur }}",
+            "Poste": "={{ $json.poste }}",
+            "Lieu": "={{ $json.lieu || undefined }}",
+            "Mode": "={{ $json.mode || undefined }}",
+            "URL": "={{ $json.url || undefined }}",
+            "Pertinence": "={{ $json.pertinence || undefined }}",
+            "Raison triage": "={{ $json.raison || undefined }}",
+            "Statut": "À étudier",
+            "Date 1ère vue": "={{ $json.date || undefined }}"
+          },
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "jobId",
+              "displayName": "jobId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Employeur",
+              "displayName": "Employeur",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Poste",
+              "displayName": "Poste",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lieu",
+              "displayName": "Lieu",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mode",
+              "displayName": "Mode",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Pertinence",
+              "displayName": "Pertinence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "readOnly": false,
+              "removed": false,
+              "options": [
+                {
+                  "name": "Haute",
+                  "value": "Haute"
+                },
+                {
+                  "name": "Moyenne",
+                  "value": "Moyenne"
+                },
+                {
+                  "name": "Hors-cible",
+                  "value": "Hors-cible"
+                }
+              ]
+            },
+            {
+              "id": "Raison triage",
+              "displayName": "Raison triage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Statut",
+              "displayName": "Statut",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "readOnly": false,
+              "removed": false,
+              "options": [
+                {
+                  "name": "À étudier",
+                  "value": "À étudier"
+                },
+                {
+                  "name": "Dossier prêt",
+                  "value": "Dossier prêt"
+                },
+                {
+                  "name": "Postulé",
+                  "value": "Postulé"
+                },
+                {
+                  "name": "Écarté",
+                  "value": "Écarté"
+                }
+              ]
+            },
+            {
+              "id": "Date 1ère vue",
+              "displayName": "Date 1ère vue",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "87a18598-c95a-4051-a82b-aa3f9d8a25e3",
+      "name": "Créer Veille",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        520,
+        120
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list",
+          "cachedResultName": "Mission Pipeline",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrXH5Jiyg6w21lW",
+          "mode": "list",
+          "cachedResultName": "Veille",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblrXH5Jiyg6w21lW"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.airtableId }}",
+            "Employeur": "={{ $json.employeur }}",
+            "Poste": "={{ $json.poste }}",
+            "Lieu": "={{ $json.lieu || undefined }}",
+            "Mode": "={{ $json.mode || undefined }}",
+            "URL": "={{ $json.url || undefined }}",
+            "Pertinence": "={{ $json.pertinence || undefined }}",
+            "Raison triage": "={{ $json.raison || undefined }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "jobId",
+              "displayName": "jobId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Employeur",
+              "displayName": "Employeur",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Poste",
+              "displayName": "Poste",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lieu",
+              "displayName": "Lieu",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mode",
+              "displayName": "Mode",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Pertinence",
+              "displayName": "Pertinence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "readOnly": false,
+              "removed": false,
+              "options": [
+                {
+                  "name": "Haute",
+                  "value": "Haute"
+                },
+                {
+                  "name": "Moyenne",
+                  "value": "Moyenne"
+                },
+                {
+                  "name": "Hors-cible",
+                  "value": "Hors-cible"
+                }
+              ]
+            },
+            {
+              "id": "Raison triage",
+              "displayName": "Raison triage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eca50194-ff63-421a-823d-fbf16f365d20",
+      "name": "MàJ Veille",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        520,
+        300
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
     }
   ],
   "connections": {
-    "Filtrer & préparer": {
-      "main": [
-        [
-          {
-            "node": "Construire requêtes batch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Construire requêtes batch": {
       "main": [
         [
@@ -1146,6 +1692,108 @@
           }
         ]
       ]
+    },
+    "Filtrer & préparer": {
+      "main": [
+        [
+          {
+            "node": "Veille ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Veille ?": {
+      "main": [
+        [
+          {
+            "node": "Prépa triage Veille",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Construire requêtes batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prépa triage Veille": {
+      "main": [
+        [
+          {
+            "node": "Triage Veille (Claude)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Triage Veille (Claude)": {
+      "main": [
+        [
+          {
+            "node": "Parser triage Veille",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser triage Veille": {
+      "main": [
+        [
+          {
+            "node": "Chercher Veille",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chercher Veille": {
+      "main": [
+        [
+          {
+            "node": "Veille décider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Veille décider": {
+      "main": [
+        [
+          {
+            "node": "Veille créer ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Veille créer ?": {
+      "main": [
+        [
+          {
+            "node": "Créer Veille",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MàJ Veille",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -1163,9 +1811,9 @@
   "meta": null,
   "nodeGroups": [],
   "pinData": null,
-  "versionId": "599c0faa-fde0-4602-95fb-85b3f5955093",
-  "activeVersionId": "599c0faa-fde0-4602-95fb-85b3f5955093",
-  "versionCounter": 5,
+  "versionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
+  "activeVersionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
+  "versionCounter": 7,
   "triggerCount": 1,
   "sourceWorkflowId": null,
   "shared": [
@@ -1190,9 +1838,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-06-15T15:19:25.941Z",
-    "createdAt": "2026-06-15T15:19:25.941Z",
-    "versionId": "599c0faa-fde0-4602-95fb-85b3f5955093",
+    "updatedAt": "2026-06-16T14:03:05.634Z",
+    "createdAt": "2026-06-16T14:03:05.634Z",
+    "versionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
     "workflowId": "BsXYMJdidg8tej9i",
     "nodes": [
       {
@@ -1246,7 +1894,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Nœud n8n \"Filtrer & préparer\" (Code, runOnceForAllItems)\n// Décode le corps des emails, applique les règles déterministes LinkedIn,\n// extrait URL/Poste/Lieu/Mode pour les confirmations Envoyé, et construit\n// le prompt Claude. Sortie : un item par email à classifier.\n\nconst items = $input.all();\nconst results = [];\n\nconst decodeB64 = (data) => {\n  if (!data) return '';\n  try { return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'); }\n  catch (e) { return ''; }\n};\n\nconst extractText = (parts) => {\n  if (!Array.isArray(parts)) return '';\n  let text = '';\n  for (const part of parts) {\n    if (part.mimeType === 'text/plain' && part.body?.data) text += decodeB64(part.body.data) + ' ';\n    else if (Array.isArray(part.parts)) text += extractText(part.parts);\n  }\n  return text;\n};\n\nconst getHeader = (email, name) => {\n  const headers = email.payload?.headers;\n  if (Array.isArray(headers)) {\n    const found = headers.find(h => (h.name || '').toLowerCase() === name.toLowerCase());\n    if (found) return found.value || '';\n  }\n  const cap = name.charAt(0).toUpperCase() + name.slice(1);\n  return email[name] || email[cap] || '';\n};\n\nconst cutName = (s) => s.split(/\\s[-|–—:]\\s|\\n|\\bpour\\b|\\bfor\\b/i)[0].trim().slice(0, 60);\nconst escRe = (s) => String(s).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n\n// Normalise vers les valeurs FR utilisées dans Airtable Candidatures : \"À distance\" / \"Hybride\" / \"Sur site\"\nconst cleanMode = (raw) => {\n  const m = String(raw || '').toLowerCase();\n  if (/(à\\s*distance|\\ba\\s*distance\\b|remote|télétravail|teletravail|full\\s*remote)/.test(m)) return 'À distance';\n  if (/(hybride|hybrid)/.test(m)) return 'Hybride';\n  if (/(sur\\s*(?:site|place)|on[-\\s]?site|présentiel|presentiel)/.test(m)) return 'Sur site';\n  return '';\n};\n\n// Trouve une URL d'offre LinkedIn dans un texte (HTML ou plain)\nconst findLinkedInJobUrl = (text) => {\n  if (!text) return '';\n  const m = String(text).match(/https?:\\/\\/(?:[\\w.-]+\\.)?linkedin\\.com\\/(?:comm\\/)?jobs\\/view\\/(\\d+)/i);\n  return m ? `https://www.linkedin.com/jobs/view/${m[1]}/` : '';\n};\n\n// Cherche l'URL d'offre dans toutes les parties du payload (plain + html)\nconst findLinkedInJobUrlInPayload = (payload) => {\n  if (!payload) return '';\n  if (payload.body?.data) {\n    const u = findLinkedInJobUrl(decodeB64(payload.body.data));\n    if (u) return u;\n  }\n  if (Array.isArray(payload.parts)) {\n    for (const p of payload.parts) {\n      const u = findLinkedInJobUrlInPayload(p);\n      if (u) return u;\n    }\n  }\n  return '';\n};\n\nfor (const item of items) {\n  const email = item.json;\n\n  const subject = getHeader(email, 'Subject');\n  const fromRaw = getHeader(email, 'From');\n  const dateRaw = getHeader(email, 'Date');\n  const fromEmail = (fromRaw ? ((fromRaw.match(/<([^>]+)>/) || [])[1] || fromRaw.trim()) : '').toLowerCase();\n  const domain = fromEmail.includes('@') ? fromEmail.split('@')[1] : '';\n  const snippet = email.snippet || '';\n  const isLinkedIn = domain.includes('linkedin.com');\n\n  // Règles déterministes LinkedIn (sur sujet + aperçu)\n  let forcedReponse = null;\n  let forcedSociete = null;\n  if (isLinkedIn) {\n    const head = `${subject}\\n${snippet}`;\n    let m;\n    if ((m = head.match(/your application was sent to\\s+(.+)/i)) ||\n        (m = head.match(/votre candidature a été envoyée à\\s+(.+)/i)) ||\n        (m = head.match(/candidature(?:\\s+a(?:\\s+bien)?\\s+été)?\\s+envoyée\\s+à\\s+(.+)/i))) {\n      forcedReponse = 'Envoyé'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/your application was viewed by\\s+(.+)/i)) ||\n               (m = head.match(/candidature a été consultée par\\s+(.+)/i))) {\n      forcedReponse = 'A/R'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/derni[eè]re nouvelle de\\s+(.+)/i))) {\n      forcedReponse = 'Non'; forcedSociete = cutName(m[1]);\n    }\n  }\n\n  // Alertes d'offres LinkedIn -> mises de côté\n  if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') continue;\n\n  let bodyRaw = '';\n  if (email.payload) {\n    if (Array.isArray(email.payload.parts)) bodyRaw = extractText(email.payload.parts);\n    else if (email.payload.body?.data) bodyRaw = decodeB64(email.payload.body.data);\n  }\n  if (!bodyRaw) bodyRaw = email.text || email.html || snippet || '';\n\n  let bodyClean = String(bodyRaw).replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n  if (bodyClean.length > 2500) bodyClean = bodyClean.slice(0, 1800) + ' […] ' + bodyClean.slice(-700);\n\n  // Enrichissement LinkedIn (Envoyé uniquement) — URL / Poste / Lieu / Mode\n  let forcedUrl = '';\n  let forcedPoste = null;\n  let forcedLieu = null;\n  let forcedMode = null;\n  if (isLinkedIn && forcedReponse === 'Envoyé' && forcedSociete) {\n    forcedUrl = findLinkedInJobUrlInPayload(email.payload);\n\n    // Pattern : \"<Société> <Poste> <Société> · <Lieu> (<Mode>?) ... Candidature/Application/Voir/View\"\n    const escSoc = escRe(forcedSociete);\n    const stop = '(?:\\\\s+Candidature\\\\s+envoyée|\\\\s+Application\\\\s+sent|\\\\s+View\\\\s+job|\\\\s+Voir\\\\s+l|\\\\s+Postuler|$)';\n    const re = new RegExp(\n      `${escSoc}\\\\s+([^·•]+?)\\\\s+${escSoc}\\\\s*[·•]\\\\s*([^·•]+?)${stop}`,\n      'i'\n    );\n    const mm = bodyClean.match(re);\n    if (mm) {\n      forcedPoste = mm[1].trim().slice(0, 200);\n      const meta = mm[2].trim();\n      const lm = meta.match(/^(.+?)\\s*(?:\\(([^)]+)\\))?\\s*$/);\n      if (lm) {\n        forcedLieu = lm[1].trim().slice(0, 100);\n        forcedMode = cleanMode(lm[2] || meta);\n      }\n    }\n  }\n\n  const customId = ('m_' + (email.id || String(results.length)))\n    .replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);\n\n  const claudePrompt = `Analyse cet email de candidature à l'emploi (en français) et classe la réponse de l'employeur.\n\nExpéditeur : ${fromRaw}\nDomaine expéditeur : ${domain}\nSujet : ${subject}\nCorps : ${bodyClean || snippet}\n\nRéponds UNIQUEMENT avec ce JSON, sans texte ni balises autour :\n{\"recrutement\": true/false, \"societe\": \"... ou null\", \"poste\": \"... ou null\", \"reponse\": \"A/R|Oui|Non\", \"confidence\": \"high|medium|low\", \"note\": \"1 phrase\"}\n\nDÉFINITIONS\n- recrutement=true : email lié à une candidature précise (accusé de réception d'ATS, refus, invitation entretien, message d'un recruteur sur une candidature).\n- recrutement=false : alertes/offres non sollicitées, newsletters ; emails d'AUTHENTIFICATION / code de connexion / vérification ; emails de BIENVENUE / création de compte / inscription à une plateforme ; invitations à une CONFÉRENCE / webinaire / événement (≠ entretien d'embauche) ; notifs bancaires, factures, pub, réseaux sociaux.\n- societe : l'ENTREPRISE qui recrute. Si elle n'est pas explicite, DÉDUIS-LA de la signature, de l'adresse postale, du logo/nom cité dans le corps, ou du domaine de l'expéditeur. Jamais la plateforme/ATS ni le cabinet (ignorer Welcome to the Jungle, Greenhouse, Lever, Workday, LinkedIn). null seulement si vraiment introuvable.\n- poste : déduis l'intitulé depuis le sujet, le corps ou la signature. null si introuvable.\n\nCLASSEMENT DE reponse — lis le CORPS, pas seulement l'objet :\n- \"A/R\" = accusé de réception, AUCUNE décision : « bien reçu votre candidature », « candidature enregistrée », « merci pour votre candidature », confirmation automatique.\n- \"Non\" = refus : « ne donnerons pas suite », « profil n'a pas été retenu », « malheureusement », « regret », « unfortunately ».\n- \"Oui\" = suite positive RÉELLE : invitation entretien/échange/appel/visio, test ou screening de sélection, « souhaitons vous rencontrer », « vos disponibilités », « prochaine étape ». PAS une invitation à une conférence/événement ni une simple inscription.\n\nRÈGLES\n- Un accusé de réception n'est PAS un refus. A/R ≠ Non ≠ Oui.\n- En cas de doute entre les trois (si c'est bien du recrutement) → \"A/R\".`;\n\n  results.push({\n    json: {\n      customId, emailId: email.id || '', subject, fromRaw, fromEmail,\n      date: dateRaw, domain, snippet, bodyClean, claudePrompt,\n      forcedReponse, forcedSociete, forcedUrl, forcedPoste, forcedLieu, forcedMode,\n    },\n  });\n}\n\nreturn results;\n"
+          "jsCode": "// Nœud n8n \"Filtrer & préparer\" (Code, runOnceForAllItems)\n// Décode le corps des emails, applique les règles déterministes LinkedIn,\n// extrait URL/Poste/Lieu/Mode pour les confirmations Envoyé, et construit\n// le prompt Claude. Sortie : un item par email à classifier.\n//\n// Les alertes d'offres LinkedIn (jobalerts-noreply) ne sont plus ignorées :\n// leur digest text/plain est découpé en cartes (une par offre) taguées\n// kind:'veille'. Un Switch en aval (\"Veille ?\") sépare kind:'veille' du flux\n// Candidatures (kind:'candidature'). Cf. veille-jobalerts.feature.md.\n\nconst items = $input.all();\nconst results = [];\n\nconst decodeB64 = (data) => {\n  if (!data) return '';\n  try { return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'); }\n  catch (e) { return ''; }\n};\n\nconst extractText = (parts) => {\n  if (!Array.isArray(parts)) return '';\n  let text = '';\n  for (const part of parts) {\n    if (part.mimeType === 'text/plain' && part.body?.data) text += decodeB64(part.body.data) + ' ';\n    else if (Array.isArray(part.parts)) text += extractText(part.parts);\n  }\n  return text;\n};\n\n// Lit un en-tête depuis le dict normalisé du nœud Gmail v2 (clés minuscules,\n// valeurs de la forme \"Nom: valeur\").\nconst headerFromMap = (email, name) => {\n  const h = email.headers;\n  if (h && typeof h === 'object' && !Array.isArray(h)) {\n    const raw = h[name.toLowerCase()];\n    if (raw) return String(raw).replace(new RegExp('^\\\\s*' + name + '\\\\s*:\\\\s*', 'i'), '').trim();\n  }\n  return '';\n};\n\n// Récupère un en-tête quel que soit le format de sortie du nœud Gmail :\n//  - brut (get full)            : email.payload.headers = [{name, value}]\n//  - normalisé (node v2, simple:false) : champ direct minuscule (email.subject / email.date / …)\n//    + dict email.headers {<nom-minuscule>: \"Nom: valeur\"}\n// ⚠️ Le nœud \"Gmail — Emails de la veille\" renvoie la forme NORMALISÉE (pas de payload) :\n// sans ce support, subject/from/date/domain remontaient tous vides (dates jamais écrites,\n// règles LinkedIn forcées et filtrage jobalerts inopérants).\nconst getHeader = (email, name) => {\n  const headers = email.payload?.headers;\n  if (Array.isArray(headers)) {\n    const found = headers.find(h => (h.name || '').toLowerCase() === name.toLowerCase());\n    if (found) return found.value || '';\n  }\n  const low = name.toLowerCase();\n  if (typeof email[low] === 'string' && email[low]) return email[low];\n  const fromMap = headerFromMap(email, name);\n  if (fromMap) return fromMap;\n  const cap = name.charAt(0).toUpperCase() + name.slice(1);\n  return email[name] || email[cap] || '';\n};\n\nconst cutName = (s) => s.split(/\\s[-|–—:]\\s|\\n|\\bpour\\b|\\bfor\\b/i)[0].trim().slice(0, 60);\nconst escRe = (s) => String(s).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n\n// Normalise vers les valeurs FR utilisées dans Airtable Candidatures : \"À distance\" / \"Hybride\" / \"Sur site\"\nconst cleanMode = (raw) => {\n  const m = String(raw || '').toLowerCase();\n  if (/(à\\s*distance|\\ba\\s*distance\\b|remote|télétravail|teletravail|full\\s*remote)/.test(m)) return 'À distance';\n  if (/(hybride|hybrid)/.test(m)) return 'Hybride';\n  if (/(sur\\s*(?:site|place)|on[-\\s]?site|présentiel|presentiel)/.test(m)) return 'Sur site';\n  return '';\n};\n\n// Trouve une URL d'offre LinkedIn dans un texte (HTML ou plain)\nconst findLinkedInJobUrl = (text) => {\n  if (!text) return '';\n  const m = String(text).match(/https?:\\/\\/(?:[\\w.-]+\\.)?linkedin\\.com\\/(?:comm\\/)?jobs\\/view\\/(\\d+)/i);\n  return m ? `https://www.linkedin.com/jobs/view/${m[1]}/` : '';\n};\n\n// Cherche l'URL d'offre dans toutes les parties du payload (plain + html)\nconst findLinkedInJobUrlInPayload = (payload) => {\n  if (!payload) return '';\n  if (payload.body?.data) {\n    const u = findLinkedInJobUrl(decodeB64(payload.body.data));\n    if (u) return u;\n  }\n  if (Array.isArray(payload.parts)) {\n    for (const p of payload.parts) {\n      const u = findLinkedInJobUrlInPayload(p);\n      if (u) return u;\n    }\n  }\n  return '';\n};\n\n// --- Parseur de digest d'alertes emploi LinkedIn (jobalerts-noreply) ---\n// Le corps text/plain liste les offres en blocs séparés par des lignes de tirets :\n//   <Poste> / <Employeur> / <Lieu> / [badge…] / \"Voir l'offre d'emploi : <URL …/jobs/view/JOBID/…>\"\n// Validé sur emails réels (2026-06-16). Pas de description du poste dans l'email\n// (contrainte fiche) → on n'extrait que titre/employeur/lieu/mode + jobId/URL.\n// Renvoie une carte par jobId (dédup intra-email ; dédup inter-jours = upsert Airtable).\nconst VEILLE_BADGES = /^(Top candidat|Croissance rapide|Recrutement actif|Cette entreprise recrute activement|Soyez parmi les premiers|Postulez avec|Candidature simplifiée|Easy Apply|Reprend contact|Forte affinité|Promu|En vedette|Actively recruiting|Be an early applicant|Top applicant|Salaire\\b|\\d+\\s+relation)/i;\n\nconst parseJobAlertDigest = (plain) => {\n  const cards = [];\n  if (!plain) return cards;\n  const seen = new Set();\n  // Nom de l'alerte (recherche LinkedIn enregistrée) — contexte utile au triage\n  const alertM = plain.match(/Votre alerte Emploi pour\\s+(.+)/i);\n  const alertName = alertM ? alertM[1].trim().slice(0, 200) : '';\n  const blocks = plain.split(/\\n[ \\t]*-{3,}[ \\t]*\\n/);\n  for (const block of blocks) {\n    const jm = block.match(/linkedin\\.com\\/(?:comm\\/)?jobs\\/view\\/(\\d+)/i);\n    if (!jm) continue;                       // en-tête / pied de page sans offre\n    const jobId = jm[1];\n    if (seen.has(jobId)) continue;           // dédup intra-email\n    seen.add(jobId);\n    const url = `https://www.linkedin.com/jobs/view/${jobId}/`;\n    const lines = block.split('\\n')\n      .map(l => l.replace(/\\s+/g, ' ').trim())\n      .filter(Boolean)\n      .filter(l => !/^Votre alerte Emploi pour/i.test(l))\n      .filter(l => !/^Voir l.offre d.emploi\\s*:/i.test(l))\n      .filter(l => !VEILLE_BADGES.test(l));\n    const poste = (lines[0] || '').slice(0, 200);\n    const employeur = (lines[1] || '').slice(0, 120);\n    let lieu = (lines[2] || '').slice(0, 120);\n    // Mode parfois accolé au lieu : \"France (à distance)\", \"Paris (Hybride)\"\n    let mode = '';\n    const lp = lieu.match(/^(.*?)\\s*\\(([^)]+)\\)\\s*$/);\n    if (lp) { const m = cleanMode(lp[2]); if (m) { mode = m; lieu = lp[1].trim(); } }\n    if (!mode) mode = cleanMode(lieu);\n    cards.push({ jobId, url, employeur, poste, lieu, mode, alertName });\n  }\n  return cards;\n};\n\nfor (const item of items) {\n  const email = item.json;\n\n  const subject = getHeader(email, 'Subject');\n  // From : objet normalisé {value:[{address,name}]} (node v2) OU en-tête brut.\n  const fromObj = email.from;\n  let fromRaw = '';\n  if (fromObj && typeof fromObj === 'object' && Array.isArray(fromObj.value) && fromObj.value[0]) {\n    const v = fromObj.value[0];\n    fromRaw = v.name ? `${v.name} <${v.address || ''}>` : (v.address || '');\n  } else {\n    fromRaw = getHeader(email, 'From');\n  }\n  const dateRaw = getHeader(email, 'Date'); // node v2 : déjà ISO (ex. 2026-06-15T22:09:30.000Z)\n  const fromEmail = (\n    (fromObj && typeof fromObj === 'object' && fromObj.value && fromObj.value[0] && fromObj.value[0].address)\n    || (fromRaw.match(/<([^>]+)>/) || [])[1]\n    || fromRaw.trim()\n    || ''\n  ).toLowerCase();\n  const domain = fromEmail.includes('@') ? fromEmail.split('@')[1] : '';\n  const snippet = email.snippet\n    || (typeof email.text === 'string' ? email.text.replace(/\\s+/g, ' ').trim().slice(0, 400) : '');\n  const isLinkedIn = domain.includes('linkedin.com');\n\n  // Règles déterministes LinkedIn (sur sujet + aperçu)\n  let forcedReponse = null;\n  let forcedSociete = null;\n  if (isLinkedIn) {\n    const head = `${subject}\\n${snippet}`;\n    let m;\n    if ((m = head.match(/your application was sent to\\s+(.+)/i)) ||\n        (m = head.match(/votre candidature a été envoyée à\\s+(.+)/i)) ||\n        (m = head.match(/candidature(?:\\s+a(?:\\s+bien)?\\s+été)?\\s+envoyée\\s+à\\s+(.+)/i))) {\n      forcedReponse = 'Envoyé'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/your application was viewed by\\s+(.+)/i)) ||\n               (m = head.match(/candidature a été consultée par\\s+(.+)/i))) {\n      forcedReponse = 'A/R'; forcedSociete = cutName(m[1]);\n    } else if ((m = head.match(/derni[eè]re nouvelle de\\s+(.+)/i))) {\n      forcedReponse = 'Non'; forcedSociete = cutName(m[1]);\n    }\n  }\n\n  // Alertes d'offres LinkedIn -> branche Veille (parse du digest en cartes)\n  if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') {\n    let plain = '';\n    if (email.payload && Array.isArray(email.payload.parts)) plain = extractText(email.payload.parts);\n    else if (email.payload?.body?.data) plain = decodeB64(email.payload.body.data);\n    if (!plain) plain = email.plaintextBody || email.text || '';\n    for (const c of parseJobAlertDigest(plain)) {\n      results.push({\n        json: {\n          kind: 'veille',\n          jobId: c.jobId, url: c.url,\n          employeur: c.employeur, poste: c.poste, lieu: c.lieu, mode: c.mode,\n          alertName: c.alertName,\n          emailId: email.id || '', date: dateRaw,\n        },\n      });\n    }\n    continue; // ne pas envoyer ces emails dans le flux Candidatures\n  }\n\n  let bodyRaw = '';\n  if (email.payload) {\n    if (Array.isArray(email.payload.parts)) bodyRaw = extractText(email.payload.parts);\n    else if (email.payload.body?.data) bodyRaw = decodeB64(email.payload.body.data);\n  }\n  if (!bodyRaw) bodyRaw = email.text || email.html || snippet || '';\n\n  let bodyClean = String(bodyRaw).replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n  if (bodyClean.length > 2500) bodyClean = bodyClean.slice(0, 1800) + ' […] ' + bodyClean.slice(-700);\n\n  // Enrichissement LinkedIn (Envoyé uniquement) — URL / Poste / Lieu / Mode\n  let forcedUrl = '';\n  let forcedPoste = null;\n  let forcedLieu = null;\n  let forcedMode = null;\n  if (isLinkedIn && forcedReponse === 'Envoyé' && forcedSociete) {\n    forcedUrl = findLinkedInJobUrlInPayload(email.payload);\n\n    // Pattern : \"<Société> <Poste> <Société> · <Lieu> (<Mode>?) ... Candidature/Application/Voir/View\"\n    const escSoc = escRe(forcedSociete);\n    const stop = '(?:\\\\s+Candidature\\\\s+envoyée|\\\\s+Application\\\\s+sent|\\\\s+View\\\\s+job|\\\\s+Voir\\\\s+l|\\\\s+Postuler|$)';\n    const re = new RegExp(\n      `${escSoc}\\\\s+([^·•]+?)\\\\s+${escSoc}\\\\s*[·•]\\\\s*([^·•]+?)${stop}`,\n      'i'\n    );\n    const mm = bodyClean.match(re);\n    if (mm) {\n      forcedPoste = mm[1].trim().slice(0, 200);\n      const meta = mm[2].trim();\n      const lm = meta.match(/^(.+?)\\s*(?:\\(([^)]+)\\))?\\s*$/);\n      if (lm) {\n        forcedLieu = lm[1].trim().slice(0, 100);\n        forcedMode = cleanMode(lm[2] || meta);\n      }\n    }\n  }\n\n  const customId = ('m_' + (email.id || String(results.length)))\n    .replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);\n\n  const claudePrompt = `Analyse cet email de candidature à l'emploi (en français) et classe la réponse de l'employeur.\n\nExpéditeur : ${fromRaw}\nDomaine expéditeur : ${domain}\nSujet : ${subject}\nCorps : ${bodyClean || snippet}\n\nRéponds UNIQUEMENT avec ce JSON, sans texte ni balises autour :\n{\"recrutement\": true/false, \"societe\": \"... ou null\", \"poste\": \"... ou null\", \"reponse\": \"A/R|Oui|Non\", \"confidence\": \"high|medium|low\", \"note\": \"1 phrase\"}\n\nDÉFINITIONS\n- recrutement=true : email lié à une candidature précise (accusé de réception d'ATS, refus, invitation entretien, message d'un recruteur sur une candidature).\n- recrutement=false : alertes/offres non sollicitées, newsletters ; emails d'AUTHENTIFICATION / code de connexion / vérification ; emails de BIENVENUE / création de compte / inscription à une plateforme ; invitations à une CONFÉRENCE / webinaire / événement (≠ entretien d'embauche) ; notifs bancaires, factures, pub, réseaux sociaux.\n- societe : l'ENTREPRISE qui recrute. Si elle n'est pas explicite, DÉDUIS-LA de la signature, de l'adresse postale, du logo/nom cité dans le corps, ou du domaine de l'expéditeur. Jamais la plateforme/ATS ni le cabinet (ignorer Welcome to the Jungle, Greenhouse, Lever, Workday, LinkedIn). null seulement si vraiment introuvable.\n- poste : déduis l'intitulé depuis le sujet, le corps ou la signature. null si introuvable.\n\nCLASSEMENT DE reponse — lis le CORPS, pas seulement l'objet :\n- \"A/R\" = accusé de réception, AUCUNE décision : « bien reçu votre candidature », « candidature enregistrée », « merci pour votre candidature », confirmation automatique.\n- \"Non\" = refus : « ne donnerons pas suite », « profil n'a pas été retenu », « malheureusement », « regret », « unfortunately ».\n- \"Oui\" = suite positive RÉELLE : invitation entretien/échange/appel/visio, test ou screening de sélection, « souhaitons vous rencontrer », « vos disponibilités », « prochaine étape ». PAS une invitation à une conférence/événement ni une simple inscription.\n\nRÈGLES\n- Un accusé de réception n'est PAS un refus. A/R ≠ Non ≠ Oui.\n- En cas de doute entre les trois (si c'est bien du recrutement) → \"A/R\".`;\n\n  results.push({\n    json: {\n      kind: 'candidature',\n      customId, emailId: email.id || '', subject, fromRaw, fromEmail,\n      date: dateRaw, domain, snippet, bodyClean, claudePrompt,\n      forcedReponse, forcedSociete, forcedUrl, forcedPoste, forcedLieu, forcedMode,\n    },\n  });\n}\n\nreturn results;"
         },
         "name": "Filtrer & préparer",
         "type": "n8n-nodes-base.code",
@@ -2150,20 +2798,566 @@
             "name": "Airtable Personal Access Token account"
           }
         }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "329302d7-5247-42cf-90e9-b419f92acec1",
+                "leftValue": "={{ $json.kind }}",
+                "rightValue": "veille",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "e1a18ca2-37a0-41f4-9361-d6fb74ab902a",
+        "name": "Veille ?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -860,
+          60
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Construit le prompt de triage Veille (pertinence vs profil cible) par carte.\nconst PROFIL = `Consultant senior independant, 25 ans d'experience, 100% assurance & finance. Cherche mission freelance/contract/interim (CDI senior finance possible), full remote ou hybride privilegie, TJM >= 1000 EUR/j.\\nCOEUR DE CIBLE (Haute): roles SENIORS de transformation finance/assurance — PMO / Program / Project Manager, AMOA / Business Analyst finance, Interim Finance Manager / Head of, comptabilite des investissements (IFRS 9 ECL/cout amorti, IFRS 17, Solvency II, sous-ledger titres), reporting reglementaire (ACPR, ORSA, QRT, RSR/SFCR, fast-close), implementation SimCorp Dimension / Clearwater / Bloomberg / OMS, migration & apurement comptable, recette UAT, transformation operating model. Secteurs: assurance, reassurance, mutuelle, banque, asset management.\\nPERIPHERIE (Moyenne): finance/PMO senior hors assurance, controle de gestion/FP&A senior, data/IT explicitement orientee finance, conseil finance sans secteur precise, lieu lointain sans remote, seniorite ambigue.\\nHORS-CIBLE: junior/stage/alternance (<8 ans), dev/IT pur, data scientist non-finance, marketing, RH, commercial, support, ops non-finance, compta generale PME hors assurance, metiers non-finance, role sous niveau directeur/lead/expert.\\nGEO/MODE: France (Paris/IdF) + remote OK; international remote OK. Sur site hors IdF sans remote -> retrograder d'un cran.`;\nconst INSTR = `Juge la pertinence de l'offre pour ce profil, sur le TITRE + EMPLOYEUR + LIEU uniquement (pas de description disponible). Reponds UNIQUEMENT avec ce JSON, sans texte autour: {\\\"pertinence\\\":\\\"Haute|Moyenne|Hors-cible\\\",\\\"raison\\\":\\\"<=15 mots, en francais\\\"}. En cas de doute entre deux niveaux, choisis le plus bas.`;\nreturn $input.all().map(it => {\n  const j = it.json;\n  const triagePrompt = `${PROFIL}\\n\\n${INSTR}\\n\\nOFFRE\\nPoste : ${j.poste||''}\\nEmployeur : ${j.employeur||''}\\nLieu : ${j.lieu||''}\\nAlerte LinkedIn : ${j.alertName||''}`;\n  return { json: { ...j, triagePrompt } };\n});\n"
+        },
+        "id": "e433a97a-e596-47ce-86a7-b7c5234b5644",
+        "name": "Prépa triage Veille",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -680,
+          200
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.anthropic.com/v1/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "anthropic-version",
+                "value": "2023-06-01"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: $json.triagePrompt }] }) }}",
+          "options": {}
+        },
+        "id": "8d6bb55f-c5c6-4222-8823-fac018cde7db",
+        "name": "Triage Veille (Claude)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -480,
+          200
+        ],
+        "onError": "continueRegularOutput",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "tb4jH2LrqUFwnjrM",
+            "name": "Anthropic API Key"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Parse la reponse de triage Claude et reattache les champs de la carte (paire).\nconst card = $('Prépa triage Veille').item.json;\nlet pertinence='', raison='';\ntry {\n  const txt = ($json && $json.content && $json.content[0] && $json.content[0].text) || '';\n  const m = txt.match(/\\{[\\s\\S]*\\}/);\n  if (m) { const o = JSON.parse(m[0]); pertinence = o.pertinence||''; raison = o.raison||''; }\n} catch(e) {}\nif (!['Haute','Moyenne','Hors-cible'].includes(pertinence)) pertinence='';\nconst toIso=(s)=>{ if(!s) return ''; const d=new Date(s); return isNaN(d.getTime())?'':d.toISOString().slice(0,10); };\nreturn { json: { jobId:card.jobId, employeur:card.employeur, poste:card.poste, lieu:card.lieu, mode:card.mode, url:card.url, alertName:card.alertName, date:toIso(card.date), pertinence, raison } };\n",
+          "mode": "runOnceForEachItem"
+        },
+        "id": "4f1f8782-a4ac-4b85-8f0f-536f34c76103",
+        "name": "Parser triage Veille",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -280,
+          200
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apphTpnW5vu0OdnfC",
+            "mode": "list",
+            "cachedResultName": "Mission Pipeline",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblrXH5Jiyg6w21lW",
+            "mode": "list",
+            "cachedResultName": "Veille",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblrXH5Jiyg6w21lW"
+          },
+          "options": {
+            "fields": [],
+            "filterByFormula": "={{ \"{jobId}='\" + $json.jobId + \"'\" }}"
+          }
+        },
+        "id": "5291db1c-fa7f-4c71-b28c-39645a5b4205",
+        "name": "Chercher Veille",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          -80,
+          200
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "bQLoL1mZbqEFDoKw",
+            "name": "Airtable Personal Access Token account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Decide create vs update selon la presence d'une ligne Veille avec ce jobId.\nconst card = $('Parser triage Veille').item.json;\nconst foundId = ($json && $json.id) ? $json.id : null;\nreturn { json: { ...card, action: foundId ? 'update' : 'create', airtableId: foundId } };\n",
+          "mode": "runOnceForEachItem"
+        },
+        "id": "fa2296d0-0e31-4636-8826-2604b32659ab",
+        "name": "Veille décider",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          120,
+          200
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "f53c80ce-f10a-4974-9cb9-88be07151151",
+                "leftValue": "={{ $json.action }}",
+                "rightValue": "create",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "1723e600-b068-4b6b-adaa-43b299fe120b",
+        "name": "Veille créer ?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          320,
+          200
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "apphTpnW5vu0OdnfC",
+            "mode": "list",
+            "cachedResultName": "Mission Pipeline",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblrXH5Jiyg6w21lW",
+            "mode": "list",
+            "cachedResultName": "Veille",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblrXH5Jiyg6w21lW"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "jobId": "={{ $json.jobId }}",
+              "Employeur": "={{ $json.employeur }}",
+              "Poste": "={{ $json.poste }}",
+              "Lieu": "={{ $json.lieu || undefined }}",
+              "Mode": "={{ $json.mode || undefined }}",
+              "URL": "={{ $json.url || undefined }}",
+              "Pertinence": "={{ $json.pertinence || undefined }}",
+              "Raison triage": "={{ $json.raison || undefined }}",
+              "Statut": "À étudier",
+              "Date 1ère vue": "={{ $json.date || undefined }}"
+            },
+            "matchingColumns": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false,
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "jobId",
+                "displayName": "jobId",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Employeur",
+                "displayName": "Employeur",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Poste",
+                "displayName": "Poste",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Lieu",
+                "displayName": "Lieu",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Mode",
+                "displayName": "Mode",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "URL",
+                "displayName": "URL",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Pertinence",
+                "displayName": "Pertinence",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "readOnly": false,
+                "removed": false,
+                "options": [
+                  {
+                    "name": "Haute",
+                    "value": "Haute"
+                  },
+                  {
+                    "name": "Moyenne",
+                    "value": "Moyenne"
+                  },
+                  {
+                    "name": "Hors-cible",
+                    "value": "Hors-cible"
+                  }
+                ]
+              },
+              {
+                "id": "Raison triage",
+                "displayName": "Raison triage",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Statut",
+                "displayName": "Statut",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "readOnly": false,
+                "removed": false,
+                "options": [
+                  {
+                    "name": "À étudier",
+                    "value": "À étudier"
+                  },
+                  {
+                    "name": "Dossier prêt",
+                    "value": "Dossier prêt"
+                  },
+                  {
+                    "name": "Postulé",
+                    "value": "Postulé"
+                  },
+                  {
+                    "name": "Écarté",
+                    "value": "Écarté"
+                  }
+                ]
+              },
+              {
+                "id": "Date 1ère vue",
+                "displayName": "Date 1ère vue",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "87a18598-c95a-4051-a82b-aa3f9d8a25e3",
+        "name": "Créer Veille",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          520,
+          120
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "bQLoL1mZbqEFDoKw",
+            "name": "Airtable Personal Access Token account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "apphTpnW5vu0OdnfC",
+            "mode": "list",
+            "cachedResultName": "Mission Pipeline",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblrXH5Jiyg6w21lW",
+            "mode": "list",
+            "cachedResultName": "Veille",
+            "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblrXH5Jiyg6w21lW"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $json.airtableId }}",
+              "Employeur": "={{ $json.employeur }}",
+              "Poste": "={{ $json.poste }}",
+              "Lieu": "={{ $json.lieu || undefined }}",
+              "Mode": "={{ $json.mode || undefined }}",
+              "URL": "={{ $json.url || undefined }}",
+              "Pertinence": "={{ $json.pertinence || undefined }}",
+              "Raison triage": "={{ $json.raison || undefined }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false,
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "jobId",
+                "displayName": "jobId",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Employeur",
+                "displayName": "Employeur",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Poste",
+                "displayName": "Poste",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Lieu",
+                "displayName": "Lieu",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Mode",
+                "displayName": "Mode",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "URL",
+                "displayName": "URL",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Pertinence",
+                "displayName": "Pertinence",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "readOnly": false,
+                "removed": false,
+                "options": [
+                  {
+                    "name": "Haute",
+                    "value": "Haute"
+                  },
+                  {
+                    "name": "Moyenne",
+                    "value": "Moyenne"
+                  },
+                  {
+                    "name": "Hors-cible",
+                    "value": "Hors-cible"
+                  }
+                ]
+              },
+              {
+                "id": "Raison triage",
+                "displayName": "Raison triage",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "eca50194-ff63-421a-823d-fbf16f365d20",
+        "name": "MàJ Veille",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          520,
+          300
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "bQLoL1mZbqEFDoKw",
+            "name": "Airtable Personal Access Token account"
+          }
+        }
       }
     ],
     "connections": {
-      "Filtrer & préparer": {
-        "main": [
-          [
-            {
-              "node": "Construire requêtes batch",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
       "Construire requêtes batch": {
         "main": [
           [
@@ -2334,6 +3528,108 @@
             }
           ]
         ]
+      },
+      "Filtrer & préparer": {
+        "main": [
+          [
+            {
+              "node": "Veille ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Veille ?": {
+        "main": [
+          [
+            {
+              "node": "Prépa triage Veille",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Construire requêtes batch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prépa triage Veille": {
+        "main": [
+          [
+            {
+              "node": "Triage Veille (Claude)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Triage Veille (Claude)": {
+        "main": [
+          [
+            {
+              "node": "Parser triage Veille",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parser triage Veille": {
+        "main": [
+          [
+            {
+              "node": "Chercher Veille",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Chercher Veille": {
+        "main": [
+          [
+            {
+              "node": "Veille décider",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Veille décider": {
+        "main": [
+          [
+            {
+              "node": "Veille créer ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Veille créer ?": {
+        "main": [
+          [
+            {
+              "node": "Créer Veille",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "MàJ Veille",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "nodeGroups": [],
@@ -2343,18 +3639,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-06-15T15:19:26.105Z",
-        "id": 21,
+        "createdAt": "2026-06-16T14:03:05.713Z",
+        "id": 25,
         "workflowId": "BsXYMJdidg8tej9i",
-        "versionId": "599c0faa-fde0-4602-95fb-85b3f5955093",
+        "versionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
         "event": "activated",
         "userId": "327b8291-3be6-4beb-a31b-67dda7c79279"
       },
       {
-        "createdAt": "2026-06-15T15:19:26.043Z",
-        "id": 20,
+        "createdAt": "2026-06-16T14:03:05.688Z",
+        "id": 24,
         "workflowId": "BsXYMJdidg8tej9i",
-        "versionId": "599c0faa-fde0-4602-95fb-85b3f5955093",
+        "versionId": "7ea4dff4-32ee-49b5-923d-195c337fd913",
         "event": "deactivated",
         "userId": "327b8291-3be6-4beb-a31b-67dda7c79279"
       }

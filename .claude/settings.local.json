@@ -28,7 +28,13 @@
       "Bash(python3 -c ' *)",
       "Bash(python3 -c \"import json; d=json.load\\(open\\('/tmp/airtable_update_payload.json'\\)\\); [print\\(r\\) for r in d[:3]]; print\\(f'total: {len\\(d\\)}'\\)\")",
       "mcp__1efbcac8-6973-473a-8b67-ed8c9049d15d__update_records_for_table",
-      "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'docs: fiche feature Veille/Opportunités \\(alertes LinkedIn jobalerts\\) *)"
+      "Bash(git -C /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline -c 'user.name=Xavier Robitaille' -c user.email=xrobitaille92150@gmail.com commit -q -m 'docs: fiche feature Veille/Opportunités \\(alertes LinkedIn jobalerts\\) *)",
+      "mcp__1efbcac8-6973-473a-8b67-ed8c9049d15d__create_table",
+      "mcp__5b986215-2729-4220-a61c-a7233f9d8f81__search_threads",
+      "mcp__5b986215-2729-4220-a61c-a7233f9d8f81__get_thread",
+      "Bash(rm -f /tmp/parse_test.js /tmp/parse_test.js.bak /tmp/jobalert_plain.txt /tmp/jobalert_plain2.txt; echo \"temp nettoyés\")",
+      "Bash(node --check nodes/filtrer-preparer.js)",
+      "Bash(git commit *)"
     ]
   }
 }

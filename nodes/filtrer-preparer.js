@@ -2,6 +2,11 @@
 // Décode le corps des emails, applique les règles déterministes LinkedIn,
 // extrait URL/Poste/Lieu/Mode pour les confirmations Envoyé, et construit
 // le prompt Claude. Sortie : un item par email à classifier.
+//
+// Les alertes d'offres LinkedIn (jobalerts-noreply) ne sont plus ignorées :
+// leur digest text/plain est découpé en cartes (une par offre) taguées
+// kind:'veille'. Un Switch en aval ("Veille ?") sépare kind:'veille' du flux
+// Candidatures (kind:'candidature'). Cf. veille-jobalerts.feature.md.
 
 const items = $input.all();
 const results = [];
@@ -22,12 +27,34 @@ const extractText = (parts) => {
   return text;
 };
 
+// Lit un en-tête depuis le dict normalisé du nœud Gmail v2 (clés minuscules,
+// valeurs de la forme "Nom: valeur").
+const headerFromMap = (email, name) => {
+  const h = email.headers;
+  if (h && typeof h === 'object' && !Array.isArray(h)) {
+    const raw = h[name.toLowerCase()];
+    if (raw) return String(raw).replace(new RegExp('^\\s*' + name + '\\s*:\\s*', 'i'), '').trim();
+  }
+  return '';
+};
+
+// Récupère un en-tête quel que soit le format de sortie du nœud Gmail :
+//  - brut (get full)            : email.payload.headers = [{name, value}]
+//  - normalisé (node v2, simple:false) : champ direct minuscule (email.subject / email.date / …)
+//    + dict email.headers {<nom-minuscule>: "Nom: valeur"}
+// ⚠️ Le nœud "Gmail — Emails de la veille" renvoie la forme NORMALISÉE (pas de payload) :
+// sans ce support, subject/from/date/domain remontaient tous vides (dates jamais écrites,
+// règles LinkedIn forcées et filtrage jobalerts inopérants).
 const getHeader = (email, name) => {
   const headers = email.payload?.headers;
   if (Array.isArray(headers)) {
     const found = headers.find(h => (h.name || '').toLowerCase() === name.toLowerCase());
     if (found) return found.value || '';
   }
+  const low = name.toLowerCase();
+  if (typeof email[low] === 'string' && email[low]) return email[low];
+  const fromMap = headerFromMap(email, name);
+  if (fromMap) return fromMap;
   const cap = name.charAt(0).toUpperCase() + name.slice(1);
   return email[name] || email[cap] || '';
 };
@@ -67,15 +94,71 @@ const findLinkedInJobUrlInPayload = (payload) => {
   return '';
 };
 
+// --- Parseur de digest d'alertes emploi LinkedIn (jobalerts-noreply) ---
+// Le corps text/plain liste les offres en blocs séparés par des lignes de tirets :
+//   <Poste> / <Employeur> / <Lieu> / [badge…] / "Voir l'offre d'emploi : <URL …/jobs/view/JOBID/…>"
+// Validé sur emails réels (2026-06-16). Pas de description du poste dans l'email
+// (contrainte fiche) → on n'extrait que titre/employeur/lieu/mode + jobId/URL.
+// Renvoie une carte par jobId (dédup intra-email ; dédup inter-jours = upsert Airtable).
+const VEILLE_BADGES = /^(Top candidat|Croissance rapide|Recrutement actif|Cette entreprise recrute activement|Soyez parmi les premiers|Postulez avec|Candidature simplifiée|Easy Apply|Reprend contact|Forte affinité|Promu|En vedette|Actively recruiting|Be an early applicant|Top applicant|Salaire\b|\d+\s+relation)/i;
+
+const parseJobAlertDigest = (plain) => {
+  const cards = [];
+  if (!plain) return cards;
+  const seen = new Set();
+  // Nom de l'alerte (recherche LinkedIn enregistrée) — contexte utile au triage
+  const alertM = plain.match(/Votre alerte Emploi pour\s+(.+)/i);
+  const alertName = alertM ? alertM[1].trim().slice(0, 200) : '';
+  const blocks = plain.split(/\n[ \t]*-{3,}[ \t]*\n/);
+  for (const block of blocks) {
+    const jm = block.match(/linkedin\.com\/(?:comm\/)?jobs\/view\/(\d+)/i);
+    if (!jm) continue;                       // en-tête / pied de page sans offre
+    const jobId = jm[1];
+    if (seen.has(jobId)) continue;           // dédup intra-email
+    seen.add(jobId);
+    const url = `https://www.linkedin.com/jobs/view/${jobId}/`;
+    const lines = block.split('\n')
+      .map(l => l.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .filter(l => !/^Votre alerte Emploi pour/i.test(l))
+      .filter(l => !/^Voir l.offre d.emploi\s*:/i.test(l))
+      .filter(l => !VEILLE_BADGES.test(l));
+    const poste = (lines[0] || '').slice(0, 200);
+    const employeur = (lines[1] || '').slice(0, 120);
+    let lieu = (lines[2] || '').slice(0, 120);
+    // Mode parfois accolé au lieu : "France (à distance)", "Paris (Hybride)"
+    let mode = '';
+    const lp = lieu.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    if (lp) { const m = cleanMode(lp[2]); if (m) { mode = m; lieu = lp[1].trim(); } }
+    if (!mode) mode = cleanMode(lieu);
+    cards.push({ jobId, url, employeur, poste, lieu, mode, alertName });
+  }
+  return cards;
+};
+
 for (const item of items) {
   const email = item.json;
 
   const subject = getHeader(email, 'Subject');
-  const fromRaw = getHeader(email, 'From');
-  const dateRaw = getHeader(email, 'Date');
-  const fromEmail = (fromRaw ? ((fromRaw.match(/<([^>]+)>/) || [])[1] || fromRaw.trim()) : '').toLowerCase();
+  // From : objet normalisé {value:[{address,name}]} (node v2) OU en-tête brut.
+  const fromObj = email.from;
+  let fromRaw = '';
+  if (fromObj && typeof fromObj === 'object' && Array.isArray(fromObj.value) && fromObj.value[0]) {
+    const v = fromObj.value[0];
+    fromRaw = v.name ? `${v.name} <${v.address || ''}>` : (v.address || '');
+  } else {
+    fromRaw = getHeader(email, 'From');
+  }
+  const dateRaw = getHeader(email, 'Date'); // node v2 : déjà ISO (ex. 2026-06-15T22:09:30.000Z)
+  const fromEmail = (
+    (fromObj && typeof fromObj === 'object' && fromObj.value && fromObj.value[0] && fromObj.value[0].address)
+    || (fromRaw.match(/<([^>]+)>/) || [])[1]
+    || fromRaw.trim()
+    || ''
+  ).toLowerCase();
   const domain = fromEmail.includes('@') ? fromEmail.split('@')[1] : '';
-  const snippet = email.snippet || '';
+  const snippet = email.snippet
+    || (typeof email.text === 'string' ? email.text.replace(/\s+/g, ' ').trim().slice(0, 400) : '');
   const isLinkedIn = domain.includes('linkedin.com');
 
   // Règles déterministes LinkedIn (sur sujet + aperçu)
@@ -96,8 +179,25 @@ for (const item of items) {
     }
   }
 
-  // Alertes d'offres LinkedIn -> mises de côté
-  if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') continue;
+  // Alertes d'offres LinkedIn -> branche Veille (parse du digest en cartes)
+  if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') {
+    let plain = '';
+    if (email.payload && Array.isArray(email.payload.parts)) plain = extractText(email.payload.parts);
+    else if (email.payload?.body?.data) plain = decodeB64(email.payload.body.data);
+    if (!plain) plain = email.plaintextBody || email.text || '';
+    for (const c of parseJobAlertDigest(plain)) {
+      results.push({
+        json: {
+          kind: 'veille',
+          jobId: c.jobId, url: c.url,
+          employeur: c.employeur, poste: c.poste, lieu: c.lieu, mode: c.mode,
+          alertName: c.alertName,
+          emailId: email.id || '', date: dateRaw,
+        },
+      });
+    }
+    continue; // ne pas envoyer ces emails dans le flux Candidatures
+  }
 
   let bodyRaw = '';
   if (email.payload) {
@@ -166,6 +266,7 @@ RÈGLES
 
   results.push({
     json: {
+      kind: 'candidature',
       customId, emailId: email.id || '', subject, fromRaw, fromEmail,
       date: dateRaw, domain, snippet, bodyClean, claudePrompt,
       forcedReponse, forcedSociete, forcedUrl, forcedPoste, forcedLieu, forcedMode,
