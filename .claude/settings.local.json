@@ -34,7 +34,20 @@
       "mcp__5b986215-2729-4220-a61c-a7233f9d8f81__get_thread",
       "Bash(rm -f /tmp/parse_test.js /tmp/parse_test.js.bak /tmp/jobalert_plain.txt /tmp/jobalert_plain2.txt; echo \"temp nettoyés\")",
       "Bash(node --check nodes/filtrer-preparer.js)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(brew --version)",
+      "Bash(git config *)",
+      "Bash(brew install *)",
+      "Bash(gh repo *)",
+      "Bash(git switch *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(git ls-remote *)",
+      "Bash(gh pr create --base main --head feat/veille-jobalerts-dates --title 'Veille jobalerts \\(v1\\) + fix extraction en-têtes Gmail \\(dates\\)' --body ' *)",
+      "Bash(git pull *)",
+      "Bash(git stash *)"
     ]
   }
 }
