@@ -43,9 +43,17 @@ Candidature erre (mais la branche Veille écrit quand même). À durcir si gêna
 - ✅ **Switch « Veille ? »** + **sous-chaîne Veille** (triage Claude + create/update Airtable)
   câblés dans `daily.workflow.json` et **poussés sur l'instance n8n** (HTTP 200, actif).
   Credentials Anthropic + Airtable rattachés et vérifiés côté live.
-- ⏳ **À valider** : 1ʳᵉ exécution réelle (run 4h ou « Execute workflow » manuel) → vérifier que
-  la table Veille se remplit (jobId/Pertinence/Raison) ; points à l'œil = `filterByFormula`
-  du search, write single-select Pertinence, comportement `alwaysOutputData` sur 0 match.
+- ✅ **VALIDÉE en run réel (exec 132, 2026-06-16)** : 23 offres écrites dans Veille avec
+  Pertinence (8 Haute / 3 Moyenne / 12 Hors-cible), Raison, Statut=À étudier, Date 1ère vue=date
+  du mail. Tri pertinent (SimCorp, BNP Fund Accountant, ARCH Insurance PMO, Regulatory Reporting
+  → Haute ; PM généralistes/e-commerce → Hors-cible).
+  - 2 correctifs en cours de route : (a) **triage en 1 seul appel IA** pour TOUTES les offres
+    (avant : 1 appel/carte → 23 appels → **429 rate-limit**, 13/23 vides) ; (b) **« Veille décider »
+    en `.all()`** (avant : `$('...').item` après le nœud search → erreur n8n « Multiple matches »).
+    Aussi : rubrique de tri assouplie (l'absence de mention « remote » ne pénalise plus),
+    `retryOnFail` ajouté sur l'appel IA et le search Airtable.
+  - Reste à voir au 2ᵉ run : la branche **MàJ** (offres ré-apparues → update sans doublon ni
+    écrasement du Statut). Logique validée, pas encore exercée (table vide au 1ᵉʳ run).
 
 ## Vision (mots de Xavier)
 
