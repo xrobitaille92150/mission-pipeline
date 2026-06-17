@@ -1200,7 +1200,6 @@
             "URL": "={{ $json.url || undefined }}",
             "Pertinence": "={{ $json.pertinence || undefined }}",
             "Raison triage": "={{ $json.raison || undefined }}",
-            "Statut": "À étudier",
             "Date 1ère vue": "={{ $json.date || undefined }}"
           },
           "matchingColumns": [],
