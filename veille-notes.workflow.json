@@ -1,0 +1,428 @@
+{
+  "name": "Veille — notes IA",
+  "nodes": [
+    {
+      "id": "trig",
+      "name": "Notes — 4h20",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "20 4 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "list",
+      "name": "Lister Veille",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrXH5Jiyg6w21lW",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {
+          "fields": [
+            "jobId",
+            "URL",
+            "Poste",
+            "Employeur",
+            "Lieu",
+            "Pertinence",
+            "Note rôle"
+          ]
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "id": "Filtrer à enrichir",
+      "name": "Filtrer à enrichir",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const norm = v => (v && typeof v === 'object') ? v.name : v;\nreturn $input.all()\n  .map(it => it.json)\n  .filter(r => {\n    const p = norm(r.Pertinence);\n    const note = r['Note rôle'];\n    return (p === 'Haute' || p === 'Moyenne') && !(note && String(note).trim());\n  })\n  .map(r => ({ json: {\n    id: r.id, jobId: r.jobId, poste: r.Poste, employeur: r.Employeur,\n    lieu: r.Lieu, pertinence: norm(r.Pertinence), url: r.URL\n  }}));"
+      }
+    },
+    {
+      "id": "http",
+      "name": "Description LinkedIn",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{{ $json.jobId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1500
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "Extraire desc",
+      "name": "Extraire desc",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const rec = $('Filtrer à enrichir').item.json;\nconst html = ($json && ($json.data || $json.body)) || '';\nconst clean = s => s\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n  .replace(/&#39;|&rsquo;/g, \"'\").replace(/&quot;/g, '\"')\n  .replace(/\\s+/g, ' ').trim();\nlet desc = '';\nconst i = html.indexOf('show-more-less-html__markup');\nif (i >= 0) {\n  let chunk = html.slice(i, i + 14000).replace(/show-more-less-html__markup[^>]*>/, '');\n  const cut = chunk.search(/show-more-less__button|<\\/section>/);\n  if (cut > 0) chunk = chunk.slice(0, cut);\n  desc = clean(chunk);\n}\nconst crit = [];\nconst re = /job-criteria-subheader[^>]*>([\\s\\S]*?)<\\/h3>[\\s\\S]*?job-criteria-text[^>]*>([\\s\\S]*?)<\\/span>/g;\nlet m;\nwhile ((m = re.exec(html))) crit.push(clean(m[1]) + ': ' + clean(m[2]));\nreturn { json: { ...rec, descText: desc, criteres: crit.join(' | '), ok: desc.length > 200 } };",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "if",
+      "name": "Desc OK ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "Prépa prompt notes",
+      "name": "Prépa prompt notes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const PROFIL = `Profil candidat : consultant senior independant, 25 ans d'experience, 100% assurance & finance. Cherche mission freelance/contract/interim (CDI senior finance possible), full remote ou hybride privilegie, TJM >= 1000 EUR/j. Ouvert a l'international en remote (EMEA, Amerique du Nord, APAC).`;\nconst r = $json;\nconst prompt = `${PROFIL}\n\nVoici une offre d'emploi. Redige DEUX notes courtes en francais, factuelles, pour aider ce candidat a decider de postuler.\n\nOFFRE : ${r.poste} — ${r.employeur} — ${r.lieu || 'lieu n.c.'}\nCRITERES LINKEDIN : ${r.criteres || 'n.c.'}\nDESCRIPTION :\n${(r.descText || '').slice(0, 6000)}\n\nReponds UNIQUEMENT avec un objet JSON, sans texte autour :\n{\"note_role\":\"3 a 5 phrases : de quoi parle le poste, missions cles, seniorite, et en quoi il matche ou non le profil sur le FOND du role\",\"note_criteres\":\"3 a 5 puces separees par des retours a la ligne, chaque ligne prefixee '- ' : pour chaque critere cle du recruteur (seniorite, type de contrat, secteur, competences, langue, localisation/remote) indique match ou ecart vs le profil\"}`;\nreturn { json: { prompt, id: r.id, jobId: r.jobId, pertinence: r.pertinence } };",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "claude",
+      "name": "Notes (Claude)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        0
+      ],
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content: $json.prompt }] }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 800
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "tb4jH2LrqUFwnjrM",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "id": "Parser notes",
+      "name": "Parser notes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const rec = $('Prépa prompt notes').item.json;\nlet role = '', crit = '';\ntry {\n  const txt = ($json && $json.content && $json.content[0] && $json.content[0].text) || '';\n  const m = txt.match(/\\{[\\s\\S]*\\}/);\n  if (m) { const o = JSON.parse(m[0]); role = o.note_role || ''; crit = o.note_criteres || ''; }\n} catch (e) { /* laisse vide -> retente au prochain run */ }\nif (!role && !crit) return null;\nreturn { json: { id: rec.id, noteRole: role, noteCriteres: crit, preparer: rec.pertinence === 'Haute' } };",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "upd",
+      "name": "Écrire notes",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        0
+      ],
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrXH5Jiyg6w21lW",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "Note rôle": "={{ $json.noteRole }}",
+            "Note critères": "={{ $json.noteCriteres }}",
+            "Préparer dossier": "={{ $json.preparer ? true : undefined }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Note rôle",
+              "displayName": "Note rôle",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Note critères",
+              "displayName": "Note critères",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Préparer dossier",
+              "displayName": "Préparer dossier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Notes — 4h20": {
+      "main": [
+        [
+          {
+            "node": "Lister Veille",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lister Veille": {
+      "main": [
+        [
+          {
+            "node": "Filtrer à enrichir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrer à enrichir": {
+      "main": [
+        [
+          {
+            "node": "Description LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Description LinkedIn": {
+      "main": [
+        [
+          {
+            "node": "Extraire desc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraire desc": {
+      "main": [
+        [
+          {
+            "node": "Desc OK ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Desc OK ?": {
+      "main": [
+        [
+          {
+            "node": "Prépa prompt notes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Prépa prompt notes": {
+      "main": [
+        [
+          {
+            "node": "Notes (Claude)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notes (Claude)": {
+      "main": [
+        [
+          {
+            "node": "Parser notes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser notes": {
+      "main": [
+        [
+          {
+            "node": "Écrire notes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
