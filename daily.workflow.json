@@ -1200,7 +1200,8 @@
             "URL": "={{ $json.url || undefined }}",
             "Pertinence": "={{ $json.pertinence || undefined }}",
             "Raison triage": "={{ $json.raison || undefined }}",
-            "Date 1ère vue": "={{ $json.date || undefined }}"
+            "Date 1ère vue": "={{ $json.date || undefined }}",
+            "Recherche LI": "={{ $json.alertName || undefined }}"
           },
           "matchingColumns": [],
           "attemptToConvertTypes": false,
