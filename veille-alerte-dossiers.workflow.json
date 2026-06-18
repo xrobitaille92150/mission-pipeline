@@ -1,0 +1,193 @@
+{
+  "name": "Veille — alerte dossiers",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 12,19 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "1733aa4d-5e1d-4a0a-862e-fb53f695b8d9",
+      "name": "12h et 19h"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apphTpnW5vu0OdnfC",
+          "mode": "list",
+          "cachedResultName": "Mission Pipeline",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrXH5Jiyg6w21lW",
+          "mode": "list",
+          "cachedResultName": "Veille",
+          "cachedResultUrl": "https://airtable.com/apphTpnW5vu0OdnfC/tblrXH5Jiyg6w21lW"
+        },
+        "returnAll": true,
+        "options": {
+          "filterByFormula": "AND({Préparer dossier}=TRUE(),{CV}='',NOT({J'écarte}))",
+          "fields": [
+            "Employeur",
+            "Poste",
+            "Pertinence"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        0
+      ],
+      "id": "39a166dc-ab8f-4c28-9746-503a396ace5f",
+      "name": "Dossiers en attente",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bQLoL1mZbqEFDoKw",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst count = items.length;\nif (count === 0) return [{ json: { count: 0, list: '' } }];\nconst ordre = { 'Haute': 0, 'Moyenne': 1, 'Hors-cible': 2 };\nconst sorted = [...items].sort((a, b) => {\n  const pa = ordre[a.json?.Pertinence ?? ''] ?? 9;\n  const pb = ordre[b.json?.Pertinence ?? ''] ?? 9;\n  return pa - pb;\n});\nconst list = sorted.map(item => {\n  return '- ' + (item.json?.Employeur || '?') + ' — ' + (item.json?.Poste || '?') + ' (' + (item.json?.Pertinence || '?') + ')';\n}).join('\\n');\nreturn [{ json: { count, list } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        0
+      ],
+      "id": "d48fc125-24b1-444e-a1d7-1494ae7e1101",
+      "name": "Compter et formater",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b2e1070f-22f2-48c2-a6ea-de338c428263",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        0
+      ],
+      "id": "07b5ea7f-0819-450a-8364-9490cb14457c",
+      "name": "Des dossiers a faire ?"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "xrobitaille92150@gmail.com",
+        "subject": "={{ '🗂️ ' + $json.count + ' dossier' + ($json.count > 1 ? 's' : '') + ' en attente — lance /dossiers' }}",
+        "emailType": "text",
+        "message": "={{ $json.count + ' offre' + ($json.count > 1 ? 's attendent' : ' attend') + ' un dossier de candidature :\\n\\n' + $json.list + '\\n\\nLance /dossiers dans Claude Code.' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        496,
+        -80
+      ],
+      "id": "0d4f183e-77e1-4ab0-b5ca-928b17c47d0f",
+      "name": "Mail dossiers en attente",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wN9kkTh8npM257wD",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "12h et 19h": {
+      "main": [
+        [
+          {
+            "node": "Dossiers en attente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dossiers en attente": {
+      "main": [
+        [
+          {
+            "node": "Compter et formater",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compter et formater": {
+      "main": [
+        [
+          {
+            "node": "Des dossiers a faire ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Des dossiers a faire ?": {
+      "main": [
+        [
+          {
+            "node": "Mail dossiers en attente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "4YFujCvhqGj16JPL"
+}
