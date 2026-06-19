@@ -141,10 +141,17 @@ def claude(prompt, model="claude-haiku-4-5-20251001", max_tokens=4096):
 def select_cv(jd_text):
     """Choisit le profil CV selon le decision tree de cv_profiles.md."""
     jd = jd_text.lower()
-    am_kw = ["oms","simcorp","clearwater","aladdin","front-to-back","investment platform",
-             "abor","ibor","custodian","securities migration","fund accounting","investment accounting"]
+    # Cluster B — Investissement/actif (AssetManagement CV)
+    am_kw = ["oms","simcorp","clearwater","aladdin","bloomberg aim","murex","linedata","wealthsuite",
+             "front-to-back","investment platform","investment accounting","investment reporting",
+             "comptabilité des placements","comptabilité investissement","reporting investissement",
+             "abor","ibor","custodian","securities migration","fund accounting",
+             "middle office","back office"]
+    # Cluster A — Assurance/passif (IFRS17SolvencyII CV)
     ifrs_kw = ["ifrs 17","ifrs17","ifrs 9","ifrs9","solvency ii","solvency 2","qrt","orsa",
-               "actuarial","technical provisions","dry-run","paa","gmm","ecl","reserving","solvency"]
+               "actuarial","technical provisions","dry-run","paa","gmm","ecl","reserving","solvency",
+               "comptabilité technique","provisions techniques","reporting prudentiel","pillar 3"]
+    # FR back-office / interfaces comptables (AO CV)
     ao_kw = ["migration comptable","bascule","apurement","comptes d'attente","recettes (uat)",
              "cahier des charges","cdc","amoa back-office","interfaces comptables"]
 
