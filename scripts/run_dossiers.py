@@ -80,7 +80,6 @@ CV_FILES = {
     "FinanceTransformation": "CV_XRO_EN_FinanceTransformation_v4.docx",
     "AssetManagement":       "CV_XRO_EN_AssetManagement_v4.docx",
     "IFRS17SolvencyII":      "CV_XRO_EN_IFRS17_SolvencyII_v4.docx",
-    "AO":                    "CV_XRO_FR_AO_InterfacesComptables_Placeur_20260608.docx",
 }
 
 # ── Airtable helpers ───────────────────────────────────────────────────────────
@@ -155,8 +154,6 @@ def select_cv(jd_text):
     ao_kw = ["migration comptable","bascule","apurement","comptes d'attente","recettes (uat)",
              "cahier des charges","cdc","amoa back-office","interfaces comptables"]
 
-    if any(k in jd for k in ao_kw):
-        return "AO"
     if any(k in jd for k in ifrs_kw):
         return "IFRS17SolvencyII"
     if any(k in jd for k in am_kw):
@@ -232,7 +229,7 @@ def docx_to_pdf(docx_path, pdf_path):
     with open(css_path, "w") as f:
         f.write(CSS)
     subprocess.run([
-        "pandoc", docx_path, "-o", html_path,
+        "/usr/local/bin/pandoc", docx_path, "-o", html_path,
         "--standalone", f"--css={css_path}",
         "--embed-resources", '--metadata', 'title=CV Xavier Robitaille'
     ], check=True, capture_output=True)
