@@ -917,3 +917,5 @@ FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
 2026-06-24 06:03:53,575  INFO    ✓ PwC Ireland | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_IFRS17SolvencyII_PwCIreland_20260624.pdf
 2026-06-24 06:03:53,575  INFO    ✓ The Citco Group Limited | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_TheCitcoGroupLimited_20260624.pdf
 2026-06-24 06:03:53,575  INFO    ✓ BlackRock | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_BlackRock_20260624.pdf
+2026-06-24 12:00:06,133  INFO  === run_dossiers.py démarré ===
+2026-06-24 12:00:06,765  INFO  Aucun dossier en attente. Fin.

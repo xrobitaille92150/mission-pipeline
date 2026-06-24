@@ -99,7 +99,8 @@
       "Bash(launchctl list *)",
       "Bash(bash /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run-dossiers.sh)",
       "Bash(xargs cat)",
-      "Bash(/Users/xavierrobitaille/.local/bin/claude --help)"
+      "Bash(/Users/xavierrobitaille/.local/bin/claude --help)",
+      "Bash(launchctl unload *)"
     ]
   }
 }
