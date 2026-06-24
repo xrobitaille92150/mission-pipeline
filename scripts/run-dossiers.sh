@@ -18,4 +18,4 @@ fi
 
 cd "$PROJECT_DIR"
 
-python3 scripts/run_dossiers.py
+/opt/homebrew/bin/python3 scripts/run_dossiers.py

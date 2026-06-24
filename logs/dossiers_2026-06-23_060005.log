@@ -1,0 +1,171 @@
+2026-06-23 06:00:05,354  INFO  === run_dossiers.py démarré ===
+2026-06-23 06:00:17,739  INFO  12 dossier(s) à générer
+2026-06-23 06:00:17,740  INFO    • Groupama Centre-Atlantique — Chef / Cheffe de projet AMOA - Parcours digital F/H/X
+2026-06-23 06:00:17,740  INFO    • Capco — Senior Business Analyst - Insurance
+2026-06-23 06:00:17,740  INFO    • zeb consulting — Manager Insurance Operations / Process Transformation (m|w|d)
+2026-06-23 06:00:17,740  INFO    • zeb consulting — Manager Insurance Operations / Process Transformation (m|w|d)
+2026-06-23 06:00:17,740  INFO    • Barden | B Corp — Senior Manager Finance Transformation
+2026-06-23 06:00:17,740  INFO    • SimCorp — Senior Director, Head of Investment Accounting Value Team
+2026-06-23 06:00:17,741  INFO    • EY — Consultant Senior ou Manager spécialisés en projets de transformation - secteur financier F/H
+2026-06-23 06:00:17,741  INFO    • Hannover Re — Team Manager:in Finance Global Services, Operations and Reporting, 3052
+2026-06-23 06:00:17,741  INFO    • TABULARAZA by zeb — (Senior) Consultant / Manager Transformation (w|m|d)
+2026-06-23 06:00:17,741  INFO    • TABULARAZA by zeb — (Senior) Consultant / Manager Transformation (w|m|d)
+2026-06-23 06:00:17,741  INFO    • Janus Henderson Investors — Fund Accounting Senior Analyst (12 Month FTC)
+2026-06-23 06:00:17,741  INFO    • SimCorp — Senior Director, Head of Investment Accounting Value Team
+2026-06-23 06:00:17,741  INFO  → Groupama Centre-Atlantique — Chef / Cheffe de projet AMOA - Parcours digital F/H/X [Haute]
+2026-06-23 06:00:18,034  INFO    Description LinkedIn : 3887 caractères
+2026-06-23 06:00:20,180  INFO    CV sélectionné : AssetManagement
+2026-06-23 06:00:22,974  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:00:23,020  INFO    5 retouche(s) CV
+2026-06-23 06:00:23,066  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_GroupamaCentre-Atlantique_20260623.docx
+2026-06-23 06:00:29,093  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:00:29,096  INFO    Cover letter générée : 1711 caractères
+2026-06-23 06:00:37,656  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_GroupamaCentre-Atlantique_20260623.pdf
+2026-06-23 06:00:39,804  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_GroupamaCentre-Atlantique_20260623.pdf
+2026-06-23 06:00:41,330  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_GroupamaCentre-Atlantique_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_GroupamaCentre-Atlantique_20260623.pdf']
+2026-06-23 06:00:42,141  INFO    ✓ Airtable mis à jour
+2026-06-23 06:00:45,295  INFO  → Capco — Senior Business Analyst - Insurance [Haute]
+2026-06-23 06:00:45,851  INFO    Description LinkedIn : 3967 caractères
+2026-06-23 06:00:48,000  INFO    CV sélectionné : IFRS17SolvencyII
+2026-06-23 06:00:51,423  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:00:51,430  INFO    5 retouche(s) CV
+2026-06-23 06:00:51,582  INFO    CV .docx sauvegardé : CV_XRO_EN_IFRS17SolvencyII_Capco_20260623.docx
+2026-06-23 06:00:57,452  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:00:57,454  INFO    Cover letter générée : 1743 caractères
+2026-06-23 06:01:01,416  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_IFRS17SolvencyII_Capco_20260623.pdf
+2026-06-23 06:01:03,317  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Capco_20260623.pdf
+2026-06-23 06:01:04,805  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_IFRS17SolvencyII_Capco_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_Capco_20260623.pdf']
+2026-06-23 06:01:05,756  INFO    ✓ Airtable mis à jour
+2026-06-23 06:01:08,897  INFO  → zeb consulting — Manager Insurance Operations / Process Transformation (m|w|d) [Haute]
+2026-06-23 06:01:09,269  INFO    Description LinkedIn : 4679 caractères
+2026-06-23 06:01:11,361  INFO    CV sélectionné : IFRS17SolvencyII
+2026-06-23 06:01:15,001  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:01:15,005  INFO    5 retouche(s) CV
+2026-06-23 06:01:15,064  INFO    CV .docx sauvegardé : CV_XRO_EN_IFRS17SolvencyII_zebconsulting_20260623.docx
+2026-06-23 06:01:21,061  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:01:21,064  INFO    Cover letter générée : 1793 caractères
+2026-06-23 06:01:24,616  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_IFRS17SolvencyII_zebconsulting_20260623.pdf
+2026-06-23 06:01:26,728  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_zebconsulting_20260623.pdf
+2026-06-23 06:01:28,243  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_IFRS17SolvencyII_zebconsulting_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_zebconsulting_20260623.pdf']
+2026-06-23 06:01:28,945  INFO    ✓ Airtable mis à jour
+2026-06-23 06:01:32,092  INFO  → zeb consulting — Manager Insurance Operations / Process Transformation (m|w|d) [Haute]
+2026-06-23 06:01:32,434  INFO    Description LinkedIn : 4679 caractères
+2026-06-23 06:01:34,572  INFO    CV sélectionné : IFRS17SolvencyII
+2026-06-23 06:01:38,862  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:01:38,865  INFO    6 retouche(s) CV
+2026-06-23 06:01:38,931  INFO    CV .docx sauvegardé : CV_XRO_EN_IFRS17SolvencyII_zebconsulting_20260623.docx
+2026-06-23 06:01:45,109  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:01:45,112  INFO    Cover letter générée : 1851 caractères
+2026-06-23 06:01:47,510  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_IFRS17SolvencyII_zebconsulting_20260623.pdf
+2026-06-23 06:01:49,666  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_zebconsulting_20260623.pdf
+2026-06-23 06:01:51,160  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_IFRS17SolvencyII_zebconsulting_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_zebconsulting_20260623.pdf']
+2026-06-23 06:01:52,016  INFO    ✓ Airtable mis à jour
+2026-06-23 06:01:55,161  INFO  → Barden | B Corp — Senior Manager Finance Transformation [Haute]
+2026-06-23 06:01:55,459  INFO    Description LinkedIn : 2906 caractères
+2026-06-23 06:01:57,608  INFO    CV sélectionné : AssetManagement
+2026-06-23 06:02:02,280  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:02:02,282  INFO    6 retouche(s) CV
+2026-06-23 06:02:02,352  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_BardenBCorp_20260623.docx
+2026-06-23 06:02:08,045  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:02:08,047  INFO    Cover letter générée : 1647 caractères
+2026-06-23 06:02:10,801  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_BardenBCorp_20260623.pdf
+2026-06-23 06:02:12,996  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_BardenBCorp_20260623.pdf
+2026-06-23 06:02:14,402  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_BardenBCorp_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_BardenBCorp_20260623.pdf']
+2026-06-23 06:02:15,063  INFO    ✓ Airtable mis à jour
+2026-06-23 06:02:18,187  INFO  → SimCorp — Senior Director, Head of Investment Accounting Value Team [Haute]
+2026-06-23 06:02:18,599  INFO    Description LinkedIn : 6000 caractères
+2026-06-23 06:02:20,744  INFO    CV sélectionné : AssetManagement
+2026-06-23 06:02:24,745  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:02:24,747  INFO    6 retouche(s) CV
+2026-06-23 06:02:24,814  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_SimCorp_20260623.docx
+2026-06-23 06:02:30,984  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:02:30,986  INFO    Cover letter générée : 1797 caractères
+2026-06-23 06:02:33,604  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_SimCorp_20260623.pdf
+2026-06-23 06:02:35,756  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_SimCorp_20260623.pdf
+2026-06-23 06:02:37,212  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_SimCorp_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_SimCorp_20260623.pdf']
+2026-06-23 06:02:37,967  INFO    ✓ Airtable mis à jour
+2026-06-23 06:02:41,111  INFO  → EY — Consultant Senior ou Manager spécialisés en projets de transformation - secteur financier F/H [Haute]
+2026-06-23 06:02:41,376  INFO    Description LinkedIn : 5115 caractères
+2026-06-23 06:02:43,524  INFO    CV sélectionné : AssetManagement
+2026-06-23 06:02:48,327  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:02:48,330  INFO    5 retouche(s) CV
+2026-06-23 06:02:48,394  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_EY_20260623.docx
+2026-06-23 06:02:54,463  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:02:54,466  INFO    Cover letter générée : 1908 caractères
+2026-06-23 06:02:57,043  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_EY_20260623.pdf
+2026-06-23 06:02:59,196  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_EY_20260623.pdf
+2026-06-23 06:03:00,685  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_EY_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_EY_20260623.pdf']
+2026-06-23 06:03:01,515  INFO    ✓ Airtable mis à jour
+2026-06-23 06:03:04,662  INFO  → Hannover Re — Team Manager:in Finance Global Services, Operations and Reporting, 3052 [Haute]
+2026-06-23 06:03:04,944  INFO    Description LinkedIn : 4776 caractères
+2026-06-23 06:03:07,087  INFO    CV sélectionné : IFRS17SolvencyII
+2026-06-23 06:03:11,020  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:03:11,022  INFO    6 retouche(s) CV
+2026-06-23 06:03:11,074  INFO    CV .docx sauvegardé : CV_XRO_EN_IFRS17SolvencyII_HannoverRe_20260623.docx
+2026-06-23 06:03:16,965  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:03:16,968  INFO    Cover letter générée : 1921 caractères
+2026-06-23 06:03:21,208  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_IFRS17SolvencyII_HannoverRe_20260623.pdf
+2026-06-23 06:03:23,349  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_HannoverRe_20260623.pdf
+2026-06-23 06:03:24,755  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_IFRS17SolvencyII_HannoverRe_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_HannoverRe_20260623.pdf']
+2026-06-23 06:03:25,523  INFO    ✓ Airtable mis à jour
+2026-06-23 06:03:28,667  INFO  → TABULARAZA by zeb — (Senior) Consultant / Manager Transformation (w|m|d) [Haute]
+2026-06-23 06:03:28,955  INFO    Description LinkedIn : 4679 caractères
+2026-06-23 06:03:31,026  INFO    CV sélectionné : FinanceTransformation
+2026-06-23 06:03:36,546  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:03:36,550  INFO    5 retouche(s) CV
+2026-06-23 06:03:36,614  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_TABULARAZAbyzeb_20260623.docx
+2026-06-23 06:03:43,339  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:03:43,343  INFO    Cover letter générée : 1969 caractères
+2026-06-23 06:03:47,036  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_TABULARAZAbyzeb_20260623.pdf
+2026-06-23 06:03:49,199  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_TABULARAZAbyzeb_20260623.pdf
+2026-06-23 06:03:50,547  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_FinanceTransformation_TABULARAZAbyzeb_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_TABULARAZAbyzeb_20260623.pdf']
+2026-06-23 06:03:51,275  INFO    ✓ Airtable mis à jour
+2026-06-23 06:03:54,321  INFO  → TABULARAZA by zeb — (Senior) Consultant / Manager Transformation (w|m|d) [Haute]
+2026-06-23 06:03:54,625  INFO    Description LinkedIn : 4679 caractères
+2026-06-23 06:03:56,775  INFO    CV sélectionné : FinanceTransformation
+2026-06-23 06:04:01,304  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:04:01,325  INFO    6 retouche(s) CV
+2026-06-23 06:04:01,391  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_TABULARAZAbyzeb_20260623.docx
+2026-06-23 06:04:06,820  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:04:06,824  INFO    Cover letter générée : 1634 caractères
+2026-06-23 06:04:09,157  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_TABULARAZAbyzeb_20260623.pdf
+2026-06-23 06:04:11,236  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_TABULARAZAbyzeb_20260623.pdf
+2026-06-23 06:04:12,765  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_FinanceTransformation_TABULARAZAbyzeb_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_TABULARAZAbyzeb_20260623.pdf']
+2026-06-23 06:04:13,461  INFO    ✓ Airtable mis à jour
+2026-06-23 06:04:16,612  INFO  → Janus Henderson Investors — Fund Accounting Senior Analyst (12 Month FTC) [Haute]
+2026-06-23 06:04:17,182  INFO    Description LinkedIn : 5928 caractères
+2026-06-23 06:04:19,244  INFO    CV sélectionné : AssetManagement
+2026-06-23 06:04:23,498  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:04:23,503  INFO    5 retouche(s) CV
+2026-06-23 06:04:23,573  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_JanusHendersonInvestors_20260623.docx
+2026-06-23 06:04:29,991  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:04:29,996  INFO    Cover letter générée : 1803 caractères
+2026-06-23 06:04:34,211  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_JanusHendersonInvestors_20260623.pdf
+2026-06-23 06:04:36,357  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_JanusHendersonInvestors_20260623.pdf
+2026-06-23 06:04:37,768  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_JanusHendersonInvestors_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_JanusHendersonInvestors_20260623.pdf']
+2026-06-23 06:04:38,528  INFO    ✓ Airtable mis à jour
+2026-06-23 06:04:41,675  INFO  → SimCorp — Senior Director, Head of Investment Accounting Value Team [Haute]
+2026-06-23 06:04:42,112  INFO    Description LinkedIn : 6000 caractères
+2026-06-23 06:04:44,252  INFO    CV sélectionné : AssetManagement
+2026-06-23 06:04:47,999  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:04:48,003  INFO    5 retouche(s) CV
+2026-06-23 06:04:48,070  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_SimCorp_20260623.docx
+2026-06-23 06:04:54,260  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-23 06:04:54,264  INFO    Cover letter générée : 1984 caractères
+2026-06-23 06:04:56,884  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_SimCorp_20260623.pdf
+2026-06-23 06:04:59,055  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_SimCorp_20260623.pdf
+2026-06-23 06:05:00,575  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_SimCorp_20260623.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CL_XRO_EN_SimCorp_20260623.pdf']
+2026-06-23 06:05:01,335  INFO    ✓ Airtable mis à jour
+2026-06-23 06:05:04,452  INFO  === Terminé : 12/12 OK, 0 erreur(s) ===
+2026-06-23 06:05:04,453  INFO    ✓ Groupama Centre-Atlantique | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_GroupamaCentre-Atlantique_20260623.pdf
+2026-06-23 06:05:04,453  INFO    ✓ Capco | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_IFRS17SolvencyII_Capco_20260623.pdf
+2026-06-23 06:05:04,453  INFO    ✓ zeb consulting | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_IFRS17SolvencyII_zebconsulting_20260623.pdf
+2026-06-23 06:05:04,453  INFO    ✓ zeb consulting | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_IFRS17SolvencyII_zebconsulting_20260623.pdf
+2026-06-23 06:05:04,453  INFO    ✓ Barden | B Corp | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_BardenBCorp_20260623.pdf
+2026-06-23 06:05:04,454  INFO    ✓ SimCorp | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_SimCorp_20260623.pdf
+2026-06-23 06:05:04,454  INFO    ✓ EY | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_EY_20260623.pdf
+2026-06-23 06:05:04,454  INFO    ✓ Hannover Re | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_IFRS17SolvencyII_HannoverRe_20260623.pdf
+2026-06-23 06:05:04,454  INFO    ✓ TABULARAZA by zeb | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_FinanceTransformation_TABULARAZAbyzeb_20260623.pdf
+2026-06-23 06:05:04,454  INFO    ✓ TABULARAZA by zeb | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_FinanceTransformation_TABULARAZAbyzeb_20260623.pdf
+2026-06-23 06:05:04,454  INFO    ✓ Janus Henderson Investors | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_JanusHendersonInvestors_20260623.pdf
+2026-06-23 06:05:04,455  INFO    ✓ SimCorp | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-23/CV_XRO_EN_AssetManagement_SimCorp_20260623.pdf

@@ -141,16 +141,25 @@ déployer dans n8n → réexporter `candidatures.workflow.json` → commit.
 Prochaine amélioration recommandée : **brancher le connecteur n8n (MCP)** sur l'instance
 Hostinger (URL + clé API n8n) pour éditer/déployer directement, sans copier-coller.
 
+## Pipeline dossiers (run_dossiers.py)
+
+Script Python lancé par launchd à 6h, 12h, 19h. Lit les offres Veille avec
+`Préparer dossier=true` + CV vide + J'écarte=false → génère CV adapté + Cover Letter → PDF → GitHub → Airtable PATCH.
+
+```
+scripts/run_dossiers.py      ← script principal
+scripts/run-dossiers.sh      ← lanceur (chemin absolu python3 + pandoc)
+logs/dossiers_*.log          ← un log par run
+```
+
+Profils CV (`select_cv` decision tree, fichiers dans `~/Desktop/.../CV de base/`) :
+- `FinanceTransformation` (défaut) — `IFRS17SolvencyII` — `AssetManagement`
+
 ## Problèmes connus / TODO
 
-- [ ] **BUG** : nœud « Créer un enregistrement à checker » — `Poste` est mappé sur
+- [ ] **BUG n8n** : nœud « Créer un enregistrement à checker » — `Poste` est mappé sur
   `{{ $json.societe }}` au lieu de `{{ $json.poste }}`.
 - [ ] **« A traiter » pas en upsert** : opération `create` sans clé `ID Email` → doublons
-  cross-run possibles. À passer en « Create or Update » matché sur `ID Email`
-  (`{{ $json.emailId }}`).
-- [ ] Matching dur résiduel (ex. « 10x » ↔ ligne existante) → escalade possible vers
-  matching délégué à Claude (lui passer la liste des candidatures, il renvoie l'id).
-- [ ] Feature : traitement dédié des propositions `jobalerts-noreply@linkedin.com`
-  (table « Veille / Opportunités »).
-- [ ] Feature : version **temps réel** (Gmail Trigger + appel Claude synchrone) une fois le
-  backfill terminé — appliquer les mêmes règles.
+  cross-run possibles. À passer en « Create or Update » matché sur `ID Email`.
+- [ ] Matching dur résiduel → escalade possible vers matching délégué à Claude.
+- [ ] Feature : version **temps réel** (Gmail Trigger + appel Claude synchrone).

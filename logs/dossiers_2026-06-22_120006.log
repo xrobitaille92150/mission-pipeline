@@ -1,0 +1,45 @@
+2026-06-22 12:00:06,272  INFO  === run_dossiers.py démarré ===
+2026-06-22 12:00:06,849  INFO  3 dossier(s) à générer
+2026-06-22 12:00:06,849  INFO    • zeb consulting — Senior Consultant / Manager - Finance & Risk (w|m|d)
+2026-06-22 12:00:06,849  INFO    • zeb consulting — Manager / Senior Manager Insurance - Finance & Controlling (w|m|d)
+2026-06-22 12:00:06,849  INFO    • Groupama Assurances Mutuelles — Directeur Programme stratégique Refonte Offre Multirisques Agricole H/F
+2026-06-22 12:00:06,849  INFO  → zeb consulting — Senior Consultant / Manager - Finance & Risk (w|m|d) [Haute]
+2026-06-22 12:00:07,176  INFO    Description LinkedIn : 4477 caractères
+2026-06-22 12:00:09,183  INFO    CV sélectionné : FinanceTransformation
+2026-06-22 12:00:13,367  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 12:00:13,413  INFO    6 retouche(s) CV
+2026-06-22 12:00:13,464  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_zebconsulting_20260622.docx
+2026-06-22 12:00:19,811  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 12:00:19,834  INFO    Cover letter générée : 2013 caractères
+2026-06-22 12:00:26,914  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_zebconsulting_20260622.pdf
+2026-06-22 12:00:28,805  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_zebconsulting_20260622.pdf
+2026-06-22 12:00:31,142  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-22/CV_XRO_EN_FinanceTransformation_zebconsulting_20260622.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-22/CL_XRO_EN_zebconsulting_20260622.pdf']
+2026-06-22 12:00:32,226  INFO    ✓ Airtable mis à jour
+2026-06-22 12:00:35,263  INFO  → zeb consulting — Manager / Senior Manager Insurance - Finance & Controlling (w|m|d) [Haute]
+2026-06-22 12:00:35,575  INFO    Description LinkedIn : 4261 caractères
+2026-06-22 12:00:37,630  INFO    CV sélectionné : FinanceTransformation
+2026-06-22 12:00:46,665  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 12:00:46,675  INFO    5 retouche(s) CV
+2026-06-22 12:00:46,749  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_zebconsulting_20260622.docx
+2026-06-22 12:00:53,221  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 12:00:53,222  INFO    Cover letter générée : 1727 caractères
+2026-06-22 12:00:56,054  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_zebconsulting_20260622.pdf
+2026-06-22 12:00:58,035  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_zebconsulting_20260622.pdf
+2026-06-22 12:00:59,643  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-22/CV_XRO_EN_FinanceTransformation_zebconsulting_20260622.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-22/CL_XRO_EN_zebconsulting_20260622.pdf']
+2026-06-22 12:01:00,303  INFO    ✓ Airtable mis à jour
+2026-06-22 12:01:03,377  INFO  → Groupama Assurances Mutuelles — Directeur Programme stratégique Refonte Offre Multirisques Agricole H/F [Haute]
+2026-06-22 12:01:03,704  INFO    Description LinkedIn : 3375 caractères
+2026-06-22 12:01:05,779  INFO    CV sélectionné : AssetManagement
+2026-06-22 12:01:10,011  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 12:01:10,014  INFO    5 retouche(s) CV
+2026-06-22 12:01:10,086  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_GroupamaAssurancesMutuelles_20260622.docx
+2026-06-22 12:01:16,273  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 12:01:16,278  INFO    Cover letter générée : 1603 caractères
+2026-06-22 12:01:18,888  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_GroupamaAssurancesMutuelles_20260622.pdf
+2026-06-22 12:01:20,761  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_GroupamaAssurancesMutuelles_20260622.pdf
+2026-06-22 12:01:22,676  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-22/CV_XRO_EN_AssetManagement_GroupamaAssurancesMutuelles_20260622.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-22/CL_XRO_EN_GroupamaAssurancesMutuelles_20260622.pdf']
+2026-06-22 12:01:23,342  INFO    ✓ Airtable mis à jour
+2026-06-22 12:01:26,408  INFO  === Terminé : 3/3 OK, 0 erreur(s) ===
+2026-06-22 12:01:26,408  INFO    ✓ zeb consulting | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-22/CV_XRO_EN_FinanceTransformation_zebconsulting_20260622.pdf
+2026-06-22 12:01:26,408  INFO    ✓ zeb consulting | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-22/CV_XRO_EN_FinanceTransformation_zebconsulting_20260622.pdf
+2026-06-22 12:01:26,409  INFO    ✓ Groupama Assurances Mutuelles | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-22/CV_XRO_EN_AssetManagement_GroupamaAssurancesMutuelles_20260622.pdf

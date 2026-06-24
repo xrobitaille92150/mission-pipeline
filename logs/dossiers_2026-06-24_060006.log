@@ -1,0 +1,129 @@
+2026-06-24 06:00:06,195  INFO  === run_dossiers.py démarré ===
+2026-06-24 06:00:09,235  INFO  9 dossier(s) à générer
+2026-06-24 06:00:09,236  INFO    • SimCorp — Senior Director, Head of Investment Accounting Value Team
+2026-06-24 06:00:09,236  INFO    • GROUPE SYD — Consultant MOA Réassurance H/F
+2026-06-24 06:00:09,236  INFO    • Périclès Group — Consultant Manager Assurance Epargne H/F
+2026-06-24 06:00:09,236  INFO    • Edenbrook — Finance Transformation Manager, 12-month FTC
+2026-06-24 06:00:09,236  INFO    • Aviva — Transformation Programme Manager – Outsourcing, Offshoring & Transformation
+2026-06-24 06:00:09,236  INFO    • Freshwater Recruitment — Finance Transformation PMO Manager
+2026-06-24 06:00:09,236  INFO    • PwC Ireland — Customer and Business Transformation - Insurance Sector - Senior Manager
+2026-06-24 06:00:09,236  INFO    • The Citco Group Limited — Assistant Vice President, Fund Accounting (Private Assets)
+2026-06-24 06:00:09,236  INFO    • BlackRock — Project Manager - Vice President
+2026-06-24 06:00:09,237  INFO  → SimCorp — Senior Director, Head of Investment Accounting Value Team [Haute]
+2026-06-24 06:00:09,521  INFO    Description LinkedIn : 6000 caractères
+2026-06-24 06:00:11,652  INFO    CV sélectionné : AssetManagement
+2026-06-24 06:00:18,600  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:00:18,651  INFO    6 retouche(s) CV
+2026-06-24 06:00:18,708  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_SimCorp_20260624.docx
+2026-06-24 06:00:25,033  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:00:25,035  INFO    Cover letter générée : 1676 caractères
+2026-06-24 06:00:34,115  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_SimCorp_20260624.pdf
+2026-06-24 06:00:36,215  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_SimCorp_20260624.pdf
+2026-06-24 06:00:37,901  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_SimCorp_20260624.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CL_XRO_EN_SimCorp_20260624.pdf']
+2026-06-24 06:00:38,790  INFO    ✓ Airtable mis à jour
+2026-06-24 06:00:41,928  INFO  → GROUPE SYD — Consultant MOA Réassurance H/F [Haute]
+2026-06-24 06:00:42,345  INFO    Description LinkedIn : 3007 caractères
+2026-06-24 06:00:44,497  INFO    CV sélectionné : AssetManagement
+2026-06-24 06:00:48,177  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:00:48,183  INFO    5 retouche(s) CV
+2026-06-24 06:00:48,250  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_GROUPESYD_20260624.docx
+2026-06-24 06:00:54,972  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:00:54,974  INFO    Cover letter générée : 1764 caractères
+2026-06-24 06:00:58,747  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_GROUPESYD_20260624.pdf
+2026-06-24 06:01:00,746  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_GROUPESYD_20260624.pdf
+2026-06-24 06:01:02,178  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_GROUPESYD_20260624.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CL_XRO_EN_GROUPESYD_20260624.pdf']
+2026-06-24 06:01:03,055  INFO    ✓ Airtable mis à jour
+2026-06-24 06:01:06,187  INFO  → Périclès Group — Consultant Manager Assurance Epargne H/F [Haute]
+2026-06-24 06:01:06,479  INFO    Description LinkedIn : 4797 caractères
+2026-06-24 06:01:08,622  INFO    CV sélectionné : FinanceTransformation
+2026-06-24 06:01:13,370  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:01:13,374  INFO    6 retouche(s) CV
+2026-06-24 06:01:13,445  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_PériclèsGroup_20260624.docx
+2026-06-24 06:01:19,316  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:01:19,321  INFO    Cover letter générée : 1852 caractères
+2026-06-24 06:01:21,954  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_PériclèsGroup_20260624.pdf
+2026-06-24 06:01:24,067  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_PériclèsGroup_20260624.pdf
+2026-06-24 06:01:25,419  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_FinanceTransformation_PériclèsGroup_20260624.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CL_XRO_EN_PériclèsGroup_20260624.pdf']
+2026-06-24 06:01:26,532  INFO    ✓ Airtable mis à jour
+2026-06-24 06:01:29,680  INFO  → Edenbrook — Finance Transformation Manager, 12-month FTC [Haute]
+2026-06-24 06:01:30,028  INFO    Description LinkedIn : 2482 caractères
+2026-06-24 06:01:32,173  INFO    CV sélectionné : FinanceTransformation
+2026-06-24 06:01:35,962  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:01:35,963  INFO    5 retouche(s) CV
+2026-06-24 06:01:36,027  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Edenbrook_20260624.docx
+2026-06-24 06:01:41,920  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:01:41,923  INFO    Cover letter générée : 1598 caractères
+2026-06-24 06:01:44,267  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Edenbrook_20260624.pdf
+2026-06-24 06:01:46,442  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Edenbrook_20260624.pdf
+2026-06-24 06:01:47,792  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_FinanceTransformation_Edenbrook_20260624.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CL_XRO_EN_Edenbrook_20260624.pdf']
+2026-06-24 06:01:48,506  INFO    ✓ Airtable mis à jour
+2026-06-24 06:01:51,642  INFO  → Aviva — Transformation Programme Manager – Outsourcing, Offshoring & Transformation [Haute]
+2026-06-24 06:01:52,082  INFO    Description LinkedIn : 2765 caractères
+2026-06-24 06:01:54,228  INFO    CV sélectionné : FinanceTransformation
+2026-06-24 06:01:58,321  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:01:58,325  INFO    6 retouche(s) CV
+2026-06-24 06:01:58,392  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Aviva_20260624.docx
+2026-06-24 06:02:04,723  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:02:04,726  INFO    Cover letter générée : 1933 caractères
+2026-06-24 06:02:08,274  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Aviva_20260624.pdf
+2026-06-24 06:02:10,531  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Aviva_20260624.pdf
+2026-06-24 06:02:11,907  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_FinanceTransformation_Aviva_20260624.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CL_XRO_EN_Aviva_20260624.pdf']
+2026-06-24 06:02:12,579  INFO    ✓ Airtable mis à jour
+2026-06-24 06:02:15,672  INFO  → Freshwater Recruitment — Finance Transformation PMO Manager [Haute]
+2026-06-24 06:02:16,067  INFO    Description LinkedIn : 1362 caractères
+2026-06-24 06:02:18,188  INFO    CV sélectionné : AssetManagement
+2026-06-24 06:02:22,388  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:02:22,390  INFO    5 retouche(s) CV
+2026-06-24 06:02:22,447  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_FreshwaterRecruitment_20260624.docx
+2026-06-24 06:02:28,065  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:02:28,069  INFO    Cover letter générée : 1518 caractères
+2026-06-24 06:02:30,739  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_FreshwaterRecruitment_20260624.pdf
+2026-06-24 06:02:32,900  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_FreshwaterRecruitment_20260624.pdf
+2026-06-24 06:02:34,475  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_FreshwaterRecruitment_20260624.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CL_XRO_EN_FreshwaterRecruitment_20260624.pdf']
+2026-06-24 06:02:35,202  INFO    ✓ Airtable mis à jour
+2026-06-24 06:02:38,347  INFO  → PwC Ireland — Customer and Business Transformation - Insurance Sector - Senior Manager [Haute]
+2026-06-24 06:02:38,846  INFO    Description LinkedIn : 6000 caractères
+2026-06-24 06:02:40,991  INFO    CV sélectionné : IFRS17SolvencyII
+2026-06-24 06:02:45,571  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:02:45,576  INFO    6 retouche(s) CV
+2026-06-24 06:02:45,628  INFO    CV .docx sauvegardé : CV_XRO_EN_IFRS17SolvencyII_PwCIreland_20260624.docx
+2026-06-24 06:02:52,732  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:02:52,735  INFO    Cover letter générée : 2184 caractères
+2026-06-24 06:02:56,536  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_IFRS17SolvencyII_PwCIreland_20260624.pdf
+2026-06-24 06:02:58,750  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_PwCIreland_20260624.pdf
+2026-06-24 06:03:00,209  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_IFRS17SolvencyII_PwCIreland_20260624.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CL_XRO_EN_PwCIreland_20260624.pdf']
+2026-06-24 06:03:00,893  INFO    ✓ Airtable mis à jour
+2026-06-24 06:03:04,030  INFO  → The Citco Group Limited — Assistant Vice President, Fund Accounting (Private Assets) [Haute]
+2026-06-24 06:03:04,376  INFO    Description LinkedIn : 4795 caractères
+2026-06-24 06:03:06,523  INFO    CV sélectionné : AssetManagement
+2026-06-24 06:03:10,209  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:03:10,214  INFO    5 retouche(s) CV
+2026-06-24 06:03:10,284  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_TheCitcoGroupLimited_20260624.docx
+2026-06-24 06:03:16,621  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:03:16,626  INFO    Cover letter générée : 1940 caractères
+2026-06-24 06:03:20,346  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_TheCitcoGroupLimited_20260624.pdf
+2026-06-24 06:03:22,502  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_TheCitcoGroupLimited_20260624.pdf
+2026-06-24 06:03:23,857  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_TheCitcoGroupLimited_20260624.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CL_XRO_EN_TheCitcoGroupLimited_20260624.pdf']
+2026-06-24 06:03:24,546  INFO    ✓ Airtable mis à jour
+2026-06-24 06:03:27,681  INFO  → BlackRock — Project Manager - Vice President [Haute]
+2026-06-24 06:03:28,036  INFO    Description LinkedIn : 6000 caractères
+2026-06-24 06:03:30,161  INFO    CV sélectionné : AssetManagement
+2026-06-24 06:03:36,404  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:03:36,409  INFO    6 retouche(s) CV
+2026-06-24 06:03:36,478  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_BlackRock_20260624.docx
+2026-06-24 06:03:43,235  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-24 06:03:43,240  INFO    Cover letter générée : 2204 caractères
+2026-06-24 06:03:46,235  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_AssetManagement_BlackRock_20260624.pdf
+2026-06-24 06:03:48,360  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_BlackRock_20260624.pdf
+2026-06-24 06:03:49,654  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_BlackRock_20260624.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CL_XRO_EN_BlackRock_20260624.pdf']
+2026-06-24 06:03:50,428  INFO    ✓ Airtable mis à jour
+2026-06-24 06:03:53,574  INFO  === Terminé : 9/9 OK, 0 erreur(s) ===
+2026-06-24 06:03:53,574  INFO    ✓ SimCorp | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_SimCorp_20260624.pdf
+2026-06-24 06:03:53,574  INFO    ✓ GROUPE SYD | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_GROUPESYD_20260624.pdf
+2026-06-24 06:03:53,574  INFO    ✓ Périclès Group | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_FinanceTransformation_PériclèsGroup_20260624.pdf
+2026-06-24 06:03:53,575  INFO    ✓ Edenbrook | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_FinanceTransformation_Edenbrook_20260624.pdf
+2026-06-24 06:03:53,575  INFO    ✓ Aviva | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_FinanceTransformation_Aviva_20260624.pdf
+2026-06-24 06:03:53,575  INFO    ✓ Freshwater Recruitment | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_FreshwaterRecruitment_20260624.pdf
+2026-06-24 06:03:53,575  INFO    ✓ PwC Ireland | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_IFRS17SolvencyII_PwCIreland_20260624.pdf
+2026-06-24 06:03:53,575  INFO    ✓ The Citco Group Limited | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_TheCitcoGroupLimited_20260624.pdf
+2026-06-24 06:03:53,575  INFO    ✓ BlackRock | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-24/CV_XRO_EN_AssetManagement_BlackRock_20260624.pdf

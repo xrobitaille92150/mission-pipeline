@@ -1,0 +1,770 @@
+2026-06-19 14:14:45,196  INFO  === run_dossiers.py démarré ===
+2026-06-19 14:14:46,015  INFO  59 dossier(s) à générer
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,015  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,016  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,017  INFO    • ? — ?
+2026-06-19 14:14:46,018  INFO    • ? — ?
+2026-06-19 14:14:46,018  INFO    • ? — ?
+2026-06-19 14:14:46,018  INFO    • ? — ?
+2026-06-19 14:14:46,018  INFO    • ? — ?
+2026-06-19 14:14:46,018  INFO    • ? — ?
+2026-06-19 14:14:46,018  INFO    • ? — ?
+2026-06-19 14:14:46,018  INFO  → Inconnu —  [None]
+2026-06-19 14:14:46,018  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:14:49,666  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:14:49,696  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:14:49,717  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:14:54,258  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:14:54,262  INFO    Cover letter générée : 1371 caractères
+2026-06-19 14:14:59,135  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:15:02,252  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:15:03,690  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:15:04,419  INFO    ✓ Airtable mis à jour
+2026-06-19 14:15:07,425  INFO  → Inconnu —  [None]
+2026-06-19 14:15:07,426  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:15:10,259  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:15:10,260  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:15:10,280  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:15:15,325  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:15:15,328  INFO    Cover letter générée : 1396 caractères
+2026-06-19 14:15:18,973  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:15:21,574  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:15:22,913  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:15:23,599  INFO    ✓ Airtable mis à jour
+2026-06-19 14:15:26,604  INFO  → Inconnu —  [None]
+2026-06-19 14:15:26,604  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:15:29,275  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:15:29,278  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:15:29,310  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:15:33,987  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:15:33,989  INFO    Cover letter générée : 1453 caractères
+2026-06-19 14:15:38,011  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:15:40,442  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:15:41,813  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:15:42,491  INFO    ✓ Airtable mis à jour
+2026-06-19 14:15:45,492  INFO  → Inconnu —  [None]
+2026-06-19 14:15:45,493  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:15:49,572  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:15:49,574  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:15:49,605  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:15:54,158  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:15:54,161  INFO    Cover letter générée : 1253 caractères
+2026-06-19 14:15:57,787  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:16:00,403  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:16:01,803  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:16:02,493  INFO    ✓ Airtable mis à jour
+2026-06-19 14:16:05,499  INFO  → Inconnu —  [None]
+2026-06-19 14:16:05,500  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:16:08,370  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:16:08,374  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:16:08,403  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:16:12,887  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:16:12,892  INFO    Cover letter générée : 1215 caractères
+2026-06-19 14:16:17,112  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:16:20,033  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:16:21,331  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:16:22,012  INFO    ✓ Airtable mis à jour
+2026-06-19 14:16:25,017  INFO  → Inconnu —  [None]
+2026-06-19 14:16:25,023  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:16:27,370  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:16:27,372  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:16:27,399  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:16:33,397  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:16:33,398  INFO    Cover letter générée : 1742 caractères
+2026-06-19 14:16:37,236  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:16:39,806  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:16:41,624  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:16:42,295  INFO    ✓ Airtable mis à jour
+2026-06-19 14:16:45,301  INFO  → Inconnu —  [None]
+2026-06-19 14:16:45,302  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:16:47,848  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:16:47,854  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:16:47,880  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:16:53,847  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:16:53,851  INFO    Cover letter générée : 1428 caractères
+2026-06-19 14:16:57,549  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:16:59,997  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:17:01,462  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:17:02,119  INFO    ✓ Airtable mis à jour
+2026-06-19 14:17:05,315  INFO  → Inconnu —  [None]
+2026-06-19 14:17:05,395  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:17:08,218  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:17:08,223  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:17:08,252  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:17:13,561  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:17:13,580  INFO    Cover letter générée : 1358 caractères
+2026-06-19 14:17:18,223  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:17:20,701  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:17:22,227  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:17:22,873  INFO    ✓ Airtable mis à jour
+2026-06-19 14:17:25,878  INFO  → Inconnu —  [None]
+2026-06-19 14:17:25,878  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:17:28,473  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:17:28,476  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:17:28,516  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:17:33,316  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:17:33,317  INFO    Cover letter générée : 1462 caractères
+2026-06-19 14:17:36,866  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:17:39,298  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:17:40,587  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:17:41,217  INFO    ✓ Airtable mis à jour
+2026-06-19 14:17:44,220  INFO  → Inconnu —  [None]
+2026-06-19 14:17:44,220  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:17:47,652  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:17:47,653  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:17:47,676  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:17:53,710  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:17:53,713  INFO    Cover letter générée : 1419 caractères
+2026-06-19 14:17:57,321  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:18:00,032  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:18:01,367  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:18:02,041  INFO    ✓ Airtable mis à jour
+2026-06-19 14:18:05,046  INFO  → Inconnu —  [None]
+2026-06-19 14:18:05,046  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:18:08,087  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:18:08,090  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:18:08,119  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:18:13,577  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:18:13,580  INFO    Cover letter générée : 1505 caractères
+2026-06-19 14:18:17,199  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:18:19,689  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:18:21,075  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:18:21,736  INFO    ✓ Airtable mis à jour
+2026-06-19 14:18:24,737  INFO  → Inconnu —  [None]
+2026-06-19 14:18:24,738  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:18:28,478  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:18:28,481  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:18:28,521  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:18:34,097  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:18:34,118  INFO    Cover letter générée : 1527 caractères
+2026-06-19 14:18:37,606  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:18:40,119  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:18:41,429  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:18:42,078  INFO    ✓ Airtable mis à jour
+2026-06-19 14:18:45,083  INFO  → Inconnu —  [None]
+2026-06-19 14:18:45,084  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:18:48,045  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:18:48,050  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:18:48,079  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:18:53,298  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:18:53,300  INFO    Cover letter générée : 1537 caractères
+2026-06-19 14:18:56,932  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:18:59,567  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:19:01,162  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:19:01,777  INFO    ✓ Airtable mis à jour
+2026-06-19 14:19:04,779  INFO  → Inconnu —  [None]
+2026-06-19 14:19:04,781  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:19:07,161  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:19:07,163  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:19:07,183  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:19:12,952  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:19:12,957  INFO    Cover letter générée : 1497 caractères
+2026-06-19 14:19:17,041  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:19:19,589  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:19:21,048  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:19:21,706  INFO    ✓ Airtable mis à jour
+2026-06-19 14:19:24,712  INFO  → Inconnu —  [None]
+2026-06-19 14:19:24,712  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:19:28,282  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:19:28,285  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:19:28,318  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:19:33,268  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:19:33,272  INFO    Cover letter générée : 1403 caractères
+2026-06-19 14:19:38,095  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:19:41,712  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:19:43,178  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:19:43,902  INFO    ✓ Airtable mis à jour
+2026-06-19 14:19:46,908  INFO  → Inconnu —  [None]
+2026-06-19 14:19:46,909  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:19:49,758  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:19:49,761  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:19:49,794  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:19:54,432  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:19:54,436  INFO    Cover letter générée : 1360 caractères
+2026-06-19 14:19:58,052  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:20:01,025  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:20:02,391  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:20:03,145  INFO    ✓ Airtable mis à jour
+2026-06-19 14:20:06,150  INFO  → Inconnu —  [None]
+2026-06-19 14:20:06,151  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:20:08,682  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:20:08,685  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:20:08,715  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:20:13,729  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:20:13,732  INFO    Cover letter générée : 1454 caractères
+2026-06-19 14:20:17,331  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:20:19,741  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:20:21,126  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:20:21,803  INFO    ✓ Airtable mis à jour
+2026-06-19 14:20:24,806  INFO  → Inconnu —  [None]
+2026-06-19 14:20:24,807  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:20:28,637  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:20:28,639  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:20:28,728  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:20:32,081  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:20:32,083  INFO    Cover letter générée : 845 caractères
+2026-06-19 14:20:36,006  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:20:38,692  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:20:40,099  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:20:40,696  INFO    ✓ Airtable mis à jour
+2026-06-19 14:20:43,701  INFO  → Inconnu —  [None]
+2026-06-19 14:20:43,702  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:20:46,156  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:20:46,161  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:20:46,191  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:20:51,486  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:20:51,489  INFO    Cover letter générée : 1469 caractères
+2026-06-19 14:20:55,090  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:20:57,606  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:20:58,945  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:20:59,591  INFO    ✓ Airtable mis à jour
+2026-06-19 14:21:02,595  INFO  → Inconnu —  [None]
+2026-06-19 14:21:02,597  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:21:05,186  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:21:05,190  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:21:05,220  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:21:09,404  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:21:09,407  INFO    Cover letter générée : 1147 caractères
+2026-06-19 14:21:14,003  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:21:16,833  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:21:18,106  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:21:18,714  INFO    ✓ Airtable mis à jour
+2026-06-19 14:21:21,720  INFO  → Inconnu —  [None]
+2026-06-19 14:21:21,720  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:21:24,931  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:21:24,934  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:21:24,966  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:21:30,884  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:21:30,887  INFO    Cover letter générée : 1621 caractères
+2026-06-19 14:21:35,909  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:21:38,698  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:21:40,047  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:21:40,746  INFO    ✓ Airtable mis à jour
+2026-06-19 14:21:43,752  INFO  → Inconnu —  [None]
+2026-06-19 14:21:43,753  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:21:46,906  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:21:46,910  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:21:46,933  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:21:51,828  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:21:51,831  INFO    Cover letter générée : 1351 caractères
+2026-06-19 14:21:55,583  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:21:58,096  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:21:59,498  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:22:00,138  INFO    ✓ Airtable mis à jour
+2026-06-19 14:22:03,143  INFO  → Inconnu —  [None]
+2026-06-19 14:22:03,143  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:22:05,812  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:22:05,813  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:22:05,829  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:22:10,979  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:22:10,985  INFO    Cover letter générée : 1427 caractères
+2026-06-19 14:22:15,656  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:22:18,105  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:22:19,360  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:22:20,009  INFO    ✓ Airtable mis à jour
+2026-06-19 14:22:23,010  INFO  → Inconnu —  [None]
+2026-06-19 14:22:23,011  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:22:25,952  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:22:25,955  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:22:25,985  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:22:30,716  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:22:30,796  INFO    Cover letter générée : 1326 caractères
+2026-06-19 14:22:35,119  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:22:38,037  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:22:39,395  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:22:40,024  INFO    ✓ Airtable mis à jour
+2026-06-19 14:22:43,028  INFO  → Inconnu —  [None]
+2026-06-19 14:22:43,028  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:22:45,654  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:22:45,655  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:22:45,671  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:22:50,605  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:22:50,607  INFO    Cover letter générée : 1322 caractères
+2026-06-19 14:22:54,185  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:22:56,657  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:22:58,199  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:22:58,862  INFO    ✓ Airtable mis à jour
+2026-06-19 14:23:01,867  INFO  → Inconnu —  [None]
+2026-06-19 14:23:01,868  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:23:05,754  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:23:05,756  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:23:05,786  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:23:11,061  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:23:11,063  INFO    Cover letter générée : 1477 caractères
+2026-06-19 14:23:15,227  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:23:17,739  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:23:19,079  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:23:19,726  INFO    ✓ Airtable mis à jour
+2026-06-19 14:23:22,727  INFO  → Inconnu —  [None]
+2026-06-19 14:23:22,728  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:23:25,309  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:23:25,311  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:23:25,339  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:23:31,635  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:23:31,663  INFO    Cover letter générée : 1336 caractères
+2026-06-19 14:23:35,298  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:23:37,732  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:23:39,044  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:23:39,647  INFO    ✓ Airtable mis à jour
+2026-06-19 14:23:42,648  INFO  → Inconnu —  [None]
+2026-06-19 14:23:42,648  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:23:45,843  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:23:45,847  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:23:45,879  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:23:50,240  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:23:50,241  INFO    Cover letter générée : 1253 caractères
+2026-06-19 14:23:53,879  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:23:56,995  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:23:58,277  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:23:58,925  INFO    ✓ Airtable mis à jour
+2026-06-19 14:24:01,930  INFO  → Inconnu —  [None]
+2026-06-19 14:24:01,931  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:24:04,538  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:24:04,540  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:24:04,562  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:24:09,376  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:24:09,377  INFO    Cover letter générée : 1319 caractères
+2026-06-19 14:24:12,945  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:24:15,578  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:24:16,796  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:24:17,432  INFO    ✓ Airtable mis à jour
+2026-06-19 14:24:20,437  INFO  → Inconnu —  [None]
+2026-06-19 14:24:20,437  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:24:23,011  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:24:23,013  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:24:23,036  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:24:27,547  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:24:27,548  INFO    Cover letter générée : 1280 caractères
+2026-06-19 14:24:31,963  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:24:34,389  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:24:35,751  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:24:36,554  INFO    ✓ Airtable mis à jour
+2026-06-19 14:24:39,560  INFO  → Inconnu —  [None]
+2026-06-19 14:24:39,561  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:24:42,278  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:24:42,280  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:24:42,306  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:24:48,241  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:24:48,243  INFO    Cover letter générée : 1625 caractères
+2026-06-19 14:24:52,937  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:24:55,513  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:24:57,048  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:24:57,749  INFO    ✓ Airtable mis à jour
+2026-06-19 14:25:00,756  INFO  → Inconnu —  [None]
+2026-06-19 14:25:00,756  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:25:03,770  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:25:03,772  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:25:03,799  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:25:09,138  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:25:09,139  INFO    Cover letter générée : 1491 caractères
+2026-06-19 14:25:13,524  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:25:17,053  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:25:18,397  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:25:19,050  INFO    ✓ Airtable mis à jour
+2026-06-19 14:25:22,053  INFO  → Inconnu —  [None]
+2026-06-19 14:25:22,054  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:25:25,460  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:25:25,464  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:25:25,492  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:25:29,949  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:25:29,951  INFO    Cover letter générée : 1132 caractères
+2026-06-19 14:25:34,460  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:25:37,153  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:25:38,535  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:25:39,195  INFO    ✓ Airtable mis à jour
+2026-06-19 14:25:42,201  INFO  → Inconnu —  [None]
+2026-06-19 14:25:42,201  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:25:45,136  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:25:45,138  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:25:45,161  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:25:49,763  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:25:49,769  INFO    Cover letter générée : 1298 caractères
+2026-06-19 14:25:53,458  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:25:55,884  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:25:57,253  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:25:57,899  INFO    ✓ Airtable mis à jour
+2026-06-19 14:26:00,902  INFO  → Inconnu —  [None]
+2026-06-19 14:26:00,902  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:26:03,970  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:26:03,972  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:26:04,011  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:26:09,301  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:26:09,306  INFO    Cover letter générée : 1408 caractères
+2026-06-19 14:26:14,082  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:26:16,660  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:26:17,954  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:26:18,597  INFO    ✓ Airtable mis à jour
+2026-06-19 14:26:21,602  INFO  → Inconnu —  [None]
+2026-06-19 14:26:21,602  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:26:25,178  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:26:25,180  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:26:25,204  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:26:30,881  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:26:30,883  INFO    Cover letter générée : 1474 caractères
+2026-06-19 14:26:35,779  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:26:38,449  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:26:39,805  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:26:40,450  INFO    ✓ Airtable mis à jour
+2026-06-19 14:26:43,453  INFO  → Inconnu —  [None]
+2026-06-19 14:26:43,453  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:26:45,301  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:26:45,303  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:26:45,326  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:26:49,358  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:26:49,360  INFO    Cover letter générée : 1204 caractères
+2026-06-19 14:26:53,302  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:26:55,815  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:26:57,175  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:26:57,810  INFO    ✓ Airtable mis à jour
+2026-06-19 14:27:00,816  INFO  → Inconnu —  [None]
+2026-06-19 14:27:00,816  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:27:03,935  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:27:03,937  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:27:03,966  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:27:09,200  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:27:09,201  INFO    Cover letter générée : 1431 caractères
+2026-06-19 14:27:12,863  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:27:15,253  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:27:16,622  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:27:17,251  INFO    ✓ Airtable mis à jour
+2026-06-19 14:27:20,255  INFO  → Inconnu —  [None]
+2026-06-19 14:27:20,255  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:27:22,860  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:27:22,863  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:27:22,889  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:27:28,225  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:27:28,239  INFO    Cover letter générée : 1462 caractères
+2026-06-19 14:27:33,491  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:27:36,395  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:27:37,715  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:27:38,362  INFO    ✓ Airtable mis à jour
+2026-06-19 14:27:41,368  INFO  → Inconnu —  [None]
+2026-06-19 14:27:41,368  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:27:44,010  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:27:44,013  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:27:44,038  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:27:48,851  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:27:48,864  INFO    Cover letter générée : 1274 caractères
+2026-06-19 14:27:52,523  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:27:54,993  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:27:56,215  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:27:56,839  INFO    ✓ Airtable mis à jour
+2026-06-19 14:27:59,841  INFO  → Inconnu —  [None]
+2026-06-19 14:27:59,841  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:28:02,727  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:28:02,729  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:28:02,747  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:28:07,713  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:28:07,714  INFO    Cover letter générée : 1309 caractères
+2026-06-19 14:28:11,673  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:28:14,103  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:28:15,362  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:28:15,983  INFO    ✓ Airtable mis à jour
+2026-06-19 14:28:18,986  INFO  → Inconnu —  [None]
+2026-06-19 14:28:18,987  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:28:23,126  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:28:23,127  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:28:23,142  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:28:28,694  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:28:28,711  INFO    Cover letter générée : 1354 caractères
+2026-06-19 14:28:32,335  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:28:34,722  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:28:36,109  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:28:36,746  INFO    ✓ Airtable mis à jour
+2026-06-19 14:28:39,751  INFO  → Inconnu —  [None]
+2026-06-19 14:28:39,751  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:28:43,090  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:28:43,091  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:28:43,109  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:28:48,794  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:28:48,796  INFO    Cover letter générée : 1446 caractères
+2026-06-19 14:28:52,005  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:28:54,391  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:28:55,630  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:28:56,246  INFO    ✓ Airtable mis à jour
+2026-06-19 14:28:59,252  INFO  → Inconnu —  [None]
+2026-06-19 14:28:59,252  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:29:02,001  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:29:02,005  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:29:02,036  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:29:07,462  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:29:07,463  INFO    Cover letter générée : 1401 caractères
+2026-06-19 14:29:10,164  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:29:12,669  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:29:13,929  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:29:14,581  INFO    ✓ Airtable mis à jour
+2026-06-19 14:29:17,586  INFO  → Inconnu —  [None]
+2026-06-19 14:29:17,586  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:29:20,165  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:29:20,167  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:29:20,196  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:29:25,048  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:29:25,051  INFO    Cover letter générée : 1365 caractères
+2026-06-19 14:29:28,026  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:29:30,520  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:29:31,920  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:29:32,546  INFO    ✓ Airtable mis à jour
+2026-06-19 14:29:35,551  INFO  → Inconnu —  [None]
+2026-06-19 14:29:35,553  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:29:38,877  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:29:38,880  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:29:38,905  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:29:43,643  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:29:43,646  INFO    Cover letter générée : 1397 caractères
+2026-06-19 14:29:47,097  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:29:49,473  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:29:50,681  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:29:51,321  INFO    ✓ Airtable mis à jour
+2026-06-19 14:29:54,324  INFO  → Inconnu —  [None]
+2026-06-19 14:29:54,324  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:29:57,130  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:29:57,133  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:29:57,165  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:30:03,218  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:30:03,222  INFO    Cover letter générée : 1456 caractères
+2026-06-19 14:30:06,665  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:30:09,029  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:30:10,348  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:30:10,952  INFO    ✓ Airtable mis à jour
+2026-06-19 14:30:13,956  INFO  → Inconnu —  [None]
+2026-06-19 14:30:13,956  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:30:16,998  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:30:17,001  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:30:17,032  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:30:22,116  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:30:22,118  INFO    Cover letter générée : 1343 caractères
+2026-06-19 14:30:24,769  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:30:27,147  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:30:28,387  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:30:29,080  INFO    ✓ Airtable mis à jour
+2026-06-19 14:30:32,086  INFO  → Inconnu —  [None]
+2026-06-19 14:30:32,086  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:30:35,936  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:30:35,937  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:30:35,951  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:30:41,569  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:30:41,570  INFO    Cover letter générée : 1527 caractères
+2026-06-19 14:30:45,036  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:30:47,418  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:30:48,796  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:30:49,542  INFO    ✓ Airtable mis à jour
+2026-06-19 14:30:52,548  INFO  → Inconnu —  [None]
+2026-06-19 14:30:52,549  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:30:55,598  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:30:55,599  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:30:55,617  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:31:01,232  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:31:01,234  INFO    Cover letter générée : 1362 caractères
+2026-06-19 14:31:03,971  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:31:06,340  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:31:07,715  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:31:08,366  INFO    ✓ Airtable mis à jour
+2026-06-19 14:31:11,383  INFO  → Inconnu —  [None]
+2026-06-19 14:31:11,384  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:31:14,646  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:31:14,650  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:31:14,680  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:31:20,190  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:31:20,192  INFO    Cover letter générée : 1546 caractères
+2026-06-19 14:31:22,920  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:31:25,305  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:31:26,614  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:31:27,256  INFO    ✓ Airtable mis à jour
+2026-06-19 14:31:30,262  INFO  → Inconnu —  [None]
+2026-06-19 14:31:30,263  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:31:32,977  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:31:32,981  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:31:32,996  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:31:38,916  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:31:38,919  INFO    Cover letter générée : 1858 caractères
+2026-06-19 14:31:41,774  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:31:44,163  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:31:45,399  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:31:46,014  INFO    ✓ Airtable mis à jour
+2026-06-19 14:31:49,016  INFO  → Inconnu —  [None]
+2026-06-19 14:31:49,017  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:31:51,533  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:31:51,536  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:31:51,567  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:31:56,532  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:31:56,533  INFO    Cover letter générée : 1338 caractères
+2026-06-19 14:31:59,211  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:32:01,535  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:32:02,863  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:32:03,511  INFO    ✓ Airtable mis à jour
+2026-06-19 14:32:06,517  INFO  → Inconnu —  [None]
+2026-06-19 14:32:06,518  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:32:09,695  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:32:09,698  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:32:09,728  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:32:14,672  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:32:14,674  INFO    Cover letter générée : 1315 caractères
+2026-06-19 14:32:18,089  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:32:20,518  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:32:21,861  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:32:22,484  INFO    ✓ Airtable mis à jour
+2026-06-19 14:32:25,489  INFO  → Inconnu —  [None]
+2026-06-19 14:32:25,490  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:32:28,275  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:32:28,277  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:32:28,309  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:32:33,188  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:32:33,190  INFO    Cover letter générée : 1355 caractères
+2026-06-19 14:32:35,930  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:32:38,297  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:32:39,676  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:32:40,363  INFO    ✓ Airtable mis à jour
+2026-06-19 14:32:43,367  INFO  → Inconnu —  [None]
+2026-06-19 14:32:43,368  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:32:45,884  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:32:45,887  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:32:45,919  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:32:50,314  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:32:50,316  INFO    Cover letter générée : 1298 caractères
+2026-06-19 14:32:53,781  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:32:56,195  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:32:57,555  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:32:58,176  INFO    ✓ Airtable mis à jour
+2026-06-19 14:33:01,181  INFO  → Inconnu —  [None]
+2026-06-19 14:33:01,181  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:33:04,355  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:33:04,358  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:33:04,388  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:33:10,225  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:33:10,295  INFO    Cover letter générée : 1504 caractères
+2026-06-19 14:33:13,904  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:33:16,273  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:33:17,606  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:33:18,198  INFO    ✓ Airtable mis à jour
+2026-06-19 14:33:21,203  INFO  → Inconnu —  [None]
+2026-06-19 14:33:21,204  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:33:24,222  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:33:24,224  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:33:24,245  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:33:29,337  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:33:29,340  INFO    Cover letter générée : 1511 caractères
+2026-06-19 14:33:33,032  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:33:35,828  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:33:37,193  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:33:37,822  INFO    ✓ Airtable mis à jour
+2026-06-19 14:33:40,826  INFO  → Inconnu —  [None]
+2026-06-19 14:33:40,826  INFO    CV sélectionné : FinanceTransformation
+2026-06-19 14:33:44,150  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:33:44,154  WARNING    Gap analysis échoué (Extra data: line 2 column 1 (char 3)) — CV sans retouche
+2026-06-19 14:33:44,167  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_Inconnu_20260619.docx
+2026-06-19 14:33:52,016  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-19 14:33:52,018  INFO    Cover letter générée : 1601 caractères
+2026-06-19 14:33:55,456  INFO  PDF généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:33:57,838  INFO  PDF CL généré : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/pdf/CL_XRO_EN_Inconnu_20260619.pdf
+2026-06-19 14:33:59,293  INFO  GitHub push OK : ['https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf', 'https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CL_XRO_EN_Inconnu_20260619.pdf']
+2026-06-19 14:33:59,946  INFO    ✓ Airtable mis à jour
+2026-06-19 14:34:02,952  INFO  === Terminé : 59/59 OK, 0 erreur(s) ===
+2026-06-19 14:34:02,952  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,953  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,954  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,955  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,955  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,955  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,955  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,955  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,955  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,955  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,955  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,955  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,956  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf
+2026-06-19 14:34:02,957  INFO    ✓ Inconnu | CV → https://github.com/xrobitaille92150/mission-pipeline/blob/main/candidatures/2026-06-19/CV_XRO_EN_FinanceTransformation_Inconnu_20260619.pdf

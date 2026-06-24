@@ -1,0 +1,568 @@
+2026-06-22 06:00:05,587  INFO  === run_dossiers.py démarré ===
+2026-06-22 06:00:11,208  INFO  25 dossier(s) à générer
+2026-06-22 06:00:11,209  INFO    • zeb consulting — Senior Consultant / Manager - Finance & Risk (w|m|d)
+2026-06-22 06:00:11,209  INFO    • zeb consulting — Manager / Senior Manager Insurance - Finance & Controlling (w|m|d)
+2026-06-22 06:00:11,209  INFO    • KERN Consulting — Consultant senior transformation et organisation F/H
+2026-06-22 06:00:11,209  INFO    • KERN Consulting — Consultant senior transformation et organisation F/H
+2026-06-22 06:00:11,210  INFO    • TNP Consultants — Consultant Senior / Manager Reporting Réglementaire Prudentiel & Financier H/F
+2026-06-22 06:00:11,210  INFO    • Deutsche Börse Group — Operations Transformation Manager - International Securities Issuance (f/m/d)
+2026-06-22 06:00:11,210  INFO    • Deutsche Börse Group — Financial Accounting & Regulatory Projects Expert (f/m/d)
+2026-06-22 06:00:11,210  INFO    • Arch Insurance (UK) Limited — PMO & Value Management Lead
+2026-06-22 06:00:11,210  INFO    • Deloitte — Business Analyst, Regulatory & Fund Reporting
+2026-06-22 06:00:11,210  INFO    • Munich Re Specialty - Global Markets, UK — Senior Project Manager
+2026-06-22 06:00:11,210  INFO    • ARCH EUROPE INSURANCE SERVICES LTD — PMO & Value Management Lead
+2026-06-22 06:00:11,210  INFO    • Munich Re Specialty - Global Markets, UK — Senior Project Manager
+2026-06-22 06:00:11,211  INFO    • Groupama Assurances Mutuelles — Directeur Programme stratégique Refonte Offre Multirisques Agricole H/F
+2026-06-22 06:00:11,211  INFO    • VHV Gruppe — Finance Transformation Manager (w/m/d)
+2026-06-22 06:00:11,211  INFO    • Capco — Principal Consultant (Senior Manager) - Finance Transformation
+2026-06-22 06:00:11,211  INFO    • Finatal — Finance Transformation Manager
+2026-06-22 06:00:11,211  INFO    • Munich Re Specialty - Global Markets, UK — Senior Project Manager
+2026-06-22 06:00:11,211  INFO    • SimCorp — Asset Servicing Hub - Senior Business Consultant
+2026-06-22 06:00:11,211  INFO    • Albany Beck — Program Director
+2026-06-22 06:00:11,211  INFO    • SimCorp — Asset Servicing Hub - Onboarding Stream Lead
+2026-06-22 06:00:11,211  INFO    • Tokio Marine HCC - International Group — External Reporting Manager
+2026-06-22 06:00:11,212  INFO    • SimCorp — Lead Business Consultant - Alternative Investments
+2026-06-22 06:00:11,212  INFO    • Otera — Transformation Program Director (f/m/d)- Remote Europe
+2026-06-22 06:00:11,212  INFO    • emagine — Senior Program Manager Advisor Insurance (m/w/d)
+2026-06-22 06:00:11,212  INFO    • Hays — Senior Fund Accountant
+2026-06-22 06:00:11,212  INFO  → zeb consulting — Senior Consultant / Manager - Finance & Risk (w|m|d) [Haute]
+2026-06-22 06:00:11,495  INFO    Description LinkedIn : 4477 caractères
+2026-06-22 06:00:13,624  ERROR    CV de base introuvable : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/CV de base/CV_XRO_FR_AO_InterfacesComptables_Placeur_20260608.docx
+2026-06-22 06:00:16,769  INFO  → zeb consulting — Manager / Senior Manager Insurance - Finance & Controlling (w|m|d) [Haute]
+2026-06-22 06:00:17,026  INFO    Description LinkedIn : 4261 caractères
+2026-06-22 06:00:19,159  ERROR    CV de base introuvable : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/CV de base/CV_XRO_FR_AO_InterfacesComptables_Placeur_20260608.docx
+2026-06-22 06:00:22,305  INFO  → KERN Consulting — Consultant senior transformation et organisation F/H [Haute]
+2026-06-22 06:00:22,645  INFO    Description LinkedIn : 2279 caractères
+2026-06-22 06:00:24,796  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:00:28,639  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:00:28,690  INFO    6 retouche(s) CV
+2026-06-22 06:00:28,745  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_KERNConsulting_20260622.docx
+2026-06-22 06:00:35,063  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:00:35,068  INFO    Cover letter générée : 1860 caractères
+2026-06-22 06:00:35,084  ERROR  Erreur sur KERN Consulting : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:00:38,228  INFO  → KERN Consulting — Consultant senior transformation et organisation F/H [Haute]
+2026-06-22 06:00:38,769  INFO    Description LinkedIn : 2279 caractères
+2026-06-22 06:00:40,920  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:00:44,907  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:00:44,910  INFO    4 retouche(s) CV
+2026-06-22 06:00:44,971  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_KERNConsulting_20260622.docx
+2026-06-22 06:00:50,320  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:00:50,325  INFO    Cover letter générée : 1505 caractères
+2026-06-22 06:00:50,336  ERROR  Erreur sur KERN Consulting : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:00:53,469  INFO  → TNP Consultants — Consultant Senior / Manager Reporting Réglementaire Prudentiel & Financier H/F [Haute]
+2026-06-22 06:00:53,803  INFO    Description LinkedIn : 4693 caractères
+2026-06-22 06:00:55,950  INFO    CV sélectionné : FinanceTransformation
+2026-06-22 06:01:01,382  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:01:01,384  INFO    6 retouche(s) CV
+2026-06-22 06:01:01,430  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_TNPConsultants_20260622.docx
+2026-06-22 06:01:07,935  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:01:07,940  INFO    Cover letter générée : 1772 caractères
+2026-06-22 06:01:07,952  ERROR  Erreur sur TNP Consultants : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:01:11,043  INFO  → Deutsche Börse Group — Operations Transformation Manager - International Securities Issuance (f/m/d) [Haute]
+2026-06-22 06:01:11,526  INFO    Description LinkedIn : 5116 caractères
+2026-06-22 06:01:13,647  INFO    CV sélectionné : FinanceTransformation
+2026-06-22 06:01:17,248  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:01:17,253  INFO    5 retouche(s) CV
+2026-06-22 06:01:17,321  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_DeutscheBörseGroup_20260622.docx
+2026-06-22 06:01:27,082  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:01:27,088  INFO    Cover letter générée : 1896 caractères
+2026-06-22 06:01:27,099  ERROR  Erreur sur Deutsche Börse Group : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:01:30,207  INFO  → Deutsche Börse Group — Financial Accounting & Regulatory Projects Expert (f/m/d) [Haute]
+2026-06-22 06:01:30,473  INFO    Description LinkedIn : 2993 caractères
+2026-06-22 06:01:32,618  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:01:37,425  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:01:37,430  INFO    6 retouche(s) CV
+2026-06-22 06:01:37,500  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_DeutscheBörseGroup_20260622.docx
+2026-06-22 06:01:44,285  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:01:44,287  INFO    Cover letter générée : 2165 caractères
+2026-06-22 06:01:44,292  ERROR  Erreur sur Deutsche Börse Group : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:01:47,436  INFO  → Arch Insurance (UK) Limited — PMO & Value Management Lead [Haute]
+2026-06-22 06:01:47,765  INFO    Description LinkedIn : 1799 caractères
+2026-06-22 06:01:49,905  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:01:53,865  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:01:53,870  INFO    5 retouche(s) CV
+2026-06-22 06:01:53,941  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_ArchInsuranceUKLimited_20260622.docx
+2026-06-22 06:02:00,943  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:02:00,947  INFO    Cover letter générée : 1743 caractères
+2026-06-22 06:02:00,957  ERROR  Erreur sur Arch Insurance (UK) Limited : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:02:04,104  INFO  → Deloitte — Business Analyst, Regulatory & Fund Reporting [Haute]
+2026-06-22 06:02:04,469  INFO    Description LinkedIn : 5218 caractères
+2026-06-22 06:02:06,622  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:02:10,436  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:02:10,440  INFO    6 retouche(s) CV
+2026-06-22 06:02:10,509  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_Deloitte_20260622.docx
+2026-06-22 06:02:16,512  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:02:16,514  INFO    Cover letter générée : 1878 caractères
+2026-06-22 06:02:16,523  ERROR  Erreur sur Deloitte : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:02:19,623  INFO  → Munich Re Specialty - Global Markets, UK — Senior Project Manager [Haute]
+2026-06-22 06:02:19,959  INFO    Description LinkedIn : 6000 caractères
+2026-06-22 06:02:22,109  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:02:25,154  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:02:25,158  INFO    4 retouche(s) CV
+2026-06-22 06:02:25,219  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_MunichReSpecialty-GlobalMarket_20260622.docx
+2026-06-22 06:02:32,107  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:02:32,111  INFO    Cover letter générée : 1839 caractères
+2026-06-22 06:02:32,124  ERROR  Erreur sur Munich Re Specialty - Global Markets, UK : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:02:35,264  INFO  → ARCH EUROPE INSURANCE SERVICES LTD — PMO & Value Management Lead [Haute]
+2026-06-22 06:02:35,700  INFO    Description LinkedIn : 1799 caractères
+2026-06-22 06:02:37,836  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:02:41,627  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:02:41,630  INFO    5 retouche(s) CV
+2026-06-22 06:02:41,695  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_ARCHEUROPEINSURANCESERVICESLTD_20260622.docx
+2026-06-22 06:02:48,378  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:02:48,383  INFO    Cover letter générée : 1864 caractères
+2026-06-22 06:02:48,395  ERROR  Erreur sur ARCH EUROPE INSURANCE SERVICES LTD : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:02:51,534  INFO  → Munich Re Specialty - Global Markets, UK — Senior Project Manager [Haute]
+2026-06-22 06:02:51,954  INFO    Description LinkedIn : 6000 caractères
+2026-06-22 06:02:54,105  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:02:57,903  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:02:57,906  INFO    5 retouche(s) CV
+2026-06-22 06:02:57,977  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_MunichReSpecialty-GlobalMarket_20260622.docx
+2026-06-22 06:03:03,800  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:03:03,802  INFO    Cover letter générée : 1778 caractères
+2026-06-22 06:03:03,807  ERROR  Erreur sur Munich Re Specialty - Global Markets, UK : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:03:06,951  INFO  → Groupama Assurances Mutuelles — Directeur Programme stratégique Refonte Offre Multirisques Agricole H/F [Haute]
+2026-06-22 06:03:07,213  INFO    Description LinkedIn : 3375 caractères
+2026-06-22 06:03:09,359  ERROR    CV de base introuvable : /Users/xavierrobitaille/Desktop/Claude/Projects/CV_Profiles/CV de base/CV_XRO_FR_AO_InterfacesComptables_Placeur_20260608.docx
+2026-06-22 06:03:12,497  INFO  → VHV Gruppe — Finance Transformation Manager (w/m/d) [Haute]
+2026-06-22 06:03:12,797  INFO    Description LinkedIn : 4767 caractères
+2026-06-22 06:03:14,898  INFO    CV sélectionné : FinanceTransformation
+2026-06-22 06:03:18,998  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:03:19,000  INFO    6 retouche(s) CV
+2026-06-22 06:03:19,065  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_VHVGruppe_20260622.docx
+2026-06-22 06:03:24,128  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:03:24,131  INFO    Cover letter générée : 1463 caractères
+2026-06-22 06:03:24,141  ERROR  Erreur sur VHV Gruppe : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:03:27,262  INFO  → Capco — Principal Consultant (Senior Manager) - Finance Transformation [Haute]
+2026-06-22 06:03:27,613  INFO    Description LinkedIn : 4159 caractères
+2026-06-22 06:03:29,742  INFO    CV sélectionné : IFRS17SolvencyII
+2026-06-22 06:03:34,531  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:03:34,537  INFO    6 retouche(s) CV
+2026-06-22 06:03:34,600  INFO    CV .docx sauvegardé : CV_XRO_EN_IFRS17SolvencyII_Capco_20260622.docx
+2026-06-22 06:03:40,205  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:03:40,209  INFO    Cover letter générée : 1820 caractères
+2026-06-22 06:03:40,219  ERROR  Erreur sur Capco : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:03:43,367  INFO  → Finatal — Finance Transformation Manager [Haute]
+2026-06-22 06:03:43,710  INFO    Description LinkedIn : 1831 caractères
+2026-06-22 06:03:45,736  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:03:50,138  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:03:50,142  INFO    6 retouche(s) CV
+2026-06-22 06:03:50,213  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_Finatal_20260622.docx
+2026-06-22 06:03:56,959  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:03:56,964  INFO    Cover letter générée : 2053 caractères
+2026-06-22 06:03:56,977  ERROR  Erreur sur Finatal : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:04:00,107  INFO  → Munich Re Specialty - Global Markets, UK — Senior Project Manager [Haute]
+2026-06-22 06:04:00,464  INFO    Description LinkedIn : 3880 caractères
+2026-06-22 06:04:02,597  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:04:05,793  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:04:05,797  INFO    4 retouche(s) CV
+2026-06-22 06:04:05,858  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_MunichReSpecialty-GlobalMarket_20260622.docx
+2026-06-22 06:04:12,460  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:04:12,462  INFO    Cover letter générée : 1898 caractères
+2026-06-22 06:04:12,468  ERROR  Erreur sur Munich Re Specialty - Global Markets, UK : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:04:15,616  INFO  → SimCorp — Asset Servicing Hub - Senior Business Consultant [Haute]
+2026-06-22 06:04:15,886  INFO    Description LinkedIn : 6000 caractères
+2026-06-22 06:04:17,981  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:04:22,599  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:04:22,603  INFO    6 retouche(s) CV
+2026-06-22 06:04:22,684  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_SimCorp_20260622.docx
+2026-06-22 06:04:29,001  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:04:29,006  INFO    Cover letter générée : 1857 caractères
+2026-06-22 06:04:29,018  ERROR  Erreur sur SimCorp : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:04:32,140  INFO  → Albany Beck — Program Director [Haute]
+2026-06-22 06:04:32,470  INFO    Description LinkedIn : 6000 caractères
+2026-06-22 06:04:34,617  INFO    CV sélectionné : FinanceTransformation
+2026-06-22 06:04:39,084  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:04:39,087  INFO    5 retouche(s) CV
+2026-06-22 06:04:39,133  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_AlbanyBeck_20260622.docx
+2026-06-22 06:04:45,646  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:04:45,649  INFO    Cover letter générée : 1844 caractères
+2026-06-22 06:04:45,662  ERROR  Erreur sur Albany Beck : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:04:48,787  INFO  → SimCorp — Asset Servicing Hub - Onboarding Stream Lead [Haute]
+2026-06-22 06:04:49,071  INFO    Description LinkedIn : 6000 caractères
+2026-06-22 06:04:51,222  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:04:55,162  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:04:55,166  INFO    6 retouche(s) CV
+2026-06-22 06:04:55,215  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_SimCorp_20260622.docx
+2026-06-22 06:05:01,126  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:05:01,175  INFO    Cover letter générée : 1738 caractères
+2026-06-22 06:05:01,187  ERROR  Erreur sur SimCorp : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:05:04,335  INFO  → Tokio Marine HCC - International Group — External Reporting Manager [Haute]
+2026-06-22 06:05:04,642  INFO    Description LinkedIn : 5191 caractères
+2026-06-22 06:05:06,779  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:05:10,830  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:05:10,833  INFO    5 retouche(s) CV
+2026-06-22 06:05:10,905  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_TokioMarineHCC-InternationalGr_20260622.docx
+2026-06-22 06:05:16,836  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:05:16,839  INFO    Cover letter générée : 1597 caractères
+2026-06-22 06:05:16,845  ERROR  Erreur sur Tokio Marine HCC - International Group : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:05:19,991  INFO  → SimCorp — Lead Business Consultant - Alternative Investments [Haute]
+2026-06-22 06:05:20,307  INFO    Description LinkedIn : 6000 caractères
+2026-06-22 06:05:22,443  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:05:27,011  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:05:27,015  INFO    5 retouche(s) CV
+2026-06-22 06:05:27,080  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_SimCorp_20260622.docx
+2026-06-22 06:05:32,694  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:05:32,696  INFO    Cover letter générée : 1542 caractères
+2026-06-22 06:05:32,705  ERROR  Erreur sur SimCorp : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:05:35,820  INFO  → Otera — Transformation Program Director (f/m/d)- Remote Europe [Haute]
+2026-06-22 06:05:36,079  INFO    Description LinkedIn : 6000 caractères
+2026-06-22 06:05:38,221  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:05:42,268  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:05:42,272  INFO    5 retouche(s) CV
+2026-06-22 06:05:42,339  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_Otera_20260622.docx
+2026-06-22 06:05:48,106  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:05:48,112  INFO    Cover letter générée : 1613 caractères
+2026-06-22 06:05:48,125  ERROR  Erreur sur Otera : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:05:51,275  INFO  → emagine — Senior Program Manager Advisor Insurance (m/w/d) [Haute]
+2026-06-22 06:05:51,594  INFO    Description LinkedIn : 1717 caractères
+2026-06-22 06:05:53,727  INFO    CV sélectionné : FinanceTransformation
+2026-06-22 06:05:57,653  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:05:57,655  INFO    5 retouche(s) CV
+2026-06-22 06:05:57,698  INFO    CV .docx sauvegardé : CV_XRO_EN_FinanceTransformation_emagine_20260622.docx
+2026-06-22 06:06:07,254  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:06:07,259  INFO    Cover letter générée : 1729 caractères
+2026-06-22 06:06:07,268  ERROR  Erreur sur emagine : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:06:10,414  INFO  → Hays — Senior Fund Accountant [Haute]
+2026-06-22 06:06:10,732  INFO    Description LinkedIn : 2184 caractères
+2026-06-22 06:06:12,852  INFO    CV sélectionné : AssetManagement
+2026-06-22 06:06:15,936  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:06:15,940  INFO    4 retouche(s) CV
+2026-06-22 06:06:16,010  INFO    CV .docx sauvegardé : CV_XRO_EN_AssetManagement_Hays_20260622.docx
+2026-06-22 06:06:22,904  INFO  HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-22 06:06:22,906  INFO    Cover letter générée : 1930 caractères
+2026-06-22 06:06:22,917  ERROR  Erreur sur Hays : [Errno 2] No such file or directory: 'pandoc'
+Traceback (most recent call last):
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 458, in main
+    res = process_offer(rec)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 405, in process_offer
+    docx_to_pdf(cv_out_path, cv_pdf_path)
+  File "/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/scripts/run_dossiers.py", line 234, in docx_to_pdf
+    subprocess.run([
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 503, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 971, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/lib/python3.10/subprocess.py", line 1847, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'pandoc'
+2026-06-22 06:06:26,038  INFO  === Terminé : 0/25 OK, 25 erreur(s) ===
+2026-06-22 06:06:26,039  INFO    ✗ zeb consulting
+2026-06-22 06:06:26,039  INFO    ✗ zeb consulting
+2026-06-22 06:06:26,039  INFO    ✗ KERN Consulting
+2026-06-22 06:06:26,039  INFO    ✗ KERN Consulting
+2026-06-22 06:06:26,040  INFO    ✗ TNP Consultants
+2026-06-22 06:06:26,040  INFO    ✗ Deutsche Börse Group
+2026-06-22 06:06:26,040  INFO    ✗ Deutsche Börse Group
+2026-06-22 06:06:26,040  INFO    ✗ Arch Insurance (UK) Limited
+2026-06-22 06:06:26,040  INFO    ✗ Deloitte
+2026-06-22 06:06:26,040  INFO    ✗ Munich Re Specialty - Global Markets, UK
+2026-06-22 06:06:26,040  INFO    ✗ ARCH EUROPE INSURANCE SERVICES LTD
+2026-06-22 06:06:26,041  INFO    ✗ Munich Re Specialty - Global Markets, UK
+2026-06-22 06:06:26,041  INFO    ✗ Groupama Assurances Mutuelles
+2026-06-22 06:06:26,041  INFO    ✗ VHV Gruppe
+2026-06-22 06:06:26,041  INFO    ✗ Capco
+2026-06-22 06:06:26,041  INFO    ✗ Finatal
+2026-06-22 06:06:26,041  INFO    ✗ Munich Re Specialty - Global Markets, UK
+2026-06-22 06:06:26,041  INFO    ✗ SimCorp
+2026-06-22 06:06:26,042  INFO    ✗ Albany Beck
+2026-06-22 06:06:26,042  INFO    ✗ SimCorp
+2026-06-22 06:06:26,042  INFO    ✗ Tokio Marine HCC - International Group
+2026-06-22 06:06:26,042  INFO    ✗ SimCorp
+2026-06-22 06:06:26,042  INFO    ✗ Otera
+2026-06-22 06:06:26,042  INFO    ✗ emagine
+2026-06-22 06:06:26,042  INFO    ✗ Hays
