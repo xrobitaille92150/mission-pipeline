@@ -11,14 +11,19 @@
 ```
 Gmail (LinkedIn, recruteurs, alertes jobalerts)
   │
-  └─→ n8n (VPS Hostinger, cron 4h)
-      ├─→ Claude Haiku (Batch API)
+  └─→ n8n (VPS Hostinger, cron 6h)
+      ├─→ Claude Haiku (Batch API) — Candidatures
       └─→ Airtable base Mission Pipeline (apphTpnW5vu0OdnfC)
           ├── Candidatures (tblF3jpncEXA647ou) — suivi statut
           ├── A traiter (tblSeyppFhxU3i8Ev) — revue manuelle
           └── Veille (tblrXH5Jiyg6w21lW) — offres jobalerts
               │
-              └─→ run_dossiers.py (launchd 6h/12h/19h)
+              ├─ 6h20 : Fetch JD (LinkedIn jobs-guest)
+              ├─ 6h25 : Notes IA (Claude Haiku)
+              ├─ 6h30 : ★ SCORING (Claude Opus)
+              │         └─ 7 blocs, Score 0-100, Justification
+              │
+              └─→ run_dossiers.py (launchd 6h15/12h15/19h15)
                   ├─→ LinkedIn fetch
                   ├─→ CV adapté (python-docx)
                   ├─→ Cover letter
@@ -36,9 +41,17 @@ Gmail (LinkedIn, recruteurs, alertes jobalerts)
 | `README.md` | Spec détaillée du pipeline n8n (schéma Airtable, règles déterministes, triage, logs) |
 | `daily.workflow.json` | Export n8n du workflow quotidien (source de vérité locale) |
 | `backfill.workflow.json` | Export n8n du backfill (historique) |
-| `nodes/*.js` | Logique détachée des nœuds n8n (matching, triage, parsing) |
+| `veille-notes.workflow.json` | Export n8n du workflow Veille — notes IA (triage + scoring, 6h30) |
+| `nodes/veille-scoring.js` | **[NEW]** Nœud n8n : orchestrateur scoring (7 blocs, Claude Opus) |
+| `nodes/scoring-prompt.md` | **[NEW]** Prompt Claude pour évaluation offres |
+| `nodes/*.js` | Logique détachée des nœuds n8n (matching, triage, parsing, scoring) |
+| `scripts/parse_scoring_bareme.py` | **[NEW]** Parser barème Excel → JSON (source unique vérité) |
+| `scripts/test_scoring.py` | **[NEW]** Test suite : mode test + mode live (Airtable) |
 | `scripts/run_dossiers.py` | Script Python — génération CV/CL via Claude Haiku |
 | `scripts/run-dossiers.sh` | Lanceur shell (appelé par launchd, chemins absolus) |
+| `SCORING.md` | **[NEW]** Doc technique complète du système de scoring |
+| `SCORING_QUICKSTART.md` | **[NEW]** Quick start utilisateur + exemples |
+| `DEPLOY_SCORING.md` | **[NEW]** Guide déploiement 5 étapes (référence) |
 | `logs/dossiers_*.log` | Logs d'exécution (un par run) |
 
 ---
@@ -46,10 +59,12 @@ Gmail (LinkedIn, recruteurs, alertes jobalerts)
 ## Mémoires auto-memory (Code)
 
 Pour les bugs, flow, et state :
+- **`project-scoring-deployed.md`** — système scoring en production (24/06), architecture 7 blocs, workflow 6h30 actif
 - **`project-dossiers-python.md`** — bugs launchd (chemin python3/pandoc), CV profils, séquence complète
 - **`n8n-workflow-debug-cheatsheet.md`** — pannes n8n courantes et correctifs (à lire en premier en cas d'erreur)
+- **`feature-veille-jobalerts.md`** — Veille / jobalerts LinkedIn (v1 déployée, intégration dossiers)
 - **`specs-n8n-gmail-airtable.md`** — field IDs, credentials, expressions exactes
-- **`Cheatsheet débogage n8n`** — lookup rapide pour les erreurs
+- **`feedback-*.md`** — préférences Xavier (code complet, pas jargon, action proactive)
 
 À consulter avant toute itération.
 
@@ -86,21 +101,32 @@ Lire ces fichiers dans les scripts, ne jamais les committer.
 
 ---
 
-## État au 22 juin 2026
+## État au 24 juin 2026
 
-**n8n** (ingestion email)
-- Run quotidien : actif, cron `0 4 * * *`
+**n8n — Ingestion email & Veille**
+- Run quotidien : actif, cron `0 6 * * *` (VPS Hostinger)
 - Backfill : terminé
-- Branche Veille : active (triage Claude, table Veille)
-- ✅ Bugs corrigés : `undefined→null` date fields (22/06)
+- Branche Veille (notes IA) : active 6h25, triage Claude
+- Branche Scoring : **✅ DEPLOYÉE 24/06**
+  - Nœud orchestrateur : `nodes/veille-scoring.js`
+  - Exécution : quotidienne 6h30
+  - Champ Score (0-100) créé dans Airtable Veille
+  - Seuil actionnable ≥ 50
+- Bugs corrigés : `undefined→null` date fields (22/06)
 
-**run_dossiers.py** (génération dossiers)
+**run_dossiers.py** (génération CV/CL)
 - ✅ Opérationnel depuis le 19 juin 2026
-- launchd actif : 6h / 12h / 19h
-- ✅ Bugs corrigés : chemin absolu python3/pandoc (21-22/06), profil AO supprimé
+- launchd actif : 6h15 / 12h15 / 19h15 (décalé +15min pour race condition)
+- Bugs corrigés : chemin absolu python3/pandoc (21-22/06), profil AO supprimé
 - CV profils : FinanceTransformation, AssetManagement, IFRS17SolvencyII
 
-Voir `project-dossiers-python.md` et `n8n-workflow-debug-cheatsheet.md` pour les bugs connus et leurs solutions.
+**Scoring (NOUVEAU — 24/06)**
+- ✅ Architecture : Parser barème (Excel) → Prompt Claude → Nœud n8n
+- ✅ Système : 7 blocs d'évaluation (Cluster, Outils, Séniorité, Mode, Géo, Structure, Red flags)
+- ✅ Tests : 5 offres réelles validées, résultats cohérents
+- ✅ Production : Workflow `Veille — notes IA` activé, tourne 6h30 quotidien
+
+Voir `project-scoring-deployed.md`, `project-dossiers-python.md` et `n8n-workflow-debug-cheatsheet.md` pour les détails.
 
 ---
 
@@ -155,4 +181,4 @@ curl -s -H "Authorization: Bearer $N8N_API_KEY" \
 
 ---
 
-**Dernière mise à jour** : 22 juin 2026
+**Dernière mise à jour** : 24 juin 2026
