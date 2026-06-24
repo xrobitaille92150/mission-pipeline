@@ -21,6 +21,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import requests
 
 try:
     from anthropic import Anthropic
@@ -125,9 +126,9 @@ def fetch_veille_offres(limit=5):
     for record in records:
         fields = record.get("fields", {})
 
-        # Filtrer : ne prendre que les offres avec description (JD fetch réussi)
-        if not fields.get("Description"):
-            continue
+        # Note: le champ Description provient du workflow Veille — notes IA
+        # Si absent, on peut utiliser le titre + employeur + lieu comme fallback
+        description = fields.get("Description") or ""
 
         offres.append({
             "id": record["id"],
@@ -135,7 +136,7 @@ def fetch_veille_offres(limit=5):
             "employeur": fields.get("Employeur", "N/A"),
             "lieu": fields.get("Lieu", "N/A"),
             "modalites": fields.get("Modalités", "Non spécifié"),
-            "description": fields.get("Description", ""),
+            "description": description,
             "pertinence": fields.get("Pertinence", "?"),
             "note_role": fields.get("Note rôle"),
             "note_criteres": fields.get("Note critères")
