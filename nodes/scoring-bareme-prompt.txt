@@ -1,0 +1,110 @@
+# Barème de scoring des offres — Xavier Robitaille
+
+**Règles** : Score = somme algébrique des 7 blocs • plafonné [0, 100] • seuil actionnable ≥ 50
+**Seuil actionnable** : ≥ 50/100
+
+## Fit domaine / Cluster
+*Range: 0 → 40*
+
+- **Cluster B — Investissement** : +40 pts (Base)
+  - Mots-clés : fund accounting, IBOR/ABOR, SimCorp, Clearwater, Bloomberg, IFRS 9, middle/back office titres, Investment accounting,
+- **Cluster C — Transformation assurance** : +40 pts (Base)
+  - Mots-clés : PMO assurance/finance, IFRS 17, Solvency II, QRT, restructuration finance
+- **Cluster A — Actuariat / Passif** : +35 pts (Base)
+  - Mots-clés : actuariat, passif technique, réassurance, provisions
+- **Finance hors assurance** : +20 pts (Base)
+  - Mots-clés : FP&A, contrôle de gestion, trésorerie corporate, consolidation, reporting corporate
+- **Hors cible** : +0 pts (Base)
+  - Mots-clés : IT pur, commercial, RH, logistique, retail non-finance
+
+## Outils & normes cités
+*Range: bonus cumulé ≤ +20*
+
+- **SimCorp Dimension** : +4 pts (Bonus)
+  - Mots-clés : SimCorp, SimCorp Dimension, Dimension
+- **Clearwater Analytics** : +4 pts (Bonus)
+  - Mots-clés : Clearwater, Clearwater Analytics
+- **IFRS 17** : +4 pts (Bonus)
+  - Mots-clés : IFRS 17, IFRS17, norme 17
+- **Solvency II** : +4 pts (Bonus)
+  - Mots-clés : Solvency II, S2, pilier 1/2/3, QRT
+- **IFRS 9** : +5 pts (Bonus)
+  - Mots-clés : IFRS 9, IFRS9, norme 9
+- **Normes françaises assurance** : +3 pts (Bonus)
+  - Mots-clés : French Gaap, Normes françaises, ENS
+- **Data management** : +3 pts (Bonus)
+  - Mots-clés : Power BI, VBA
+- **ERP** : +3 pts (Bonus)
+  - Mots-clés : ERP, SAP, S4/HANA
+- **Bloomberg** : +1 pts (Bonus)
+  - Mots-clés : Bloomberg, Bloomberg Terminal, BBG
+
+## Séniorité
+*Range: +10 / +5 / -30*
+
+- **Senior / Lead / Head / Director / VP** : +20 pts (Bonus)
+  - Mots-clés : Senior Manager, Director, VP, Head of, Lead, Principal
+- **Confirmé / Manager 5-10 ans** : +5 pts (Bonus)
+  - Mots-clés : Manager, Consultant Senior, Expert, Responsable
+- **Non précisé** : +0 pts (Neutre)
+  - Mots-clés : (aucune mention de niveau)
+- **Junior / Débutant / Stage / Graduate** : -100 pts (Malus rédhibitoire)
+  - Mots-clés : Junior, Analyst, Graduate, Trainee, Stagiaire, 0-3 ans
+
+## Mode de travail
+*Range: +10 / +7 / 0*
+
+- **Full remote / Télétravail complet** : +10 pts (Bonus)
+  - Mots-clés : Full remote, 100% télétravail, Remote-first
+- **Hybride** : +7 pts (Bonus)
+  - Mots-clés : Hybride, 2-3j/sem télétravail, flexible
+- **Full on-site France** : -5 pts (Malus)
+- **Full on-site UE** : -15 pts (Malus)
+  - Mots-clés : Belgique, Luxembourg, Irlande, Espagne, …
+- **Full on-site hors UE** : -100 pts (Malus bloquant)
+  - Mots-clés : UK, USA, Canada, Suisse, …
+- **Non précisé** : +0 pts (Neutre)
+  - Mots-clés : (pas de mention remote, ou on-site, présentiel)
+
+## Géographie & langue
+*Range: +10 → -20*
+
+- **Anglais / Poste EN** : +10 pts (Bonus)
+  - Mots-clés : Job in English, EN, English required, international team
+- **FR + clientèle internationale** : +10 pts (Bonus)
+  - Mots-clés : Paris + international clients, bilingual FR/EN
+- **FR EMEA / Europe francophone** : +4 pts (Bonus)
+  - Mots-clés : Luxembourg, Bruxelles, Genève, FR marché européen
+- **Français uniquement, marché FR** : +4 pts (Bonus)
+  - Mots-clés : Paris, Lyon, marché domestique FR
+- **Langue exclue (NL, DE, ES, PT…)** : -100 pts (Malus bloquant)
+  - Mots-clés : Dutch required, Deutsch, Español, Nederlands obligatoire
+
+## Type de structure
+*Range: +10 → -10*
+
+- **Assureur / Réassureur / AM global** : +10 pts (Bonus)
+  - Mots-clés : AXA, Allianz, Amundi, Natixis AM, BNP AM, Generali, Scor…
+- **Big4 / Conseil spécialisé assurance/Asset management** : +8 pts (Bonus)
+  - Mots-clés : Deloitte, PwC, EY, KPMG, Oliver Wyman, BCG Insurance, …
+- **Fintech réglementé / Éditeur logiciel** : +5 pts (Bonus)
+  - Mots-clés : SimCorp (côté éditeur), Clearwater, FactSet, Murex
+- **Retail banking / Secteur public / Early-stage** : -10 pts (Malus)
+  - Mots-clés : BNP Retail, Crédit Agricole banque de détail, startup série A
+
+## Red flags
+*Range: malus*
+
+- **Junior explicite dans le titre ou le corps** : -30 pts (Malus rédhibitoire)
+  - Mots-clés : "Junior Consultant", "Analyst (0-2 ans)", "Graduate Program"
+- **100% présentiel non négociable** : -10 pts (Malus)
+  - Mots-clés : "On-site only", "No remote", "Présentiel obligatoire 5j/5"
+- **Aucun track record assurance identifiable** : -5 pts (Malus)
+  - Mots-clés : poste finance pur sans mention assurance, AM, ou normes S2/IFRS
+- **PMO hybride IFRS 17 FR (marché FR)** : +50 pts ()
+  - Mots-clés : 35+4+7+4 = 50
+- **Chef de projet junior présentiel banque retail** : +0 pts ()
+  - Mots-clés : 20 − 30 − 10 − 10 = −30 → clampé
+
+SORTIE STRICTE — JSON pur, sans markdown, sans texte autour :
+{"score": <entier 0-100>, "justification": "<phrase max 25 mots>", "signaux": ["signal1", ...max 5]}
