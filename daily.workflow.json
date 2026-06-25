@@ -274,9 +274,9 @@
             "Note": "={{ $json.note }}",
             "Date réponse": "={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : null }}",
             "Date postulé": "={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : null }}",
-            "URL": "={{ $json.linkedinUrl || undefined }}",
-            "Lieu": "={{ $json.lieu || undefined }}",
-            "Mode": "={{ $json.mode || undefined }}"
+            "URL": "={{ $json.linkedinUrl || null }}",
+            "Lieu": "={{ $json.lieu || null }}",
+            "Mode": "={{ $json.mode || null }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -451,9 +451,9 @@
             "Date postulé": "={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : null }}",
             "Date réponse": "={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : null }}",
             "Note": "={{ $json.note }}",
-            "Lieu": "={{ $json.lieu || undefined }}",
-            "Mode": "={{ $json.mode || undefined }}",
-            "URL": "={{ $json.linkedinUrl || undefined }}"
+            "Lieu": "={{ $json.lieu || null }}",
+            "Mode": "={{ $json.mode || null }}",
+            "URL": "={{ $json.linkedinUrl || null }}"
           },
           "matchingColumns": [
             "id"
@@ -1175,13 +1175,13 @@
             "jobId": "={{ $json.jobId }}",
             "Employeur": "={{ $json.employeur }}",
             "Poste": "={{ $json.poste }}",
-            "Lieu": "={{ $json.lieu || undefined }}",
-            "Mode": "={{ $json.mode || undefined }}",
-            "URL": "={{ $json.url || undefined }}",
-            "Pertinence": "={{ $json.pertinence || undefined }}",
-            "Raison triage": "={{ $json.raison || undefined }}",
+            "Lieu": "={{ $json.lieu || null }}",
+            "Mode": "={{ $json.mode || null }}",
+            "URL": "={{ $json.url || null }}",
+            "Pertinence": "={{ $json.pertinence || null }}",
+            "Raison triage": "={{ $json.raison || null }}",
             "Date 1ère vue": "={{ $json.date || null }}",
-            "Recherche LI": "={{ $json.alertName || undefined }}"
+            "Recherche LI": "={{ $json.alertName || null }}"
           },
           "matchingColumns": [],
           "attemptToConvertTypes": false,
@@ -1382,11 +1382,11 @@
             "id": "={{ $json.airtableId }}",
             "Employeur": "={{ $json.employeur }}",
             "Poste": "={{ $json.poste }}",
-            "Lieu": "={{ $json.lieu || undefined }}",
-            "Mode": "={{ $json.mode || undefined }}",
-            "URL": "={{ $json.url || undefined }}",
-            "Pertinence": "={{ $json.pertinence || undefined }}",
-            "Raison triage": "={{ $json.raison || undefined }}"
+            "Lieu": "={{ $json.lieu || null }}",
+            "Mode": "={{ $json.mode || null }}",
+            "URL": "={{ $json.url || null }}",
+            "Pertinence": "={{ $json.pertinence || null }}",
+            "Raison triage": "={{ $json.raison || null }}"
           },
           "matchingColumns": [
             "id"
@@ -2342,9 +2342,9 @@
               "Note": "={{ $json.note }}",
               "Date réponse": "={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : null }}",
               "Date postulé": "={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : null }}",
-              "URL": "={{ $json.linkedinUrl || undefined }}",
-              "Lieu": "={{ $json.lieu || undefined }}",
-              "Mode": "={{ $json.mode || undefined }}"
+              "URL": "={{ $json.linkedinUrl || null }}",
+              "Lieu": "={{ $json.lieu || null }}",
+              "Mode": "={{ $json.mode || null }}"
             },
             "matchingColumns": [],
             "schema": [
@@ -2519,9 +2519,9 @@
               "Date postulé": "={{ $json.reponse === 'Envoyé' && $json.date ? $json.date : null }}",
               "Date réponse": "={{ $json.reponse !== 'Envoyé' && $json.date ? $json.date : null }}",
               "Note": "={{ $json.note }}",
-              "Lieu": "={{ $json.lieu || undefined }}",
-              "Mode": "={{ $json.mode || undefined }}",
-              "URL": "={{ $json.linkedinUrl || undefined }}"
+              "Lieu": "={{ $json.lieu || null }}",
+              "Mode": "={{ $json.mode || null }}",
+              "URL": "={{ $json.linkedinUrl || null }}"
             },
             "matchingColumns": [
               "id"
@@ -3243,13 +3243,13 @@
               "jobId": "={{ $json.jobId }}",
               "Employeur": "={{ $json.employeur }}",
               "Poste": "={{ $json.poste }}",
-              "Lieu": "={{ $json.lieu || undefined }}",
-              "Mode": "={{ $json.mode || undefined }}",
-              "URL": "={{ $json.url || undefined }}",
-              "Pertinence": "={{ $json.pertinence || undefined }}",
-              "Raison triage": "={{ $json.raison || undefined }}",
-              "Date 1ère vue": "={{ $json.date || undefined }}",
-              "Recherche LI": "={{ $json.alertName || undefined }}"
+              "Lieu": "={{ $json.lieu || null }}",
+              "Mode": "={{ $json.mode || null }}",
+              "URL": "={{ $json.url || null }}",
+              "Pertinence": "={{ $json.pertinence || null }}",
+              "Raison triage": "={{ $json.raison || null }}",
+              "Date 1ère vue": "={{ $json.date || null }}",
+              "Recherche LI": "={{ $json.alertName || null }}"
             },
             "matchingColumns": [],
             "attemptToConvertTypes": false,
@@ -3450,11 +3450,11 @@
               "id": "={{ $json.airtableId }}",
               "Employeur": "={{ $json.employeur }}",
               "Poste": "={{ $json.poste }}",
-              "Lieu": "={{ $json.lieu || undefined }}",
-              "Mode": "={{ $json.mode || undefined }}",
-              "URL": "={{ $json.url || undefined }}",
-              "Pertinence": "={{ $json.pertinence || undefined }}",
-              "Raison triage": "={{ $json.raison || undefined }}"
+              "Lieu": "={{ $json.lieu || null }}",
+              "Mode": "={{ $json.mode || null }}",
+              "URL": "={{ $json.url || null }}",
+              "Pertinence": "={{ $json.pertinence || null }}",
+              "Raison triage": "={{ $json.raison || null }}"
             },
             "matchingColumns": [
               "id"
