@@ -14,8 +14,23 @@ Usage : python3 backfill_notes.py [--dry-run]
 
 import json, time, sys, urllib.request, urllib.parse, urllib.error, re
 
-AIRTABLE_PAT  = "***REMOVED_AIRTABLE_PAT***"
-ANTHROPIC_KEY = "***REMOVED_ANTHROPIC_KEY***"
+import os
+
+def _load_env(path):
+    try:
+        with open(os.path.expanduser(path)) as fh:
+            for line in fh:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k, v)
+    except FileNotFoundError:
+        pass
+
+_load_env("~/.config/mission-pipeline/airtable.env")
+_load_env("~/.config/mission-pipeline/anthropic.env")
+AIRTABLE_PAT  = os.environ["AIRTABLE_PAT"]
+ANTHROPIC_KEY = os.environ["ANTHROPIC_API_KEY"]
 
 BASE_ID  = "apphTpnW5vu0OdnfC"
 TABLE_ID = "tblrXH5Jiyg6w21lW"
