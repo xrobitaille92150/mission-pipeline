@@ -2,7 +2,7 @@
 # Lance run_dossiers.py en mode non-interactif.
 # Appelé par launchd à 6h, 12h et 19h.
 
-PROJECT_DIR="/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline"
+PROJECT_DIR="/Users/xavierrobitaille/Desktop/Claude/Projects/Candidatures/pipeline"
 LOG_DIR="$PROJECT_DIR/logs"
 mkdir -p "$LOG_DIR"
 

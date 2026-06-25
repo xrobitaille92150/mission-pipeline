@@ -11,7 +11,7 @@ from docx import Document
 import anthropic
 
 # ── Logging ────────────────────────────────────────────────────────────────────
-LOG_DIR = os.path.expanduser("~/Claude/Artifacts/mission-pipeline/logs")
+LOG_DIR = os.path.expanduser("~/Desktop/Claude/Projects/Candidatures/pipeline/logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 ts = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
 logging.basicConfig(
@@ -49,7 +49,7 @@ if not AIRTABLE_PAT:
 AIRTABLE_BASE   = "apphTpnW5vu0OdnfC"
 AIRTABLE_TABLE  = "tblrXH5Jiyg6w21lW"
 GITHUB_REPO     = "xrobitaille92150/mission-pipeline"
-REPO_PATH       = os.path.expanduser("~/Claude/Artifacts/mission-pipeline")
+REPO_PATH       = os.path.expanduser("~/Desktop/Claude/Projects/Candidatures/pipeline")
 CV_BASE_DIR     = os.path.expanduser("~/Desktop/Claude/Projects/CV_Profiles/CV de base")
 CV_OUT_DIR      = os.path.expanduser("~/Desktop/Claude/Projects/CV_Profiles")
 PDF_DIR         = os.path.expanduser("~/Desktop/Claude/Projects/CV_Profiles/pdf")
