@@ -47,7 +47,7 @@ if not AIRTABLE_PAT:
     sys.exit(1)
 
 AIRTABLE_BASE   = "apphTpnW5vu0OdnfC"
-AIRTABLE_TABLE  = "tblrXH5Jiyg6w21lW"
+AIRTABLE_TABLE  = "tblrCyL6huHkUPZbF"
 GITHUB_REPO     = "xrobitaille92150/mission-pipeline"
 REPO_PATH       = os.path.expanduser("~/Desktop/Claude/Projects/Candidatures/pipeline")
 CV_BASE_DIR     = os.path.expanduser("~/Desktop/Claude/Projects/CV_Profiles/CV de base")
@@ -62,18 +62,18 @@ os.makedirs(PDF_DIR, exist_ok=True)
 
 # Airtable field IDs
 F = {
-    "preparer":   "fldqXeFmnWfTXxkM5",
-    "cv":         "fldhcv8Pj9X10b5ez",
-    "cl":         "fldXXebILLlx2Jxla",
-    "ecarte":     "fld40nO9ydrZy4sA5",
-    "jobid":      "fldw7NH5gGRREOC4m",
-    "employeur":  "flddDYtu0fFNmEobL",
-    "poste":      "fld4E08BVrNWqpJL2",
-    "lieu":       "fldG71cQfCGTSZ3sm",
-    "url":        "fldCicrtpsoT82Y5d",
-    "pertinence": "fldapfJfbwD1vWNyy",
-    "note_role":  "fld2nXfShq9rUgcbQ",
-    "note_crit":  "fld9aATrVlyOkke77",
+    "preparer":  "fldqC5lJmSG7lkiCO",
+    "cv":        "fldhRmOci5ofoY34i",
+    "cl":        "fldXC5R5KHMLqwvbT",
+    "ecarte":    "fld4Feuwx9SdWRqqO",
+    "jobid":     "fldwMEnsfCi52BAU5",
+    "employeur": "flddiP9RZb61Krm1u",
+    "poste":     "fld4jROYUneaOcHBL",
+    "lieu":      "fldGMSSdey77gM1i5",
+    "url":       "fldCX37QooP7wPWVW",
+    "score":     "fldYHTOWNIp0zc6UI",
+    "note_role": "fld22OVfgmAFi3a1z",
+    "note_crit": "fld9PrzOUhZ2I7cXQ",
 }
 
 CV_FILES = {
@@ -87,7 +87,9 @@ def at_headers():
     return {"Authorization": f"Bearer {AIRTABLE_PAT}", "Content-Type": "application/json"}
 
 def fetch_pending():
-    """Retourne les offres avec Préparer dossier=true, CV vide, J'écarte=false."""
+    """Retourne les offres avec Préparer dossier=true, CV vide, J'écarte=false.
+    « Préparer dossier » est coché auto à Score>=35, et MANUELLEMENT par Xavier pour forcer
+    la génération CV/CL sur une offre dont le rating < 35 jugé incorrect (process cible 1.1.2)."""
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{AIRTABLE_TABLE}"
     formula = (
         f"AND({{{F['preparer']}}}=1,"
@@ -97,8 +99,8 @@ def fetch_pending():
     # Passer fields[] comme liste de tuples + retourner par ID de champ
     base_params = [
         ("filterByFormula", formula),
-        ("sort[0][field]", F["pertinence"]),
-        ("sort[0][direction]", "asc"),
+        ("sort[0][field]", F["score"]),
+        ("sort[0][direction]", "desc"),
         ("returnFieldsByFieldId", "true"),
     ]
     for fid in F.values():
@@ -289,10 +291,9 @@ def process_offer(rec):
     lieu      = c.get(F["lieu"], "")
     note_role = c.get(F["note_role"], "")
     note_crit = c.get(F["note_crit"], "")
-    pertinence_obj = c.get(F["pertinence"])
-    pertinence = pertinence_obj.get("name", "") if isinstance(pertinence_obj, dict) else str(pertinence_obj)
+    score = c.get(F["score"], "")
 
-    log.info(f"→ {employeur} — {poste} [{pertinence}]")
+    log.info(f"→ {employeur} — {poste} [Score {score}]")
     today_str = datetime.date.today().strftime("%Y%m%d")
     safe_emp  = re.sub(r"[^\w\-]", "", employeur.replace(" ", ""))[:30]
 
