@@ -117,9 +117,11 @@ const parseJobAlertDigest = (plain) => {
     if (seen.has(jobId)) continue;           // dédup intra-email
     seen.add(jobId);
     const url = `https://www.linkedin.com/jobs/view/${jobId}/`;
-    const lines = block.split('\n')
+    const rawLines = block.split('\n')
       .map(l => l.replace(/\s+/g, ' ').trim())
-      .filter(Boolean)
+      .filter(Boolean);
+    const easyApply = rawLines.some(l => /candidature simplifi\u00e9e|easy apply/i.test(l));
+    const lines = rawLines
       .filter(l => !/^Votre alerte Emploi pour/i.test(l))
       .filter(l => !/^Voir l.offre d.emploi\s*:/i.test(l))
       .filter(l => !VEILLE_BADGES.test(l));
@@ -131,7 +133,7 @@ const parseJobAlertDigest = (plain) => {
     const lp = lieu.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
     if (lp) { const m = cleanMode(lp[2]); if (m) { mode = m; lieu = lp[1].trim(); } }
     if (!mode) mode = cleanMode(lieu);
-    cards.push({ jobId, url, employeur, poste, lieu, mode, alertName });
+    cards.push({ jobId, url, employeur, poste, lieu, mode, alertName, easyApply });
   }
   return cards;
 };
@@ -191,7 +193,7 @@ for (const item of items) {
           kind: 'veille',
           jobId: c.jobId, url: c.url,
           employeur: c.employeur, poste: c.poste, lieu: c.lieu, mode: c.mode,
-          alertName: c.alertName,
+          alertName: c.alertName, easyApply: c.easyApply || false,
           emailId: email.id || '', date: dateRaw,
         },
       });
