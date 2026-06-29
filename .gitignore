@@ -1,0 +1,22 @@
+# Managed Agents — IDs de ressources (spécifiques à l'org, à ne pas committer)
+scripts/.ma_email_triage.ids.json
+scripts/.ma_*.ids.json
+
+# Emails réels passés à l'agent (PII) — l'échantillon de démo committé reste email_samples.example.json
+scripts/email_samples.json
+scripts/*.emails.json
+
+# Secrets (ne devraient jamais être ici, mais ceinture + bretelles)
+*.env
+.env
+
+# Logs
+logs/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store

@@ -1,0 +1,26 @@
+[
+  {
+    "id_email": "demo-001",
+    "from": "talent@axa-im.com",
+    "subject": "Mission Finance Transformation – AXA IM",
+    "body": "Bonjour Xavier, nous recherchons un consultant senior pour piloter un programme de transformation finance (clôture, reporting groupe) sur 9 mois, hybride Paris. Votre profil correspond. Disponible pour un échange cette semaine ?"
+  },
+  {
+    "id_email": "demo-002",
+    "from": "no-reply@linkedin.com",
+    "subject": "Your application was sent to BNP Paribas",
+    "body": "Your application for Senior Manager – IFRS 17 was sent to BNP Paribas. You can track its status in your LinkedIn job tracker."
+  },
+  {
+    "id_email": "demo-003",
+    "from": "recrutement@allianz.fr",
+    "subject": "Suite à votre candidature – Lead Asset Management",
+    "body": "Bonjour, après étude attentive de votre profil, nous ne donnerons pas suite à votre candidature pour le poste de Lead Asset Management. Nous vous souhaitons une bonne continuation."
+  },
+  {
+    "id_email": "demo-004",
+    "from": "newsletter@efinancialcareers.com",
+    "subject": "Les 10 compétences les plus recherchées en 2026",
+    "body": "Découvrez notre dossier hebdomadaire sur les tendances du marché de l'emploi en finance."
+  }
+]
