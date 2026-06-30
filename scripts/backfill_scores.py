@@ -31,12 +31,12 @@ ANTHROPIC_KEY = os.environ["ANTHROPIC_API_KEY"]
 
 # ── Airtable ─────────────────────────────────────────────────────────────
 BASE_ID  = "apphTpnW5vu0OdnfC"
-TABLE_ID = "tblrXH5Jiyg6w21lW"
+TABLE_ID = "tblrCyL6huHkUPZbF"   # Veille 2 (corrigé 30/06/2026)
 AT_BASE  = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_ID}"
 
 # ── Barème ────────────────────────────────────────────────────────────────
-BAREME_URL = ("https://raw.githubusercontent.com/xrobitaille92150/"
-              "mission-pipeline/main/nodes/scoring-bareme-prompt.txt")
+# Lecture depuis le fichier local (repo privé → raw.githubusercontent.com = 404 sans auth)
+BAREME_LOCAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "nodes", "scoring-bareme-prompt.txt")
 
 DRY_RUN = "--dry-run" in sys.argv
 
@@ -104,8 +104,9 @@ def parse_score(text):
 
 # ── Fetch barème ──────────────────────────────────────────────────────────
 print("Chargement du barème…")
-BAREME = http_get_text(BAREME_URL)[:6000]
-print(f"Barème chargé ({len(BAREME)} c.)")
+with open(BAREME_LOCAL, encoding="utf-8") as _f:
+    BAREME = _f.read()[:6000]
+print(f"Barème chargé depuis fichier local ({len(BAREME)} c.)")
 
 # ── Fetch records Airtable ────────────────────────────────────────────────
 print("Listing des records Veille avec notes Sonnet…")
