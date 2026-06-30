@@ -115,7 +115,7 @@ offset = None
 while True:
     params = {
         "fields[]": ["Poste", "Employeur", "Lieu", "Pertinence",
-                     "Note rôle", "Note critères", "Score"],
+                     "Note rôle", "Note critères", "Score", "Easy Apply"],
         "filterByFormula": "AND({Note rôle} != '', {Note critères} != '')",
         "pageSize": 100,
     }
@@ -170,8 +170,13 @@ for i, rec in enumerate(records):
             print(f"⚠ parse failed: {txt[:80]}")
             errors += 1
         else:
-            at_patch(rec_id, {"Score": score})
-            print(f"→ {score}")
+            fields_to_write = {"Score": score}
+            if score >= 35:
+                fields_to_write["Préparer dossier"] = True
+                if f.get("Easy Apply"):
+                    fields_to_write["Je postule"] = True
+            at_patch(rec_id, fields_to_write)
+            print(f"→ {score}" + (" [Préparer dossier ✓]" if score >= 35 else ""))
             ok += 1
         time.sleep(1.2)   # rate-limit Anthropic + Airtable
     except Exception as e:
