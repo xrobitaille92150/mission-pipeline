@@ -12,7 +12,7 @@ Lancement :
 
 Zéro dépendance hors de celles de MATT (requests, python-docx, anthropic) + pandoc/Chrome.
 """
-import os, sys, json, re, datetime, traceback, unicodedata, subprocess, tempfile, shutil, uuid
+import os, sys, json, re, datetime, traceback, unicodedata, subprocess, tempfile, shutil, uuid, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
@@ -33,6 +33,12 @@ import run_dossiers as matt   # réutilise claude(), select_cv(), fetch_linkedin
 import requests
 
 PORT          = int(os.environ.get("PORT", "8765"))
+DOSSIERS_SH   = os.path.join(os.path.dirname(os.path.abspath(__file__)), "run-dossiers.sh")
+DOSSIERS_LOG  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "logs")
+
+# ── État MATT (run manuel) ────────────────────────────────────────────────────
+_matt_proc   = None   # subprocess.Popen en cours
+_matt_start  = None   # datetime du lancement
 AIRTABLE_BASE = "apphTpnW5vu0OdnfC"
 CAND_TABLE    = "tblF3jpncEXA647ou"   # Candidatures
 BAREME_URL    = "https://raw.githubusercontent.com/xrobitaille92150/mission-pipeline/main/nodes/scoring-bareme-prompt.txt"
@@ -266,6 +272,38 @@ def apply_candidature(p):
     rec = r.json()["records"][0]
     return {"id": rec["id"], "url": f"https://airtable.com/{AIRTABLE_BASE}/{CAND_TABLE}/{rec['id']}"}
 
+# ── MATT — run manuel ───────────────────────────────────────────────────────────
+def run_matt():
+    """Lance run-dossiers.sh en tâche de fond. Un seul run à la fois."""
+    global _matt_proc, _matt_start
+    if _matt_proc is not None and _matt_proc.poll() is None:
+        elapsed = int(time.time() - _matt_start)
+        return {"running": True, "pid": _matt_proc.pid, "elapsed_s": elapsed,
+                "msg": f"MATT tourne déjà (PID {_matt_proc.pid}, {elapsed}s écoulées)"}
+    os.makedirs(DOSSIERS_LOG, exist_ok=True)
+    log_path = os.path.join(DOSSIERS_LOG, f"dossiers_manual_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+    log_file = open(log_path, "w")
+    _matt_proc = subprocess.Popen(
+        ["/bin/zsh", DOSSIERS_SH],
+        stdout=log_file, stderr=log_file,
+        start_new_session=True   # détaché — survit si apply_tool redémarre
+    )
+    _matt_start = time.time()
+    return {"running": True, "pid": _matt_proc.pid, "log": log_path,
+            "msg": f"MATT lancé (PID {_matt_proc.pid}) — log : {log_path}"}
+
+def matt_status():
+    global _matt_proc, _matt_start
+    if _matt_proc is None:
+        return {"running": False, "msg": "Aucun run manuel en cours"}
+    rc = _matt_proc.poll()
+    if rc is None:
+        elapsed = int(time.time() - _matt_start)
+        return {"running": True, "pid": _matt_proc.pid, "elapsed_s": elapsed,
+                "msg": f"En cours — {elapsed}s écoulées"}
+    return {"running": False, "pid": _matt_proc.pid, "returncode": rc,
+            "msg": f"Terminé (code {rc})"}
+
 # ── Serveur HTTP ────────────────────────────────────────────────────────────────
 HTML = """<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -295,7 +333,10 @@ a.dl{display:inline-block;margin-right:12px;color:var(--navy);font-weight:600;te
 .pathrow{display:flex;gap:8px;align-items:center;margin-top:3px}.pathrow input{font-size:12px;color:#33414f;background:#fafbfc}
 button.mini{padding:7px 12px;font-size:12px;font-weight:500;white-space:nowrap}
 </style></head><body>
-<header><h1>Postuler proprement</h1> <span>URL LinkedIn ou texte d'offre → notes IA · rating · CV · CL · 1 clic pour postuler</span></header>
+<header><h1>Postuler proprement</h1>
+<span>URL LinkedIn ou texte d'offre → notes IA · rating · CV · CL · 1 clic pour postuler &nbsp;·&nbsp;
+<button id="mattbtn" onclick="runMatt()" style="background:#1a5276;border:1px solid #aac;padding:5px 12px;font-size:12px;border-radius:6px;cursor:pointer;color:#fff">▶ Run MATT</button>
+<span id="mattmsg" style="margin-left:8px;font-size:12px;opacity:.85"></span></span></header>
 <main>
   <div class="card">
     <label>URL LinkedIn ou texte de l'offre</label>
@@ -404,6 +445,23 @@ async function apply(force){
     document.getElementById('applymsg').innerHTML='<span class="ok">✓ Candidature créée (Envoyé).</span> <a href="'+d.url+'" target="_blank">Ouvrir dans Airtable</a>';
   }catch(e){document.getElementById('applymsg').innerHTML='<span class="err">Erreur : '+e.message+'</span>';ab.disabled=false;}
 }
+async function runMatt(){
+  const btn=document.getElementById('mattbtn');
+  const msg=document.getElementById('mattmsg');
+  btn.disabled=true;
+  msg.innerHTML='<span class="spin" style="border-color:#fff;border-top-color:transparent"></span>Lancement…';
+  try{
+    const r=await fetch('/run-matt',{method:'POST'});
+    const d=await r.json();
+    msg.textContent=d.msg||'Lancé';
+    // Poll statut toutes les 5s
+    const iv=setInterval(async()=>{
+      const s=await(await fetch('/matt-status')).json();
+      msg.textContent=s.msg;
+      if(!s.running){clearInterval(iv);btn.disabled=false;}
+    },5000);
+  }catch(e){msg.textContent='Erreur : '+e.message;btn.disabled=false;}
+}
 function copyPath(id){const el=document.getElementById(id);el.select();
   try{navigator.clipboard.writeText(el.value);}catch(e){document.execCommand('copy');}
   const b=el.nextElementSibling;const t=b.textContent;b.textContent='Copié ✓';setTimeout(()=>b.textContent=t,1200);}
@@ -438,6 +496,8 @@ class H(BaseHTTPRequestHandler):
                 subprocess.run(["open", "-R", fp])
                 return self._send(200, json.dumps({"ok": True}))
             return self._send(404, json.dumps({"ok": False}))
+        if self.path == "/matt-status":
+            return self._send(200, json.dumps(matt_status(), ensure_ascii=False))
         return self._send(404, b"not found", "text/plain")
 
     def do_POST(self):
@@ -446,6 +506,8 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, json.dumps(prepare(self._json().get("input", "")), ensure_ascii=False))
             if self.path == "/apply":
                 return self._send(200, json.dumps(apply_candidature(self._json()), ensure_ascii=False))
+            if self.path == "/run-matt":
+                return self._send(200, json.dumps(run_matt(), ensure_ascii=False))
             return self._send(404, json.dumps({"error": "route inconnue"}))
         except Exception as e:
             traceback.print_exc()
