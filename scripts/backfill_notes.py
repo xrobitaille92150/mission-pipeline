@@ -33,7 +33,7 @@ AIRTABLE_PAT  = os.environ["AIRTABLE_PAT"]
 ANTHROPIC_KEY = os.environ["ANTHROPIC_API_KEY"]
 
 BASE_ID  = "apphTpnW5vu0OdnfC"
-TABLE_ID = "tblrXH5Jiyg6w21lW"
+TABLE_ID = "tblrCyL6huHkUPZbF"
 AT_BASE  = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_ID}"
 BAREME_URL = ("https://raw.githubusercontent.com/xrobitaille92150/"
               "mission-pipeline/main/nodes/scoring-bareme-prompt.txt")
@@ -200,7 +200,7 @@ def list_target_records():
 
 def main():
     print("Chargement du barème…")
-    bareme = http_text(BAREME_URL)[:6000]
+    bareme = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "nodes", "scoring-bareme-prompt.txt")).read()[:6000]
     print(f"Barème : {len(bareme)} c.")
 
     recs = list_target_records()

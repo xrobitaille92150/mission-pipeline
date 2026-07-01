@@ -106,5 +106,8 @@
 - **Chef de projet junior présentiel banque retail** : +0 pts ()
   - Mots-clés : 20 − 30 − 10 − 10 = −30 → clampé
 
+## RÈGLE LANGUE — PRIORITÉ ABSOLUE (prime sur tout le reste)
+Si la fiche de poste ci-dessous (ou, à défaut, le titre) est rédigée MAJORITAIREMENT dans une langue autre que le français ou l'anglais (allemand, néerlandais, espagnol, italien, portugais, polonais, etc.), alors score = 0 sans exception, quels que soient les autres critères. NB : une offre en FR ou EN contenant quelques termes étrangers n'est PAS concernée.
+
 SORTIE STRICTE — JSON pur, sans markdown, sans texte autour :
 {"score": <entier 0-100>, "justification": "<phrase max 25 mots>", "signaux": ["signal1", ...max 5]}
