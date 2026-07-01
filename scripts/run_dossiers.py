@@ -58,6 +58,18 @@ WRITING_EN      = os.path.expanduser("~/Desktop/Claude/Skills/WRITING RULES.md")
 WRITING_FR      = os.path.expanduser("~/Desktop/Claude/Skills/REGLES-ECRITURE-FR.md")
 CHROME          = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
+# ── Modèles Claude ───────────────────────────────────────────────────────────────
+HAIKU_MODEL  = "claude-haiku-4-5-20251001"  # gap analysis CV (tâche mécanique)
+SONNET_MODEL = "claude-sonnet-5"            # rédaction cover letter (tâche fine)
+
+# ── Charte graphique (Brand Book Xavier Advisory) ────────────────────────────────
+BRAND_NAVY    = "#0B1530"
+BRAND_GOLD    = "#C79A3B"
+BRAND_INK_SOFT = "rgba(11,21,48,0.62)"
+CONTACT_NAME  = "Xavier Robitaille"
+CONTACT_EMAIL = "xro@xavier-robitaille.com"
+CONTACT_PHONE = "+33 6 64 89 09 43"
+
 os.makedirs(PDF_DIR, exist_ok=True)
 
 # Airtable field IDs
@@ -130,7 +142,7 @@ def update_record(record_id, cv_link, cl_link):
 # ── Claude API helper ──────────────────────────────────────────────────────────
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
-def claude(prompt, model="claude-haiku-4-5-20251001", max_tokens=4096):
+def claude(prompt, model=HAIKU_MODEL, max_tokens=4096):
     msg = client.messages.create(
         model=model,
         max_tokens=max_tokens,
@@ -161,6 +173,27 @@ def select_cv(jd_text):
     if any(k in jd for k in am_kw):
         return "AssetManagement"
     return "FinanceTransformation"
+
+# ── Détection de langue ──────────────────────────────────────────────────────────
+def detect_language(text):
+    """Détecte FR vs EN à partir du texte de l'offre (heuristique mots fréquents).
+    Remplace l'ancien lang=cv_type=='AO' (toujours EN car AO supprimé). La cover
+    letter doit être rédigée dans la langue de l'annonce (règle du skill cover-letter)."""
+    if not text:
+        return "EN"
+    t = " " + re.sub(r"\s+", " ", text.lower()) + " "
+    fr_markers = [" le ", " la ", " les ", " des ", " une ", " un ", " et ", " pour ",
+                  " avec ", " vous ", " nous ", " dans ", " sur ", " au ", " du ",
+                  " en ", " est ", " que ", " qui ", " poste ", " entreprise ",
+                  " expérience ", " compétences ", " missions ", " recherche ",
+                  " sein ", " notre ", " vos ", " équipe "]
+    en_markers = [" the ", " and ", " for ", " with ", " you ", " we ", " to ", " of ",
+                  " in ", " on ", " is ", " are ", " will ", " role ", " team ",
+                  " experience ", " skills ", " company ", " our ", " your ",
+                  " within ", " as ", " a ", " an "]
+    fr = sum(t.count(m) for m in fr_markers)
+    en = sum(t.count(m) for m in en_markers)
+    return "FR" if fr > en else "EN"
 
 # ── LinkedIn fetch ─────────────────────────────────────────────────────────────
 def fetch_linkedin(job_id):
@@ -241,17 +274,77 @@ def docx_to_pdf(docx_path, pdf_path):
     ], check=True, capture_output=True)
     log.info(f"PDF généré : {pdf_path}")
 
-def text_to_pdf(text, pdf_path, title="Cover Letter Xavier Robitaille"):
+def _format_date(lang):
+    d = datetime.date.today()
+    if lang == "FR":
+        mois = ["janvier","février","mars","avril","mai","juin","juillet","août",
+                "septembre","octobre","novembre","décembre"]
+        return f"{d.day} {mois[d.month-1]} {d.year}"
+    mois = ["January","February","March","April","May","June","July","August",
+            "September","October","November","December"]
+    return f"{mois[d.month-1]} {d.day}, {d.year}"
+
+def _esc(s):
+    return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+def text_to_pdf(text, pdf_path, employeur="", poste="", lang="EN",
+                title="Cover Letter Xavier Robitaille"):
+    """Génère un PDF de cover letter au letterhead Xavier Advisory (charte graphique)."""
     html_path = "/tmp/cl_dossiers_tmp.html"
-    text_html = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    text_html = "<br>".join(text_html.split("\n"))
-    html = f"""<html><head><style>
+
+    # Corps : découpe en paragraphes sur les lignes vides ; \n simples → espaces.
+    blocks = [b.strip() for b in re.split(r"\n\s*\n", text.strip()) if b.strip()]
+    paras = [_esc(re.sub(r"\s*\n\s*", " ", b)) for b in blocks]
+    body_html = "\n".join(f"<p>{p}</p>" for p in paras) or f"<p>{_esc(text)}</p>"
+
+    date_str = _format_date(lang)
+    subject_label = "Objet" if lang == "FR" else "Re"
+    subject = f"{subject_label} : {_esc(poste)}" if poste else ""
+    recipient = _esc(employeur)
+    signoff = "Xavier Robitaille"
+
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+:root{{--navy:{BRAND_NAVY};--gold:{BRAND_GOLD};--ink-soft:{BRAND_INK_SOFT};}}
 @page{{size:A4;margin:20mm 22mm}}
-body{{font-size:10pt;line-height:1.5;font-family:"Helvetica Neue",Arial}}
-.hdr{{margin-bottom:18pt;color:#0b3d62;font-weight:bold}}
+*{{box-sizing:border-box}}
+body{{margin:0;color:var(--navy);
+  font-family:'Montserrat',system-ui,'Helvetica Neue',Arial,sans-serif;
+  font-size:10.5pt;line-height:1.6;-webkit-font-smoothing:antialiased}}
+.letterhead{{display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:2px solid var(--gold);padding-bottom:10pt;margin-bottom:4pt}}
+.name{{font-family:'Playfair Display',Georgia,serif;font-weight:700;
+  font-size:22pt;letter-spacing:.5px;line-height:1}}
+.role{{font-size:8pt;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--gold);margin-top:6pt}}
+.contact{{text-align:right;font-size:8.5pt;color:var(--ink-soft);line-height:1.5}}
+.contact .sep{{color:var(--gold)}}
+.meta{{margin:20pt 0 2pt;font-size:9.5pt;color:var(--ink-soft)}}
+.recipient{{font-weight:600;color:var(--navy)}}
+.subject{{margin:14pt 0 16pt;font-weight:600;color:var(--navy);font-size:10.5pt}}
+.body p{{margin:0 0 11pt;text-align:justify}}
+.signoff{{margin-top:22pt;font-family:'Playfair Display',Georgia,serif;
+  font-weight:600;font-size:13pt;color:var(--navy)}}
 </style></head><body>
-<div class="hdr">Xavier Robitaille · xro@xavier-robitaille.com · +33 6 64 89 09 43</div>
-<div>{text_html}</div>
+<div class="letterhead">
+  <div>
+    <div class="name">{CONTACT_NAME}</div>
+    <div class="role">Finance &amp; Insurance Transformation</div>
+  </div>
+  <div class="contact">
+    {CONTACT_EMAIL}<br>
+    {CONTACT_PHONE}
+  </div>
+</div>
+<div class="meta">
+  {f'<span class="recipient">{recipient}</span><br>' if recipient else ''}{date_str}
+</div>
+{f'<div class="subject">{subject}</div>' if subject else '<div style="height:12pt"></div>'}
+<div class="body">
+{body_html}
+</div>
+<div class="signoff">{signoff}</div>
 </body></html>"""
     with open(html_path, "w") as f:
         f.write(html)
@@ -309,9 +402,14 @@ def process_offer(rec):
 
     context_for_claude = jd_text or f"{note_role}\n\n{note_crit}" or f"{poste} chez {employeur} à {lieu}"
 
-    # 2. Sélection CV
+    # 2. Sélection CV + détection langue
     cv_type = select_cv(context_for_claude + " " + poste)
-    lang    = "FR" if cv_type == "AO" else "EN"
+    # Les CV de base sont en anglais → nommage CV toujours EN.
+    cv_lang = "EN"
+    # La cover letter suit la langue de l'ANNONCE : on détecte sur le JD (fiable),
+    # sinon sur l'intitulé de poste, sinon sur les notes.
+    cl_lang = detect_language(jd_text or poste or context_for_claude)
+    log.info(f"  Langue cover letter détectée : {cl_lang}")
     cv_base_file = CV_FILES[cv_type]
     cv_base_path = os.path.join(CV_BASE_DIR, cv_base_file)
     if not os.path.exists(cv_base_path):
@@ -345,7 +443,7 @@ Réponds UNIQUEMENT en JSON :
 Si aucune retouche n'est utile, réponds : []
 """
     try:
-        edits_raw = claude(gap_prompt, model="claude-haiku-4-5-20251001")
+        edits_raw = claude(gap_prompt, model=HAIKU_MODEL)
         # Extraire uniquement le bloc JSON [ ... ] pour éviter les textes parasites
         m = re.search(r'\[[\s\S]*\]', edits_raw)
         if not m:
@@ -357,51 +455,73 @@ Si aucune retouche n'est utile, réponds : []
         edits = []
 
     # 4. Appliquer les retouches python-docx
-    cv_out_name = f"CV_XRO_{lang}_{cv_type}_{safe_emp}_{today_str}.docx"
+    cv_out_name = f"CV_XRO_{cv_lang}_{cv_type}_{safe_emp}_{today_str}.docx"
     cv_out_path = os.path.join(CV_OUT_DIR, cv_out_name)
     apply_cv_edits(cv_base_path, cv_out_path, edits)
     log.info(f"  CV .docx sauvegardé : {cv_out_name}")
 
-    # 5. Cover letter via Claude
-    writing_path = WRITING_FR if lang == "FR" else WRITING_EN
-    writing_rules = open(writing_path).read()[:3000] if os.path.exists(writing_path) else ""
+    # 5. Cover letter via Claude (Sonnet — rédaction fine, logique du skill cover-letter)
+    writing_path = WRITING_FR if cl_lang == "FR" else WRITING_EN
+    # Règles d'écriture chargées EN ENTIER (contrainte de style dure, pas d'aperçu tronqué).
+    writing_rules = open(writing_path).read() if os.path.exists(writing_path) else ""
 
-    cl_prompt = f"""Tu rédiges une lettre de motivation courte (200-350 mots) pour Xavier Robitaille.
+    lang_label = "français (registre formel professionnel)" if cl_lang == "FR" else "anglais (professionnel, direct)"
 
-OFFRE :
+    cl_prompt = f"""Tu rédiges un TEXTE DE CANDIDATURE (cover text) pour Xavier Robitaille, consultant senior indépendant (25 ans d'expérience en assurance et finance). Ce n'est PAS une lettre formatée : c'est un texte fluide, professionnel, destiné à être collé dans un formulaire de candidature ou envoyé comme corps de message.
+
+LONGUEUR (contrainte DURE) : le corps du texte doit faire ENVIRON 200 mots (fourchette 190-220 mots, ~1300 caractères). Plancher absolu : ne descends JAMAIS sous 180 mots. Un texte de 70-120 mots est un ÉCHEC : il faut développer les preuves, pas les résumer.
+
+═══ OFFRE ═══
 Employeur : {employeur}
 Poste : {poste}
 Lieu : {lieu}
-Description : {context_for_claude[:2000]}
+Description :
+{context_for_claude[:6000]}
 
-PROFIL :
-{context_md[:2000]}
+═══ PROFIL DE XAVIER (source de vérité — ne rien inventer au-delà) ═══
+{context_md[:4000]}
 
-RÈGLES D'ÉCRITURE :
-{writing_rules[:1500]}
+═══ RÈGLES D'ÉCRITURE (contraintes DURES, à appliquer intégralement) ═══
+{writing_rules}
 
-STRUCTURE (4 parties) :
-1. Proposition de valeur pour l'entreprise (pas de compliment générique)
-2. Preuve concrète (1-2 missions clés, chiffres réels uniquement)
-3. Gap honnête si pertinent (ex : CDI vs freelance)
-4. Call to action simple
+═══ STRUCTURE EN 4 TEMPS ═══
+1. OUVERTURE — l'entreprise d'abord (2-3 phrases). Nomme le défi ou l'ambition PRÉCIS tiré de l'annonce. JAMAIS commencer par Xavier ni par ses années d'expérience. La louange générique ("un leader de son secteur") est un échec.
+2. CORPS — l'expérience comme PREUVE (c'est la partie la plus longue : 6 à 9 phrases, l'essentiel des ~200 mots). 2 à 3 preuves concrètes, chiffrées, DÉVELOPPÉES : pour chaque preuve, précise le contexte, l'action et le résultat mesurable, en la rattachant explicitement à un besoin de l'annonce. Pas de catalogue de postes (pas de credential dump), mais chaque preuve doit être étoffée, pas expédiée en une ligne.
+3. GAP — honnêteté (1-2 phrases, UNIQUEMENT si un vrai écart existe). Nomme-le franchement, sans excuse ni tournure d'atténuation ("bien que", "même si", "je suis convaincu que"). S'il n'y a pas d'écart réel, omets entièrement cette partie.
+4. CLÔTURE — une seule phrase proposant un échange. Pas de formule creuse ("dans l'attente de votre retour", "I look forward to hearing from you").
 
-Langue : {"français" if lang == "FR" else "anglais"}
-Ne pas commencer par le prénom du candidat.
-Réponds avec le texte de la lettre uniquement, sans titre ni en-tête.
+═══ EXEMPLES ═══
+OUVERTURE — MAUVAIS : "Fort de 25 ans d'expérience en finance assurance, je pense correspondre à ce poste."
+OUVERTURE — BON : "Reconstruire une fonction de reporting réglementaire capable de résister au contrôle ACPR tout en migrant d'un GL legacy — ce n'est pas un brief de transformation finance standard."
+PREUVE — MAUVAIS : "J'ai piloté de grands programmes de transformation finance en assurance et asset management."
+PREUVE — BON : "Chez CNP, j'ai reconstruit la production de comptabilité des placements sous contrainte Solvency II — 350 Md€ d'encours, livraison en 18 mois, dans les délais."
+GAP — MAUVAIS : "Bien que je n'aie pas d'expérience directe en P&C, je suis convaincu de m'adapter vite."
+GAP — BON : "Je n'ai pas travaillé directement sur le provisionnement P&C — mon expérience des provisions porte sur le placement et le crédit."
+
+═══ INTERDITS ═══
+- Commencer par Xavier / ses années d'expérience.
+- Credential dump (lister tous les postes).
+- Louange d'entreprise générique.
+- Toute atténuation ou excuse sur un écart.
+- Formule de politesse creuse en clôture.
+- Inventer un chiffre ou une expérience absents du profil ci-dessus.
+- Titre, en-tête, "Madame, Monsieur", bloc signature (le PDF s'en charge).
+
+Langue de rédaction : {lang_label}. Écris dans la langue de l'annonce, sans mélange.
+Réponds UNIQUEMENT avec le texte de candidature, rien d'autre.
 """
-    cl_text = claude(cl_prompt, model="claude-haiku-4-5-20251001", max_tokens=1000)
-    log.info(f"  Cover letter générée : {len(cl_text)} caractères")
+    cl_text = claude(cl_prompt, model=SONNET_MODEL, max_tokens=1500)
+    log.info(f"  Cover letter générée ({cl_lang}, Sonnet) : {len(cl_text)} caractères")
 
     # 6. Conversion PDF
     cv_pdf_name = cv_out_name.replace(".docx", ".pdf")
     cv_pdf_path = os.path.join(PDF_DIR, cv_pdf_name)
-    cl_pdf_name = f"CL_XRO_{lang}_{safe_emp}_{today_str}.pdf"
+    cl_pdf_name = f"CL_XRO_{cl_lang}_{safe_emp}_{today_str}.pdf"
     cl_pdf_path = os.path.join(PDF_DIR, cl_pdf_name)
 
     try:
         docx_to_pdf(cv_out_path, cv_pdf_path)
-        text_to_pdf(cl_text, cl_pdf_path)
+        text_to_pdf(cl_text, cl_pdf_path, employeur=employeur, poste=poste, lang=cl_lang)
     except subprocess.CalledProcessError as e:
         log.error(f"  Conversion PDF échouée : {e}")
         return None
