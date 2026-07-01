@@ -195,6 +195,57 @@ def detect_language(text):
     en = sum(t.count(m) for m in en_markers)
     return "FR" if fr > en else "EN"
 
+# ── Clauses conditionnelles (géographie / nature du poste) ───────────────────────
+IR35_SENTENCE = "As a contractor who is a non-UK Tax resident, based overseas, IR35 does not apply to me."
+
+def geo_role_clauses(lieu, jd_text, poste):
+    """Retourne la liste des précisions à intégrer selon la géographie et la nature
+    du poste. Détection déterministe : le pays vient d'abord du champ Lieu (fiable),
+    puis du JD en repli. La nature (interne vs mission) vient du JD + intitulé."""
+    loc = (lieu or "").lower().strip()
+    if not loc:
+        loc = (jd_text or "")[:400].lower()
+    text_all = f"{poste or ''} {jd_text or ''}".lower()
+
+    uk = (" uk" in f" {loc}") or any(k in loc for k in [
+        "united kingdom", "royaume-uni", "angleterre", "england", "scotland",
+        "écosse", "ecosse", "wales", "pays de galles", "london", "londres",
+        "manchester", "edinburgh", "glasgow", "birmingham", "leeds", "bristol",
+        "liverpool", "cambridge", "oxford"])
+    ie = any(k in loc for k in ["ireland", "irlande", "dublin", "cork", "galway", "limerick"])
+    benelux = any(k in loc for k in [
+        "belgium", "belgique", "belgië", "brussels", "bruxelles", "antwerp",
+        "anvers", "gent", "ghent", "netherlands", "pays-bas", "nederland",
+        "amsterdam", "rotterdam", "hague", "haye", "utrecht", "eindhoven",
+        "luxembourg", "benelux"])
+    france = ("france" in loc) or any(k in loc for k in [
+        "paris", "lyon", "marseille", "lille", "toulouse", "bordeaux", "nantes",
+        "nice", "strasbourg", "rennes", "montpellier", "suresnes", "défense", "defense"])
+
+    freelance_sig = any(k in text_all for k in [
+        "freelance", "mission", "indépendant", "independant", "consultant externe",
+        "prestation", "prestataire", "contractor", "contract role", "b2b",
+        "daily rate", "tjm", "interim", "intérim", "sous-traitance"])
+
+    hybride_clause = ("REMOTE/HYBRIDE : intègre naturellement que le travail hybride est une "
+                      "pratique courante pour Xavier et qu'il maîtrise parfaitement les outils "
+                      "et pratiques du travail à distance (référence concrète : sa dernière "
+                      "expérience chez Clearwater).")
+
+    clauses = []
+    if uk:
+        clauses.append(hybride_clause)
+        clauses.append('IR35 : inclus la phrase EXACTE ci-dessous, en anglais, telle quelle — '
+                       'ne la traduis pas, ne la reformule pas, ne la coupe pas : "' + IR35_SENTENCE + '"')
+    elif ie or benelux:
+        clauses.append(hybride_clause)
+
+    if france and not freelance_sig:
+        clauses.append("OUVERTURE CDI : ce poste est un rôle en interne en France. Précise, sans "
+                       "lourdeur, que bien que Xavier travaille aujourd'hui en freelance, il reste "
+                       "ouvert à un CDI — soit immédiatement, soit après une période initiale en mission.")
+    return clauses
+
 # ── LinkedIn fetch ─────────────────────────────────────────────────────────────
 def fetch_linkedin(job_id):
     url = f"https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{job_id}"
@@ -467,9 +518,21 @@ Si aucune retouche n'est utile, réponds : []
 
     lang_label = "français (registre formel professionnel)" if cl_lang == "FR" else "anglais (professionnel, direct)"
 
+    # Clauses conditionnelles selon géographie / nature du poste
+    clauses = geo_role_clauses(lieu, jd_text, poste)
+    if clauses:
+        precisions_block = ("\n═══ PRÉCISIONS À INTÉGRER (OBLIGATOIRE — selon la géographie/nature du poste) ═══\n"
+                            + "\n".join(f"- {c}" for c in clauses)
+                            + "\nIntègre ces précisions de façon FLUIDE et NATURELLE dans le corps ou la clôture — "
+                              "jamais sous forme de liste, de puces ou de bloc à part. Elles s'ajoutent au texte : "
+                              "tu peux aller jusqu'à ~230 mots pour les intégrer proprement.\n")
+        log.info(f"  Clauses conditionnelles : {len(clauses)}")
+    else:
+        precisions_block = ""
+
     cl_prompt = f"""Tu rédiges un TEXTE DE CANDIDATURE (cover text) pour Xavier Robitaille, consultant senior indépendant (25 ans d'expérience en assurance et finance). Ce n'est PAS une lettre formatée : c'est un texte fluide, professionnel, destiné à être collé dans un formulaire de candidature ou envoyé comme corps de message.
 
-LONGUEUR (contrainte DURE) : le corps du texte doit faire ENVIRON 200 mots (fourchette 190-220 mots, ~1300 caractères). Plancher absolu : ne descends JAMAIS sous 180 mots. Un texte de 70-120 mots est un ÉCHEC : il faut développer les preuves, pas les résumer.
+LONGUEUR (contrainte DURE) : le corps du texte doit faire ENVIRON 200 mots (fourchette 190-220 mots, ~1300 caractères ; jusqu'à ~230 mots si des précisions ci-dessous doivent être intégrées). Plancher absolu : ne descends JAMAIS sous 180 mots. Un texte de 70-120 mots est un ÉCHEC : il faut développer les preuves, pas les résumer.
 
 ═══ OFFRE ═══
 Employeur : {employeur}
@@ -506,7 +569,7 @@ GAP — BON : "Je n'ai pas travaillé directement sur le provisionnement P&C —
 - Formule de politesse creuse en clôture.
 - Inventer un chiffre ou une expérience absents du profil ci-dessus.
 - Titre, en-tête, "Madame, Monsieur", bloc signature (le PDF s'en charge).
-
+{precisions_block}
 Langue de rédaction : {lang_label}. Écris dans la langue de l'annonce, sans mélange.
 Réponds UNIQUEMENT avec le texte de candidature, rien d'autre.
 """
