@@ -148,7 +148,9 @@ def claude(prompt, model=HAIKU_MODEL, max_tokens=4096):
         max_tokens=max_tokens,
         messages=[{"role": "user", "content": prompt}],
     )
-    return msg.content[0].text.strip()
+    # Sonnet 5 peut renvoyer des blocs "thinking" avant le texte → prendre les blocs texte.
+    parts = [b.text for b in msg.content if getattr(b, "type", None) == "text"]
+    return "".join(parts).strip()
 
 # ── CV selection ───────────────────────────────────────────────────────────────
 def select_cv(jd_text):
@@ -573,7 +575,17 @@ GAP — BON : "Je n'ai pas travaillé directement sur le provisionnement P&C —
 Langue de rédaction : {lang_label}. Écris dans la langue de l'annonce, sans mélange.
 Réponds UNIQUEMENT avec le texte de candidature, rien d'autre.
 """
-    cl_text = claude(cl_prompt, model=SONNET_MODEL, max_tokens=1500)
+    # max_tokens élevé : Sonnet peut dépenser une grande part du budget en blocs
+    # "thinking" AVANT le texte — à 1500 le texte était souvent vide (bug 02/07 :
+    # 5 CL à 0 caractère, PDF vides poussés en silence).
+    cl_text = claude(cl_prompt, model=SONNET_MODEL, max_tokens=6000)
+    if len(cl_text) < 400:
+        log.warning(f"  Cover letter trop courte ({len(cl_text)} c.) — retry avec budget élargi")
+        cl_text = claude(cl_prompt, model=SONNET_MODEL, max_tokens=12000)
+    if len(cl_text) < 400:
+        # Fail-loud : mieux vaut PAS de dossier qu'une CL vide poussée sur GitHub
+        log.error(f"  Cover letter VIDE après retry ({len(cl_text)} c.) — dossier abandonné")
+        return None
     log.info(f"  Cover letter générée ({cl_lang}, Sonnet) : {len(cl_text)} caractères")
 
     # 6. Conversion PDF
