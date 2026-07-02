@@ -10,6 +10,7 @@ AIRTABLE_BASE = "apphTpnW5vu0OdnfC"
 T_VEILLE2 = "tblrCyL6huHkUPZbF"
 T_CANDIDATURES = "tblF3jpncEXA647ou"
 T_A_TRAITER = "tblSeyppFhxU3i8Ev"
+T_TRIAGE = "tblOkwh1UtFHQpyct"      # Email Triage (log de classification BOB)
 
 # --- Modèles Claude (chaînes prouvées en prod le 01/07/2026) ---
 MODEL_NOTES = "claude-sonnet-4-6"

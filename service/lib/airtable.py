@@ -61,6 +61,23 @@ def create(table: str, fields_list: list) -> int:
     return created
 
 
+def upsert(table: str, fields_list: list, merge_on: list) -> tuple:
+    """UPSERT en batch de 10 (PATCH + performUpsert, typecast). merge_on = noms de champs.
+    Retourne (créés, mis à jour). Lève sur erreur (fail-loud)."""
+    created, updated = 0, 0
+    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{table}"
+    for i in range(0, len(fields_list), 10):
+        batch = [{"fields": f} for f in fields_list[i:i + 10]]
+        body = json.dumps({"performUpsert": {"fieldsToMergeOn": merge_on},
+                           "records": batch, "typecast": True}).encode()
+        req = urllib.request.Request(url, data=body, headers=_headers(json_body=True), method="PATCH")
+        with urllib.request.urlopen(req, timeout=60) as r:
+            data = json.loads(r.read())
+        created += len(data.get("createdRecords", []))
+        updated += len(data.get("updatedRecords", []))
+    return created, updated
+
+
 def patch(table: str, record_id: str, fields: dict) -> dict:
     """PATCH un record. Lève sur erreur (fail-loud)."""
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{table}/{record_id}"
