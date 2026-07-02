@@ -47,6 +47,20 @@ def list_records(table: str, fields=None, formula: str = None, page_size: int = 
     return out
 
 
+def create(table: str, fields_list: list) -> int:
+    """CREATE en batch de 10 (limite Airtable), typecast=true (résout les selects par nom).
+    Retourne le nombre de records créés. Lève sur erreur (fail-loud)."""
+    created = 0
+    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{table}"
+    for i in range(0, len(fields_list), 10):
+        batch = [{"fields": f} for f in fields_list[i:i + 10]]
+        body = json.dumps({"records": batch, "typecast": True}).encode()
+        req = urllib.request.Request(url, data=body, headers=_headers(json_body=True), method="POST")
+        with urllib.request.urlopen(req, timeout=60) as r:
+            created += len(json.loads(r.read()).get("records", []))
+    return created
+
+
 def patch(table: str, record_id: str, fields: dict) -> dict:
     """PATCH un record. Lève sur erreur (fail-loud)."""
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{table}/{record_id}"

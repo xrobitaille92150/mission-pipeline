@@ -22,13 +22,18 @@ class ClaudeError(RuntimeError):
     """Erreur d'appel Claude — remonte le status + le message (jamais avalée en silence)."""
 
 
-def call(model: str, prompt: str, max_tokens: int = 1000, retries: int = 3) -> str:
-    """Retourne le texte de la réponse. Lève ClaudeError après épuisement des retries."""
-    body = json.dumps({
+def call(model: str, prompt: str, max_tokens: int = 1000, retries: int = 3,
+         temperature: float = None) -> str:
+    """Retourne le texte de la réponse. Lève ClaudeError après épuisement des retries.
+    temperature=0 pour les appels qui doivent être déterministes (scoring)."""
+    payload = {
         "model": model,
         "max_tokens": max_tokens,
         "messages": [{"role": "user", "content": prompt}],
-    }).encode()
+    }
+    if temperature is not None:
+        payload["temperature"] = temperature
+    body = json.dumps(payload).encode()
     headers = {
         "x-api-key": _key(),
         "anthropic-version": "2023-06-01",
