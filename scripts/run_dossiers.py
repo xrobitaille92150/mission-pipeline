@@ -94,6 +94,14 @@ CV_FILES = {
     "IFRS17SolvencyII":      "CV_XRO_EN_IFRS17_SolvencyII_v4.docx",
 }
 
+# Versions FR par cluster (générées par make_fr_base_cvs.py). Sélectionnées quand
+# l'annonce est en français ; fallback sur l'EN si le fichier FR est absent.
+CV_FILES_FR = {
+    "FinanceTransformation": "CV_XRO_FR_FinanceTransformation_v4.docx",
+    "AssetManagement":       "CV_XRO_FR_AssetManagement_v4.docx",
+    "IFRS17SolvencyII":      "CV_XRO_FR_IFRS17_SolvencyII_v4.docx",
+}
+
 # ── Airtable helpers ───────────────────────────────────────────────────────────
 def at_headers():
     return {"Authorization": f"Bearer {AIRTABLE_PAT}", "Content-Type": "application/json"}
@@ -457,18 +465,26 @@ def process_offer(rec):
 
     # 2. Sélection CV + détection langue
     cv_type = select_cv(context_for_claude + " " + poste)
-    # Les CV de base sont en anglais → nommage CV toujours EN.
-    cv_lang = "EN"
-    # La cover letter suit la langue de l'ANNONCE : on détecte sur le JD (fiable),
-    # sinon sur l'intitulé de poste, sinon sur les notes.
+    # Langue de l'ANNONCE : détectée sur le JD (fiable), sinon l'intitulé, sinon les notes.
+    # Elle pilote À LA FOIS la langue de la cover letter ET le choix du CV de base (FR/EN).
     cl_lang = detect_language(jd_text or poste or context_for_claude)
-    log.info(f"  Langue cover letter détectée : {cl_lang}")
+    log.info(f"  Langue annonce détectée : {cl_lang}")
+
+    # CV FR si annonce FR et fichier FR présent ; sinon fallback EN.
+    cv_lang = "EN"
     cv_base_file = CV_FILES[cv_type]
+    if cl_lang == "FR":
+        fr_file = CV_FILES_FR.get(cv_type)
+        if fr_file and os.path.exists(os.path.join(CV_BASE_DIR, fr_file)):
+            cv_lang = "FR"
+            cv_base_file = fr_file
+        else:
+            log.warning(f"  CV FR absent pour {cv_type} — fallback CV EN")
     cv_base_path = os.path.join(CV_BASE_DIR, cv_base_file)
     if not os.path.exists(cv_base_path):
         log.error(f"  CV de base introuvable : {cv_base_path}")
         return None
-    log.info(f"  CV sélectionné : {cv_type}")
+    log.info(f"  CV sélectionné : {cv_type} ({cv_lang})")
 
     # 3. Gap analysis + retouches via Claude
     context_md = open(CONTEXT_FILE).read()[:8000] if os.path.exists(CONTEXT_FILE) else ""
@@ -485,9 +501,9 @@ PROFIL :
 {context_md[:3000]}
 
 TÂCHE :
-Identifie 3 à 6 retouches CHIRURGICALES à apporter au CV de base (type {cv_type}).
+Identifie 3 à 6 retouches CHIRURGICALES à apporter au CV de base (type {cv_type}, rédigé en {"français" if cv_lang == "FR" else "anglais"}).
 Chaque retouche = remplacer une courte phrase ou expression existante par une version légèrement améliorée.
-Règles absolues : ne pas inventer de chiffres ni d'expériences absentes du profil ; ne pas changer la structure.
+Règles absolues : le texte "old" ET le texte "new" doivent être dans la MÊME langue que le CV ({"français" if cv_lang == "FR" else "anglais"}) ; ne pas inventer de chiffres ni d'expériences absentes du profil ; ne pas changer la structure.
 Réponds UNIQUEMENT en JSON :
 [
   {{"old": "texte exact à trouver dans le CV", "new": "texte de remplacement"}},
