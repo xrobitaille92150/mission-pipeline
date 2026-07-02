@@ -183,6 +183,8 @@ for (const item of items) {
 
   // Alertes d'offres LinkedIn -> branche Veille (parse du digest en cartes)
   if (!forcedReponse && fromEmail === 'jobalerts-noreply@linkedin.com') {
+    // Confirmations de création d'alerte : pas des offres (bug 02/07 — records poubelle)
+    if (/votre alerte emploi a été créée/i.test(subject)) continue;
     let plain = '';
     if (email.payload && Array.isArray(email.payload.parts)) plain = extractText(email.payload.parts);
     else if (email.payload?.body?.data) plain = decodeB64(email.payload.body.data);
