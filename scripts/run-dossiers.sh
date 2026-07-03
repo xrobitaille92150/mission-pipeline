@@ -1,10 +1,22 @@
 #!/bin/bash
 # Lance run_dossiers.py en mode non-interactif.
-# Appelé par launchd à 6h15, 12h00 et 19h00.
+# Depuis le 03/07/2026 : appelé par service/run.py (launchd com.xrobitaille.missionrun, 06:15/18:15).
 
 PROJECT_DIR="/Users/xavierrobitaille/Desktop/Claude/Projects/Candidatures/pipeline"
 LOG_DIR="$PROJECT_DIR/logs"
 mkdir -p "$LOG_DIR"
+
+# Verrou anti-double-run (cron résiduel vs run.py) — lock périmé après 90 min
+LOCKDIR="/tmp/run-dossiers.lock"
+if ! mkdir "$LOCKDIR" 2>/dev/null; then
+    if [ -n "$(find "$LOCKDIR" -maxdepth 0 -mmin +90 2>/dev/null)" ]; then
+        rmdir "$LOCKDIR" 2>/dev/null && mkdir "$LOCKDIR" 2>/dev/null || exit 0
+    else
+        echo "run-dossiers déjà en cours (lock) — abandon" >> "$LOG_DIR/shell_lock_skips.log"
+        exit 0
+    fi
+fi
+trap 'rmdir "$LOCKDIR" 2>/dev/null' EXIT
 
 # Log shell-level vers un fichier dédié (debug launchd)
 SHELL_LOG="$LOG_DIR/shell_$(date +%Y-%m-%d_%H%M%S).log"
