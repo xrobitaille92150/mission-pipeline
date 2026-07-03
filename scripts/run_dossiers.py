@@ -626,7 +626,9 @@ Réponds UNIQUEMENT avec le texte de candidature, rien d'autre.
         cv_link = links.get(cv_pdf_name, "")
         cl_link = links.get(cl_pdf_name, "")
     except subprocess.CalledProcessError as e:
-        log.error(f"  Git push échoué : {e}")
+        stderr = (e.stderr or b"").decode("utf-8", "replace").strip()
+        stdout = (e.stdout or b"").decode("utf-8", "replace").strip()
+        log.error(f"  Git push échoué : {e}\n  stderr: {stderr}\n  stdout: {stdout}")
         return None
 
     # 8. Mise à jour Airtable
