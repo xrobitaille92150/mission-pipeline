@@ -11,9 +11,11 @@ Toutes les heures, scan RÉTROACTIF de toute la table Veille 2 :
      « Préparer dossier » OU « Je postule » sans CV (plafond MATT_MAX par run) ;
   5. email uniquement en cas d'erreur (fail-loud, silencieux quand tout va bien).
 
-Le verrou anti-chevauchement vit dans run-dossiers.sh (lock /tmp, périmé 90 min) :
-si le run de 06:15/18:15 est en cours, l'étape 2 est simplement sautée jusqu'au
-run horaire suivant.
+Verrou anti-chevauchement : /tmp/run-dossiers.lock (posé par run-dossiers.sh,
+périmé 90 min). Si un MATT est en cours (run 06:15/18:15 ou run horaire long),
+les étapes 1-3 (suppressions) sont sautées jusqu'au run horaire suivant — sinon
+MATT PATCHe des records supprimés (403) et génère des CV pour rien. L'étape 4
+reste protégée par le même lock côté shell.
 
 Usage :
   python3 jack.py            # run réel
@@ -22,6 +24,7 @@ Usage :
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -30,6 +33,21 @@ from lib import config as C  # noqa: E402
 
 RUN_DOSSIERS = C.REPO / "scripts" / "run-dossiers.sh"
 MATT_MAX = "12"  # dossiers max par run horaire — reste sous le verrou de 90 min
+MATT_LOCK = Path("/tmp/run-dossiers.lock")  # même verrou que run-dossiers.sh
+LOCK_STALE_S = 90 * 60  # au-delà, lock considéré périmé (aligné sur le .sh)
+
+
+def matt_en_cours() -> bool:
+    """True si un run MATT est en cours (lock présent et non périmé).
+
+    Supprimer/dédupliquer des lignes Veille 2 pendant qu'un MATT tourne
+    provoque des PATCH 403 sur records supprimés + CV générés pour rien
+    (constaté le 28/07 : 16 × 403 sur le run 18:35-19:38). Dans ce cas,
+    les purges/dédup sont reportées au run horaire suivant."""
+    try:
+        return MATT_LOCK.exists() and (time.time() - MATT_LOCK.stat().st_mtime) < LOCK_STALE_S
+    except OSError:
+        return False
 
 
 def purge_ecartees(dry: bool) -> tuple:
@@ -103,32 +121,37 @@ def main():
     dry = "--dry-run" in sys.argv
     errors = []
 
-    # 1. Purge des écartées (rétroactif, toute la table)
-    try:
-        found, deleted = purge_ecartees(dry)
-        print(f"purge écartées — trouvées={found} supprimées={deleted}"
-              f"{' (dry-run)' if dry else ''}", flush=True)
-    except Exception as e:  # noqa: BLE001 — capté pour le digest, jamais silencieux
-        errors.append(f"purge écartées KO : {e}")
-        print(f"purge écartées KO : {e}", file=sys.stderr, flush=True)
+    # 0. MATT en cours ? → aucune suppression pendant qu'il tourne (race → 403)
+    if matt_en_cours():
+        print("MATT en cours (lock run-dossiers) — purges/dédup reportées au "
+              "prochain run horaire", flush=True)
+    else:
+        # 1. Purge des écartées (rétroactif, toute la table)
+        try:
+            found, deleted = purge_ecartees(dry)
+            print(f"purge écartées — trouvées={found} supprimées={deleted}"
+                  f"{' (dry-run)' if dry else ''}", flush=True)
+        except Exception as e:  # noqa: BLE001 — capté pour le digest, jamais silencieux
+            errors.append(f"purge écartées KO : {e}")
+            print(f"purge écartées KO : {e}", file=sys.stderr, flush=True)
 
-    # 2. Dédoublonnage (même employeur + poste via 2 recherches différentes)
-    try:
-        found, deleted = dedoublonner(dry)
-        print(f"doublons — trouvés={found} supprimés={deleted}"
-              f"{' (dry-run)' if dry else ''}", flush=True)
-    except Exception as e:  # noqa: BLE001
-        errors.append(f"dédoublonnage KO : {e}")
-        print(f"dédoublonnage KO : {e}", file=sys.stderr, flush=True)
+        # 2. Dédoublonnage (même employeur + poste via 2 recherches différentes)
+        try:
+            found, deleted = dedoublonner(dry)
+            print(f"doublons — trouvés={found} supprimés={deleted}"
+                  f"{' (dry-run)' if dry else ''}", flush=True)
+        except Exception as e:  # noqa: BLE001
+            errors.append(f"dédoublonnage KO : {e}")
+            print(f"dédoublonnage KO : {e}", file=sys.stderr, flush=True)
 
-    # 3. Purge des ignorées (aucune case, pas de CV, > 7 jours)
-    try:
-        found, deleted = purge_ignorees(dry)
-        print(f"purge ignorées >7j — trouvées={found} supprimées={deleted}"
-              f"{' (dry-run)' if dry else ''}", flush=True)
-    except Exception as e:  # noqa: BLE001
-        errors.append(f"purge ignorées KO : {e}")
-        print(f"purge ignorées KO : {e}", file=sys.stderr, flush=True)
+        # 3. Purge des ignorées (aucune case, pas de CV, > 7 jours)
+        try:
+            found, deleted = purge_ignorees(dry)
+            print(f"purge ignorées >7j — trouvées={found} supprimées={deleted}"
+                  f"{' (dry-run)' if dry else ''}", flush=True)
+        except Exception as e:  # noqa: BLE001
+            errors.append(f"purge ignorées KO : {e}")
+            print(f"purge ignorées KO : {e}", file=sys.stderr, flush=True)
 
     # 4. Génération CV/CL (MATT) — Préparer dossier OU Je postule, CV vide
     if dry:
