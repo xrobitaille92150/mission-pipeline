@@ -53,6 +53,10 @@ REPO_PATH       = os.path.expanduser("~/Desktop/Claude/Projects/Candidatures/pip
 CV_BASE_DIR     = os.path.expanduser("~/Desktop/Claude/Projects/CV_Profiles/CV de base")
 CV_OUT_DIR      = os.path.expanduser("~/Desktop/Claude/Projects/CV_Profiles")
 PDF_DIR         = os.path.expanduser("~/Desktop/Claude/Projects/CV_Profiles/pdf")
+# Copie éditable (.docx) vers le miroir Google Drive — filet si le compte GitHub
+# (flaggé, ticket #4530517) saute, et base de retouches manuelles. Fail-soft.
+DRIVE_DOSSIERS  = os.path.expanduser(
+    "~/Mon Drive/XavierAdvisory/10_Work/Candidatures/dossiers")
 CONTEXT_FILE    = os.path.expanduser("~/Desktop/Claude/Projects/_shared/context.md")
 WRITING_EN      = os.path.expanduser("~/Desktop/Claude/Skills/WRITING RULES.md")
 WRITING_FR      = os.path.expanduser("~/Desktop/Claude/Skills/REGLES-ECRITURE-FR.md")
@@ -421,6 +425,74 @@ body{{margin:0;color:var(--navy);
     ], check=True, capture_output=True)
     log.info(f"PDF CL généré : {pdf_path}")
 
+def cl_to_docx(text, docx_path, employeur="", poste="", lang="EN"):
+    """Version .docx éditable de la cover letter (même contenu que le PDF).
+    Mise en page sobre reprenant la charte : Playfair pour le nom, Montserrat
+    pour le corps, filet or sous l'en-tête impossible en python-docx simple →
+    on s'en tient au texte structuré (l'original de référence reste le PDF)."""
+    from docx.shared import Pt, RGBColor
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+    navy = RGBColor.from_string(BRAND_NAVY.lstrip("#"))
+    gold = RGBColor.from_string(BRAND_GOLD.lstrip("#"))
+
+    doc = Document()
+    style = doc.styles["Normal"]
+    style.font.name = "Montserrat"
+    style.font.size = Pt(10.5)
+    style.font.color.rgb = navy
+
+    p = doc.add_paragraph()
+    r = p.add_run(CONTACT_NAME)
+    r.font.name = "Playfair Display"
+    r.font.size = Pt(22)
+    r.bold = True
+    p = doc.add_paragraph()
+    r = p.add_run("FINANCE & INSURANCE TRANSFORMATION")
+    r.font.size = Pt(8)
+    r.font.color.rgb = gold
+    p = doc.add_paragraph()
+    r = p.add_run(f"{CONTACT_EMAIL}  ·  {CONTACT_PHONE}")
+    r.font.size = Pt(8.5)
+
+    doc.add_paragraph()
+    if employeur:
+        p = doc.add_paragraph()
+        p.add_run(employeur).bold = True
+    doc.add_paragraph(_format_date(lang))
+    if poste:
+        subject_label = "Objet" if lang == "FR" else "Re"
+        p = doc.add_paragraph()
+        p.add_run(f"{subject_label} : {poste}").bold = True
+    doc.add_paragraph()
+
+    blocks = [b.strip() for b in re.split(r"\n\s*\n", text.strip()) if b.strip()]
+    for b in blocks or [text.strip()]:
+        p = doc.add_paragraph(re.sub(r"\s*\n\s*", " ", b))
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+    p = doc.add_paragraph()
+    r = p.add_run(CONTACT_NAME)
+    r.font.name = "Playfair Display"
+    r.font.size = Pt(13)
+    r.bold = True
+
+    doc.save(docx_path)
+    log.info(f"  CL .docx sauvegardée : {os.path.basename(docx_path)}")
+
+def copy_to_drive(files):
+    """Copie les fichiers vers le miroir Drive (10_Work/Candidatures/dossiers/
+    YYYY-MM-DD/). Non bloquant : un échec ne fait pas échouer le dossier."""
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    dest_dir = os.path.join(DRIVE_DOSSIERS, today)
+    try:
+        os.makedirs(dest_dir, exist_ok=True)
+        for f in files:
+            shutil.copy2(f, os.path.join(dest_dir, os.path.basename(f)))
+        log.info(f"  Copie Drive OK : {len(files)} fichier(s) → dossiers/{today}/")
+    except Exception as e:
+        log.warning(f"  Copie Drive échouée (non bloquant) : {e}")
+
 # ── GitHub push ────────────────────────────────────────────────────────────────
 def push_to_github(files, commit_msg):
     """files = liste de chemins locaux à copier dans candidatures/YYYY-MM-DD/."""
@@ -645,6 +717,17 @@ Réponds UNIQUEMENT avec le texte de candidature, rien d'autre.
     except Exception as e:
         log.error(f"  Airtable update échoué : {e}")
         return None
+
+    # 9. Copie .docx éditables vers le miroir Drive (fail-soft)
+    cl_docx_path = os.path.join(CV_OUT_DIR,
+                                f"CL_XRO_{cl_lang}_{safe_emp}_{today_str}.docx")
+    try:
+        cl_to_docx(cl_text, cl_docx_path, employeur=employeur, poste=poste,
+                   lang=cl_lang)
+    except Exception as e:
+        log.warning(f"  CL .docx échouée (non bloquant) : {e}")
+        cl_docx_path = None
+    copy_to_drive([p for p in (cv_out_path, cl_docx_path) if p])
 
     return {"employeur": employeur, "cv": cv_link, "cl": cl_link}
 
