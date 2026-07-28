@@ -75,6 +75,7 @@ os.makedirs(PDF_DIR, exist_ok=True)
 # Airtable field IDs
 F = {
     "preparer":  "fldqC5lJmSG7lkiCO",
+    "jepostule": "fld57QamoiPvafq2N",
     "cv":        "fldhRmOci5ofoY34i",
     "cl":        "fldXC5R5KHMLqwvbT",
     "ecarte":    "fld4Feuwx9SdWRqqO",
@@ -107,12 +108,14 @@ def at_headers():
     return {"Authorization": f"Bearer {AIRTABLE_PAT}", "Content-Type": "application/json"}
 
 def fetch_pending():
-    """Retourne les offres avec Préparer dossier=true, CV vide, J'écarte=false.
-    « Préparer dossier » est coché auto à Score>=35, et MANUELLEMENT par Xavier pour forcer
-    la génération CV/CL sur une offre dont le rating < 35 jugé incorrect (process cible 1.1.2)."""
+    """Retourne les offres avec (Préparer dossier=true OU Je postule=true), CV vide, J'écarte=false.
+    « Préparer dossier » est coché auto à Score>=SEUIL ; « Je postule » et « Préparer dossier »
+    peuvent aussi être cochés MANUELLEMENT par Xavier — les deux déclenchent la génération CV/CL
+    (rétroactif : toute la table est scannée à chaque run, cf. JACK horaire du 28/07/2026).
+    Plafond optionnel par run via env MATT_MAX (0 ou absent = illimité)."""
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{AIRTABLE_TABLE}"
     formula = (
-        f"AND({{{F['preparer']}}}=1,"
+        f"AND(OR({{{F['preparer']}}}=1,{{{F['jepostule']}}}=1),"
         f"{{{F['cv']}}}='',"
         f"NOT({{{F['ecarte']}}}=1))"
     )
@@ -139,6 +142,9 @@ def fetch_pending():
         offset = data.get("offset")
         if not offset:
             break
+    cap = int(os.environ.get("MATT_MAX", "0") or 0)
+    if cap > 0 and len(records) > cap:
+        records = records[:cap]  # tri Score desc déjà appliqué — on traite les meilleures d'abord
     return records
 
 def update_record(record_id, cv_link, cl_link):
@@ -591,13 +597,14 @@ GAP — BON : "Je n'ai pas travaillé directement sur le provisionnement P&C —
 Langue de rédaction : {lang_label}. Écris dans la langue de l'annonce, sans mélange.
 Réponds UNIQUEMENT avec le texte de candidature, rien d'autre.
 """
-    # max_tokens élevé : Sonnet peut dépenser une grande part du budget en blocs
-    # "thinking" AVANT le texte — à 1500 le texte était souvent vide (bug 02/07 :
-    # 5 CL à 0 caractère, PDF vides poussés en silence).
-    cl_text = claude(cl_prompt, model=SONNET_MODEL, max_tokens=6000)
+    # max_tokens élevé : Sonnet dépense une grande part du budget en blocs
+    # "thinking" AVANT le texte — à 6000 le premier appel renvoyait 0 caractère
+    # SYSTÉMATIQUEMENT (constat audit 28/07 : retry payant sur chaque CL).
+    # 12000 direct = un seul appel ; les tokens non générés ne coûtent rien.
+    cl_text = claude(cl_prompt, model=SONNET_MODEL, max_tokens=12000)
     if len(cl_text) < 400:
         log.warning(f"  Cover letter trop courte ({len(cl_text)} c.) — retry avec budget élargi")
-        cl_text = claude(cl_prompt, model=SONNET_MODEL, max_tokens=12000)
+        cl_text = claude(cl_prompt, model=SONNET_MODEL, max_tokens=16000)
     if len(cl_text) < 400:
         # Fail-loud : mieux vaut PAS de dossier qu'une CL vide poussée sur GitHub
         log.error(f"  Cover letter VIDE après retry ({len(cl_text)} c.) — dossier abandonné")

@@ -78,6 +78,22 @@ def upsert(table: str, fields_list: list, merge_on: list) -> tuple:
     return created, updated
 
 
+def delete(table: str, record_ids: list) -> int:
+    """DELETE en batch de 10 (limite Airtable). Retourne le nombre supprimé. Lève sur erreur (fail-loud)."""
+    import time
+    deleted = 0
+    for i in range(0, len(record_ids), 10):
+        batch = record_ids[i:i + 10]
+        qs = urllib.parse.urlencode([("records[]", rid) for rid in batch])
+        url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{table}?{qs}"
+        req = urllib.request.Request(url, headers=_headers(), method="DELETE")
+        with urllib.request.urlopen(req, timeout=60) as r:
+            data = json.loads(r.read())
+        deleted += sum(1 for x in data.get("records", []) if x.get("deleted"))
+        time.sleep(0.25)  # rate-limit Airtable (5 req/s)
+    return deleted
+
+
 def patch(table: str, record_id: str, fields: dict) -> dict:
     """PATCH un record. Lève sur erreur (fail-loud)."""
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{table}/{record_id}"
