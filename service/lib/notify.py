@@ -9,8 +9,20 @@ from .config import load_env
 
 
 def send_digest(subject: str, text: str, timeout: int = 60) -> bool:
-    """True si l'email est parti. Ne lève jamais (le digest ne doit pas faire échouer le run)."""
+    """True si l'email est parti. Ne lève jamais (le digest ne doit pas faire échouer le run).
+    Mode 'direct' (P4) : SMTP local, avec repli sur le webhook n8n si le SMTP échoue."""
     try:
+        try:
+            mode = load_env("gmail-direct.env", "GMAIL_MODE").lower()
+        except Exception:  # noqa: BLE001
+            mode = "bridge"
+        if mode == "direct":
+            try:
+                from .gmail_direct import send_smtp
+                send_smtp(subject, text, timeout=timeout)
+                return True
+            except Exception:  # noqa: BLE001 — repli webhook ci-dessous
+                pass
         url = load_env("gmail-bridge.env", "GMAIL_BRIDGE_SEND_URL")
         token = load_env("gmail-bridge.env", "GMAIL_BRIDGE_TOKEN")
         body = json.dumps({"subject": subject, "text": text}).encode()

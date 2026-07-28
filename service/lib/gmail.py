@@ -15,8 +15,22 @@ from .config import load_env
 _JUNK = re.compile(r"votre alerte emploi a été créée|vous recevrez des notifications", re.I)
 
 
+def _mode() -> str:
+    """Interrupteur P4 : 'direct' (IMAP, sans VPS) ou 'bridge' (webhook n8n).
+    Lu dans gmail-direct.env ; absent = bridge (comportement historique)."""
+    try:
+        return load_env("gmail-direct.env", "GMAIL_MODE").lower()
+    except Exception:  # noqa: BLE001 — fichier absent = mode historique
+        return "bridge"
+
+
 def fetch_bridge(timeout: int = 120) -> list:
-    """Appelle le pont. Lève sur erreur HTTP/réseau (fail-loud)."""
+    """Récupère les emails des 24 h, typés (offre_linkedin / email).
+    Mode 'direct' : IMAP local (gmail_direct.py). Mode 'bridge' : webhook n8n.
+    Lève sur erreur (fail-loud)."""
+    if _mode() == "direct":
+        from .gmail_direct import fetch_direct
+        return fetch_direct(timeout=timeout)
     url = load_env("gmail-bridge.env", "GMAIL_BRIDGE_URL")
     token = load_env("gmail-bridge.env", "GMAIL_BRIDGE_TOKEN")
     req = urllib.request.Request(url, headers={"X-Bridge-Token": token})
