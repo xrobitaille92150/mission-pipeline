@@ -5,6 +5,7 @@ import urllib.request
 import urllib.error
 
 from .config import AIRTABLE_BASE, load_env
+from .net import urlopen_retry
 
 _PAT = None
 
@@ -38,7 +39,7 @@ def list_records(table: str, fields=None, formula: str = None, page_size: int = 
             params.append(("offset", offset))
         url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{table}?" + urllib.parse.urlencode(params)
         req = urllib.request.Request(url, headers=_headers())
-        with urllib.request.urlopen(req, timeout=60) as r:
+        with urlopen_retry(req, timeout=60) as r:
             data = json.loads(r.read())
         out.extend(data.get("records", []))
         offset = data.get("offset")
@@ -56,7 +57,7 @@ def create(table: str, fields_list: list) -> int:
         batch = [{"fields": f} for f in fields_list[i:i + 10]]
         body = json.dumps({"records": batch, "typecast": True}).encode()
         req = urllib.request.Request(url, data=body, headers=_headers(json_body=True), method="POST")
-        with urllib.request.urlopen(req, timeout=60) as r:
+        with urlopen_retry(req, timeout=60) as r:
             created += len(json.loads(r.read()).get("records", []))
     return created
 
@@ -71,7 +72,7 @@ def upsert(table: str, fields_list: list, merge_on: list) -> tuple:
         body = json.dumps({"performUpsert": {"fieldsToMergeOn": merge_on},
                            "records": batch, "typecast": True}).encode()
         req = urllib.request.Request(url, data=body, headers=_headers(json_body=True), method="PATCH")
-        with urllib.request.urlopen(req, timeout=60) as r:
+        with urlopen_retry(req, timeout=60) as r:
             data = json.loads(r.read())
         created += len(data.get("createdRecords", []))
         updated += len(data.get("updatedRecords", []))
@@ -87,7 +88,7 @@ def delete(table: str, record_ids: list) -> int:
         qs = urllib.parse.urlencode([("records[]", rid) for rid in batch])
         url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{table}?{qs}"
         req = urllib.request.Request(url, headers=_headers(), method="DELETE")
-        with urllib.request.urlopen(req, timeout=60) as r:
+        with urlopen_retry(req, timeout=60) as r:
             data = json.loads(r.read())
         deleted += sum(1 for x in data.get("records", []) if x.get("deleted"))
         time.sleep(0.25)  # rate-limit Airtable (5 req/s)
@@ -99,5 +100,5 @@ def patch(table: str, record_id: str, fields: dict) -> dict:
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{table}/{record_id}"
     body = json.dumps({"fields": fields}).encode()
     req = urllib.request.Request(url, data=body, headers=_headers(json_body=True), method="PATCH")
-    with urllib.request.urlopen(req, timeout=60) as r:
+    with urlopen_retry(req, timeout=60) as r:
         return json.loads(r.read())

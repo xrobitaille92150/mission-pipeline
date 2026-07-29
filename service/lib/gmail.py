@@ -8,6 +8,7 @@ import re
 import urllib.request
 
 from .config import load_env
+from .net import urlopen_retry
 
 # Emails de confirmation de création d'alerte LinkedIn : parsés à tort en offres
 # par le pont (décalage de champs). Détectés sur subject OU from. Cf. bug du 02/07
@@ -34,7 +35,7 @@ def fetch_bridge(timeout: int = 120) -> list:
     url = load_env("gmail-bridge.env", "GMAIL_BRIDGE_URL")
     token = load_env("gmail-bridge.env", "GMAIL_BRIDGE_TOKEN")
     req = urllib.request.Request(url, headers={"X-Bridge-Token": token})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with urlopen_retry(req, timeout=timeout) as r:
         return json.loads(r.read())
 
 

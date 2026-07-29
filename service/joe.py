@@ -22,6 +22,7 @@ import urllib.error
 
 from lib import config as C
 from lib import claude, airtable, gmail
+from lib.net import urlopen_retry
 
 JD_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{}"
 
@@ -45,7 +46,7 @@ def fetch_jd(job_id: str) -> dict:
         return empty
     try:
         req = urllib.request.Request(JD_URL.format(job_id), headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=30) as r:
+        with urlopen_retry(req, timeout=30) as r:
             html = r.read().decode(errors="replace")
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError):
         return empty   # dégradé, jamais d'abandon
