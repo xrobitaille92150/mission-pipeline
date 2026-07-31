@@ -395,8 +395,7 @@ body{{margin:0;color:var(--navy);
 .recipient{{font-weight:600;color:var(--navy)}}
 .subject{{margin:14pt 0 16pt;font-weight:600;color:var(--navy);font-size:10.5pt}}
 .body p{{margin:0 0 11pt;text-align:justify}}
-.signoff{{margin-top:22pt;font-family:'Playfair Display',Georgia,serif;
-  font-weight:600;font-size:13pt;color:var(--navy)}}
+.signoff{{margin-top:22pt}}
 </style></head><body>
 <div class="letterhead">
   <div>
@@ -471,11 +470,9 @@ def cl_to_docx(text, docx_path, employeur="", poste="", lang="EN"):
         p = doc.add_paragraph(re.sub(r"\s*\n\s*", " ", b))
         p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
-    p = doc.add_paragraph()
-    r = p.add_run(CONTACT_NAME)
-    r.font.name = "Playfair Display"
-    r.font.size = Pt(13)
-    r.bold = True
+    # Signature : même typographie que le corps (correction Xavier 29/07)
+    doc.add_paragraph()
+    doc.add_paragraph(CONTACT_NAME)
 
     doc.save(docx_path)
     log.info(f"  CL .docx sauvegardée : {os.path.basename(docx_path)}")
