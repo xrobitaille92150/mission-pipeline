@@ -62,6 +62,20 @@ arrière-plan ; le détail se rafraîchit tout seul quand il est prêt.
 
 ## 4. Dépannage
 
+**Première chose à faire, une seule commande sur le Mac** (puis coller la sortie à Claude) :
+
+```bash
+cd /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline && zsh deploy/tailscale/check.sh
+```
+
+Elle vérifie le service, la page en local, l'icône, la publication Tailscale et affiche les dernières erreurs.
+
+**Écran vide et pas d'icône sur l'iPhone** : Safari n'a reçu aucune page, presque toujours parce que le
+cockpit ne tourne pas sur le Mac (Tailscale renvoie alors une page vide). Une fois réparé, **supprimer
+l'icône de l'écran d'accueil et la réajouter** : iOS garde l'icône vide capturée la première fois.
+La toute première ouverture peut aussi prendre jusqu'à une minute, le temps que Tailscale obtienne le
+certificat HTTPS.
+
 | Symptôme | Cause probable | Remède |
 |---|---|---|
 | Safari : « impossible de se connecter » | VPN Tailscale coupé sur l'iPhone, ou Mac éteint | ouvrir l'app Tailscale sur l'iPhone, vérifier le Mac dans la liste |

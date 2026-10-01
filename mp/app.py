@@ -193,7 +193,13 @@ def create_app(ctx: Context | None = None) -> FastAPI:
         }, media_type="application/manifest+json")
 
     @app.get("/icon.png")
+    @app.get("/apple-touch-icon.png")
+    @app.get("/apple-touch-icon-precomposed.png")
     def icon() -> FileResponse:
+        return FileResponse(WEB / "icon.png", media_type="image/png")
+
+    @app.get("/favicon.ico")
+    def favicon() -> FileResponse:
         return FileResponse(WEB / "icon.png", media_type="image/png")
 
     # -- API -----------------------------------------------------------------

@@ -17,9 +17,13 @@ mkdir -p "$REPO/out/logs" "$HOME/Library/LaunchAgents"
 sed "s#__REPO__#$REPO#g" "$REPO/deploy/launchd/$LABEL.plist" > "$DEST"
 launchctl bootstrap "gui/$(id -u)" "$DEST"
 launchctl enable "gui/$(id -u)/$LABEL"
-sleep 2
-if curl -fsS -o /dev/null http://127.0.0.1:8765/api/sante; then
-  echo "cockpit démarré : http://127.0.0.1:8765 (journal : out/logs/app.log)"
-else
-  echo "le cockpit n'a pas répondu tout de suite : regarder out/logs/app.err.log"; exit 1
-fi
+# Premier démarrage : l'import des bibliothèques peut prendre une dizaine de secondes.
+for _ in {1..20}; do
+  if curl -fsS -o /dev/null -m 2 http://127.0.0.1:8765/; then
+    echo "cockpit démarré : http://127.0.0.1:8765 (journal : out/logs/app.log)"; exit 0
+  fi
+  sleep 1
+done
+echo "le cockpit ne répond pas après 20 s. Dernières lignes du journal d'erreurs :"
+tail -n 20 "$REPO/out/logs/app.err.log" 2>/dev/null || echo "(journal vide)"
+exit 1

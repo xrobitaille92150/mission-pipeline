@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Missions</title>
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icon.png">
+<link rel="icon" type="image/png" href="/icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Missions">
@@ -83,10 +84,20 @@ details summary{cursor:pointer;color:var(--navy);font-weight:600}
   <div id="dBody"></div>
 </div>
 <div id="toast"></div>
+<noscript><div class="empty">JavaScript est désactivé : activer JavaScript dans Réglages → Safari → Avancé.</div></noscript>
+
+<script>
+// Filet : toute erreur JavaScript s'affiche à l'écran au lieu de laisser une page muette.
+window.addEventListener('error', function (e) {
+  var l = document.getElementById('list');
+  if (l) l.innerHTML = '<div class="empty">Erreur de la page : ' + String(e.message || e).replace(/</g, '&lt;') + '</div>';
+});
+</script>
 
 <script>
 const $ = s => document.querySelector(s);
-let tab = localStorage.getItem('mp.tab') || 'decider', current = null, poll = null;
+const store = {get:k=>{try{return localStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+let tab = store.get('mp.tab') || 'decider', current = null, poll = null;
 
 function toast(msg, ms=2600){const t=$('#toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',ms);}
 async function api(path, opts={}){
@@ -117,7 +128,7 @@ function cardHtml(o){
 
 async function load(){
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
-  localStorage.setItem('mp.tab',tab);
+  store.set('mp.tab',tab);
   const list=$('#list');
   if(tab==='sante') return loadSante();
   list.innerHTML='<div class="empty">Chargement…</div>';
