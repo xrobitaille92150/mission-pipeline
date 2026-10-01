@@ -143,20 +143,15 @@ Même résultat, même ligne Airtable.
 | Secrets | `~/.config/mission-pipeline/*.env` sur Mac, secrets du dépôt sur Actions | Jamais dans git (règle du dépôt) |
 | Legacy | déplacé dans `legacy/`, non supprimé | On garde l'historique des règles ; suppression possible plus tard |
 
-## 4. Décisions à prendre (Xavier)
+## 4. Décisions de Xavier (1er octobre 2026)
 
-1. **Ordonnanceur** : GitHub Actions (le Mac peut être fermé, dossier dans la minute via l'automation
-   Airtable, logs conservés 14 jours) ou launchd sur le Mac (pas de secret sur GitHub, copie Drive
-   automatique, mais le Mac doit être allumé).
-2. **Schéma Airtable** : laisser `mp airtable-setup --apply` créer les champs manquants (jusqu'à 26 sur Offres, 2 sur
-   Candidatures ; liste dans `mp/airtable.py`), ou les créer à la main.
-3. **Actifs dans le dépôt** : les 6 CV de base et les deux fichiers de règles d'écriture sont désormais
-   versionnés dans `assets/` (dépôt privé). Indispensable pour GitHub Actions ; facultatif en launchd
-   (`MP_CV_BASE_DIR` peut pointer vers le Drive).
-4. **Purge de `candidatures/`** : 130 Mo de PDF et 858 commits sans valeur. Supprimer le dossier au
-   prochain commit (simple) ou réécrire l'historique (gain de place, mais force-push).
-5. **Décommissionnement** : désactiver définitivement les workflows n8n et résilier le VPS Hostinger ;
-   retirer les agents launchd v2 (`com.xrobitaille.dossiers`, JACK horaire).
+| Question | Décision | Conséquence |
+|---|---|---|
+| Ordonnanceur | **GitHub Actions** | quatre secrets à saisir dans le dépôt ; automation Airtable pour le dossier dans la minute ; launchd reste disponible en secours |
+| Schéma Airtable | **création automatique** | champs créés le jour même via le connecteur Airtable (même liste que `mp airtable-setup --apply`) ; `mp doctor` doit afficher « schéma complet » |
+| `candidatures/` | **dossier supprimé** | 130 Mo retirés du dépôt courant ; les PDF restent dans l'historique git (réécriture possible plus tard) |
+| Ancien pipeline | **n8n et launchd v2 arrêtés maintenant, VPS après** | `deploy/decommission.sh` ; résiliation Hostinger après une semaine de v3 stable |
+| Actifs dans le dépôt | **CV de base et règles d'écriture versionnés** (choix technique, non soumis) | indispensable pour Actions ; `MP_CV_BASE_DIR` permet de pointer vers le Drive en launchd |
 
 ---
 
@@ -200,12 +195,10 @@ Puis, pour les dossiers « dans la minute », l'automation Airtable (`deploy/air
 ### 5.4 Décommissionnement
 
 ```bash
-launchctl bootout gui/$(id -u)/com.xrobitaille.dossiers 2>/dev/null
-launchctl bootout gui/$(id -u)/com.xrobitaille.jack 2>/dev/null       # nom à vérifier dans ~/Library/LaunchAgents
-ls ~/Library/LaunchAgents | grep -i xrobitaille
+zsh deploy/decommission.sh      # désactive les workflows n8n actifs (API, clé dans n8n.env) + agents launchd v2
 ```
 
-Sur n8n : désactiver les 5 workflows (ils le sont déjà, sauf l'ingestion : à vérifier), puis résilier le VPS.
+Puis, après une semaine de v3 stable : résilier le VPS Hostinger.
 
 ### 5.5 Rattrapage des 392 offres jamais scorées
 

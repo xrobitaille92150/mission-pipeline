@@ -83,6 +83,7 @@ Options globales : `--dry-run` (n'écrit rien), `-v`.
   06:30 et 18:30 (Paris, été), lancement manuel, et `repository_dispatch` depuis l'automation Airtable pour
   un dossier dans la minute ([`deploy/airtable/`](deploy/airtable/README.md)).
 - **launchd** (Mac) : `zsh deploy/launchd/install.sh`, mêmes horaires.
+- **Arrêt de l'ancien pipeline** (n8n + agents launchd v2) : `zsh deploy/decommission.sh`.
 
 ## Structure du dépôt
 
@@ -97,7 +98,6 @@ deploy/             launchd (Mac), automation Airtable
 skills/postuler/    skill Claude « prépare le dossier pour cette offre »
 docs/               REFONTE-2026-10.md
 legacy/             n8n, agents Python de juillet, scripts : plus exécutés, gardés pour mémoire
-candidatures/       PDF de juin-septembre (ancien hébergement) : à purger
 out/                sorties locales (dossiers, logs), ignorées par git
 ```
 

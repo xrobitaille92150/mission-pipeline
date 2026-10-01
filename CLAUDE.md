@@ -43,7 +43,7 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
 4. **Jamais de secret dans git.** `ANTHROPIC_API_KEY`, `AIRTABLE_PAT`, `GMAIL_APP_PASSWORD` : fichiers
    `~/.config/mission-pipeline/*.env` ou secrets GitHub. Vérifier avec `git diff --cached` avant de committer.
 5. **Pas de PDF dans git.** Les dossiers vont dans Airtable (pièces jointes) et dans `out/` (ignoré). `candidatures/`
-   est un reliquat à purger.
+   a été supprimé le 1er octobre 2026 (les anciens PDF restent dans l'historique git).
 6. **Idempotence.** Tout ce qui écrit doit pouvoir être rejoué : upsert sur `jobId`, label Gmail, formules Airtable
    filtrant sur `Scoré le` / `Dossier le`.
 7. **Le profil cible** (`mp/prompts/profile.md`) suit `00_Knowledge/context.md` (décision du 6 septembre 2026 :
@@ -86,6 +86,7 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
 
 - v3 écrite et testée (31 tests), **pas encore exécutée en production** : secrets, schéma Airtable et
   ordonnanceur à mettre en place selon `docs/REFONTE-2026-10.md` § 5.
-- Décisions en attente (Xavier) : ordonnanceur (Actions vs launchd), création du schéma, purge de `candidatures/`,
-  décommissionnement n8n / VPS / agents launchd v2.
+- Décisions de Xavier (1er octobre) : ordonnanceur GitHub Actions ; schéma créé automatiquement ; `candidatures/`
+  supprimé ; n8n et agents launchd v2 arrêtés tout de suite (`deploy/decommission.sh`), VPS résilié après une
+  semaine de v3 stable.
 - Legacy : `legacy/README.md` décrit ce qui a été conservé et pourquoi.
