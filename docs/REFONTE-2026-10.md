@@ -166,7 +166,9 @@ règle d'organisation ; les dossiers produits peuvent être copiés vers le Driv
 
 ```bash
 REPO=/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline
-[ -d "$REPO/.git" ] || git clone git@github.com:xrobitaille92150/mission-pipeline.git "$REPO"
+gh auth status || gh auth login --git-protocol https --web   # une fois ; gh configure aussi git (HTTPS, pas de clé SSH)
+gh auth setup-git
+[ -d "$REPO/.git" ] || gh repo clone xrobitaille92150/mission-pipeline "$REPO"
 cd "$REPO"
 git fetch origin && git checkout claude/mission-pipeline-refonte-m50exw   # puis main après merge
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"

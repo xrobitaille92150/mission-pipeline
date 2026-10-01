@@ -32,7 +32,7 @@ En session Claude : le skill `/postuler` (`skills/postuler/SKILL.md`) fait la m√
 ## Installation
 
 ```bash
-git clone git@github.com:xrobitaille92150/mission-pipeline.git && cd mission-pipeline
+gh repo clone xrobitaille92150/mission-pipeline && cd mission-pipeline      # HTTPS via gh (aucune cl√© SSH requise)
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 brew install --cask libreoffice            # Mac ; sur Linux : apt install libreoffice-writer
 ```
