@@ -9,11 +9,42 @@ import pytest
 os.environ.setdefault("MP_OUT_DIR", str(Path(__file__).parent / "_out"))
 
 
+def eval_formula(formula: str, fields: dict) -> bool:
+    """Évalue le sous-ensemble de formules Airtable utilisé par `mp/` (AND/OR/NOT/IF, =, IS_BEFORE/IS_AFTER,
+    DATETIME_PARSE, DATEADD, TODAY, champs {Nom}) sur les champs d'une ligne. Assez pour tester les filtres."""
+    import datetime as _dt
+    import re as _re
+
+    def f(name):
+        v = fields.get(name)
+        return v.get("name") if isinstance(v, dict) else v
+
+    def _d(v):
+        return _dt.date.fromisoformat(str(v)[:10]) if v else None
+
+    ns = {
+        "f": f, "_and": lambda *a: all(a), "_or": lambda *a: any(a), "_not": lambda a: not a,
+        "_if": lambda c, a, b: a if c else b, "_parse": lambda s, fmt=None: str(s)[:10],
+        "_before": lambda a, b: bool(_d(a) and _d(b) and _d(a) < _d(b)),
+        "_after": lambda a, b: bool(_d(a) and _d(b) and _d(a) > _d(b)),
+        "_dateadd": lambda d, n, unit: (_d(d) + _dt.timedelta(days=n)).isoformat(),
+        "_today": lambda: _dt.date.today().isoformat(),
+    }
+    expr = _re.sub(r"\{([^}]+)\}", lambda m: f"f({m.group(1)!r})", formula)
+    for a, b in (("AND(", "_and("), ("OR(", "_or("), ("NOT(", "_not("), ("IF(", "_if("),
+                 ("IS_BEFORE(", "_before("), ("IS_AFTER(", "_after("), ("DATETIME_PARSE(", "_parse("),
+                 ("DATEADD(", "_dateadd("), ("TODAY()", "_today()")):
+        expr = expr.replace(a, b)
+    expr = _re.sub(r"(?<![<>!=])=(?!=)", "==", expr)
+    return bool(eval(expr, {"__builtins__": {}}, ns))  # noqa: S307 — formules écrites par le code, pas par l'utilisateur
+
+
 class FakeAirtable:
-    def __init__(self, tables: dict[str, list[dict]] | None = None):
+    def __init__(self, tables: dict[str, list[dict]] | None = None, formulas: bool = False):
         self.tables_data = tables or {}
         self.calls: list[tuple] = []
         self.dry_run = False
+        self.formulas = formulas   # True : `list` applique la formule (eval_formula) au lieu de tout renvoyer
         self._n = 0
 
     def _new_id(self) -> str:
@@ -23,6 +54,8 @@ class FakeAirtable:
     def list(self, table, *, fields=None, formula=None, sort=None, max_records=None, view=None):
         self.calls.append(("list", table, formula))
         recs = list(self.tables_data.get(table, []))
+        if formula and self.formulas:
+            recs = [r for r in recs if eval_formula(formula, r["fields"])]
         return recs[:max_records] if max_records else recs
 
     def create(self, table, records):
@@ -33,6 +66,12 @@ class FakeAirtable:
             out.append(rec)
         self.calls.append(("create", table, records))
         return out
+
+    def get(self, table, record_id):
+        for r in self.tables_data.get(table, []):
+            if r["id"] == record_id:
+                return r
+        raise KeyError(record_id)
 
     def patch(self, table, record_id, fields):
         self.calls.append(("patch", table, record_id, fields))

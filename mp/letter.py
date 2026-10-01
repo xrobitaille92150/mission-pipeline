@@ -110,6 +110,26 @@ def write_letter(claude: Claude, *, lang: str, title: str, employer: str, locati
     return letter
 
 
+def rewrite_letter(claude: Claude, *, lang: str, text: str, consigne: str, title: str, employer: str,
+                   location: str, profile_md: str, writing_rules: str) -> Letter:
+    """Réécrit une lettre existante selon une consigne de Xavier, mêmes garde-fous que la rédaction."""
+    lang = "FR" if lang == "FR" else "EN"
+    system = [prompt("cover_common"), prompt("cover_fr" if lang == "FR" else "cover_en"),
+              profile_md, (writing_rules[:16000] if writing_rules else "")]
+    lo, hi = WORDS[lang]
+    user = (f"OFFRE\nEmployeur : {employer}\nPoste : {title}\nLieu : {location or 'n.c.'}\n\n"
+            f"LETTRE ACTUELLE :\n{text}\n\n"
+            f"CONSIGNE DE XAVIER : {consigne.strip()}\n\n"
+            f"Réécris la lettre en appliquant cette consigne, en {'français' if lang == 'FR' else 'anglais'}, "
+            f"entre {lo} et {hi} mots, en conservant les faits durs verbatim et sans rien inventer. "
+            "Ne change que ce que la consigne demande. Rends le JSON (lettre, objections).")
+    letter = Letter.model_validate(
+        claude.json(system=system, user=user, schema=LETTER_SCHEMA, effort="high", max_tokens=10000))
+    if word_count(letter.lettre) < 100:
+        raise RuntimeError(f"réécriture trop courte ({word_count(letter.lettre)} mots)")
+    return letter
+
+
 # ---------------------------------------------------------------------------
 # DOCX au letterhead Xavier Advisory
 # ---------------------------------------------------------------------------

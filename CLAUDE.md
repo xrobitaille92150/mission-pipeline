@@ -13,19 +13,20 @@ Lire d'abord : `README.md` (usage) puis `docs/REFONTE-2026-10.md` (pourquoi, dé
 
 | Fichier | Rôle | Testé par |
 |---|---|---|
-| `mp/cli.py` | commandes `mp run / ingest / sync / score / dossiers / dossier / track / digest / airtable-setup / doctor` | `test_pipeline_and_tracking` |
-| `mp/pipeline.py` | ingest (Gmail → Offres), score (+ classement du jour), dossiers, sync_decisions | `test_scoring`, `test_pipeline_and_tracking` |
+| `mp/cli.py` | commandes `mp run / ingest / sync / score / dossiers / dossier / track / digest / airtable-setup / doctor / app` | `test_pipeline_and_tracking` |
+| `mp/pipeline.py` | ingest (Gmail → Offres), score (+ classement du jour), dossiers / `make_dossier`, sync_decisions | `test_scoring`, `test_pipeline_and_tracking` |
 | `mp/gmail.py` | IMAP, parseur des digests LinkedIn (`parse_job_cards`), emails de statut (`parse_linkedin_status`), label de traitement, envoi SMTP | `test_gmail_parser` |
 | `mp/linkedin.py` | fiche de poste via `jobs-guest`, jamais d'exception (`JobDescription.ok`) | — (réseau) |
 | `mp/airtable.py` | client REST (upsert, patch, pièces jointes via `content.airtable.com`, Meta API) et **schéma attendu** (`OFFRES_FIELDS`) | double `FakeAirtable` |
 | `mp/claude.py` | SDK `anthropic` : sorties JSON (schema), cache de prompt, repli serveur, comptage d'usage | double `FakeClaude` |
 | `mp/scoring.py` | filtres durs (langue, junior, géo), `score_offer`, `rank_for_dossiers` | `test_scoring` |
 | `mp/cv.py` | choix du profil, retouches python-docx run par run, garde-fous | `test_cv_and_letter` |
-| `mp/letter.py` | lettre (HARD FACTS, fourchettes de mots, clauses géo), DOCX à en-tête | `test_cv_and_letter` |
+| `mp/letter.py` | lettre (HARD FACTS, fourchettes de mots, clauses géo), `rewrite_letter` sur consigne, DOCX à en-tête | `test_cv_and_letter`, `test_app` |
 | `mp/pdf.py` | LibreOffice headless | `test_cv_and_letter` (sauté sans soffice) |
 | `mp/dossier.py` | `build_dossier` : fiche → profil → CV → lettre → PDF → Drive | — (intégration) |
 | `mp/tracking.py` | index Candidatures, événements de statut, entonnoir sans retour arrière | `test_pipeline_and_tracking` |
 | `mp/digest.py` | email de fin de run (texte + HTML) | — |
+| `mp/app.py` + `mp/web/` | cockpit mobile (FastAPI + page vanilla JS) : onglets, décisions immédiates, consigne → réécriture de la lettre, run à distance | `test_app` |
 | `mp/models.py` | dataclasses + schémas Pydantic (`Scoring`, `CvEditPlan`, `Letter`, `EmailClass`) | `test_scoring` |
 | `mp/config.py` | `settings()`, lecture de `~/.config/mission-pipeline/*.env`, ids Airtable | — |
 | `mp/prompts/*.md` | profil candidat, méthode et barème de scoring, retouches CV, lettre FR/EN (HARD FACTS verbatim), tri des emails | — |
@@ -69,6 +70,11 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
   (clauses déterministes). Vérifier les fourchettes de mots dans `test_cv_and_letter`.
 - **Débugger un run** : `out/logs/mp_YYYY-MM-DD.log` (Mac) ou artefact `logs-<run>` sur GitHub ; chaque ligne Airtable
   en erreur porte le détail dans le champ `Erreur`.
+- **Changer le cockpit** : API dans `mp/app.py` (toute écriture passe par `pipeline` / `letter`, jamais par un
+  appel Airtable ad hoc), page dans `mp/web/index.html` (sans framework, sans build). Tester avec
+  `TestClient` et `FakeAirtable(..., formulas=True)` (évaluateur de formules dans `tests/conftest.py`).
+  Le cockpit n'a pas d'authentification propre : il n'écoute que sur 127.0.0.1 et c'est Tailscale qui
+  restreint l'accès. Ne jamais le lier à `0.0.0.0`.
 
 ## Déploiement
 
@@ -76,6 +82,8 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
   `dossier` depuis l'automation Airtable `deploy/airtable/automation_dossier.js`).
 - launchd : `deploy/launchd/install.sh` (même horaire, logs dans `out/logs/`).
 - Un seul des deux à la fois.
+- Cockpit : `deploy/launchd/install-app.sh` (service `com.xrobitaille.mp-app`, KeepAlive) + `tailscale serve --bg 8765`
+  (`deploy/tailscale/README.md`). Le cockpit tourne sur le Mac quel que soit l'ordonnanceur choisi.
 
 ## Skills liés
 
@@ -85,7 +93,7 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
 
 ## État au 1er octobre 2026
 
-- v3 écrite et testée (31 tests), **pas encore exécutée en production** : secrets, schéma Airtable et
+- v3 écrite et testée (46 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
   ordonnanceur à mettre en place selon `docs/REFONTE-2026-10.md` § 5.
 - Décisions de Xavier (1er octobre) : ordonnanceur GitHub Actions ; schéma créé automatiquement ; `candidatures/`
   supprimé ; n8n et agents launchd v2 arrêtés tout de suite (`deploy/decommission.sh`), VPS résilié après une

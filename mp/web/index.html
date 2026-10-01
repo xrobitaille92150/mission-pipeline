@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Missions</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Missions">
+<meta name="theme-color" content="#1F2A44">
+<style>
+:root{--navy:#1F2A44;--gold:#C79A3B;--bg:#F5F4F0;--card:#FFFFFF;--ink:#1B1B1F;--muted:#6B6F7A;--line:#E3E1DA;
+  --ok:#2E7D5B;--warn:#B7791F;--bad:#B23A48;--chip:#EEF1F7;--sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom)}
+@media (prefers-color-scheme:dark){:root{--bg:#121419;--card:#1B1E26;--ink:#ECECEC;--muted:#9AA0AD;--line:#2A2E39;--chip:#262B38}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;padding:calc(10px + var(--sat)) 16px 0}
+header h1{margin:0;font-size:17px;font-weight:600;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+header h1 .bar{display:inline-block;width:18px;height:4px;background:var(--gold);border-radius:2px}
+header .right{margin-left:auto;display:flex;gap:6px}
+.tabs{display:flex;gap:4px;margin-top:10px}
+.tabs button{flex:1;background:transparent;border:0;color:#C9CEDC;padding:10px 4px;font:inherit;font-size:14px;border-bottom:3px solid transparent}
+.tabs button.on{color:#fff;border-bottom-color:var(--gold);font-weight:600}
+.icon{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:5px 9px;font:inherit;font-size:13px}
+main{padding:12px 16px calc(24px + var(--sab))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.card:active{opacity:.75}
+.score{min-width:52px;height:52px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;line-height:1}
+.score small{font-size:10px;font-weight:600;opacity:.9;margin-top:3px}
+.s-hi{background:var(--ok)}.s-mid{background:var(--warn)}.s-lo{background:var(--muted)}
+.card .t{flex:1;min-width:0}.card .emp{font-weight:600}.card .pos{color:var(--ink);opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{color:var(--muted);font-size:13px;margin-top:3px;display:flex;flex-wrap:wrap;gap:6px 10px}
+.chip{background:var(--chip);border-radius:999px;padding:1px 8px;font-size:12px;color:var(--ink)}
+.chip.rank{background:var(--gold);color:#fff;font-weight:700}
+.chip.ok{background:#E3F2EA;color:var(--ok)}.chip.bad{background:#F8E1E4;color:var(--bad)}
+.empty{color:var(--muted);text-align:center;padding:40px 10px}
+/* détail */
+#detail{position:fixed;inset:0;background:var(--bg);z-index:10;overflow:auto;display:none;-webkit-overflow-scrolling:touch}
+#detail.open{display:block}
+.dhead{position:sticky;top:0;background:var(--navy);color:#fff;padding:calc(10px + var(--sat)) 12px 10px;display:flex;align-items:center;gap:10px;z-index:2}
+.dhead button{background:transparent;border:0;color:#fff;font:inherit;font-size:16px;padding:6px 8px}
+.dhead .ttl{flex:1;min-width:0}.dhead .ttl b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dhead .ttl span{font-size:13px;opacity:.85}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:12px 16px}
+.sec h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.sec ul{margin:0;padding-left:18px}.sec li{margin:3px 0}
+.detail-line{font-size:13px;color:var(--muted);margin-top:6px}
+.links a{display:inline-block;margin:4px 8px 4px 0;color:var(--navy);font-weight:600;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--chip)}
+@media (prefers-color-scheme:dark){.links a{color:#E8D5A8}}
+textarea{width:100%;min-height:200px;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;font-size:15px;background:var(--bg);color:var(--ink);resize:vertical}
+input[type=text]{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;background:var(--bg);color:var(--ink)}
+.row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:11px 14px;font:inherit;font-weight:600;background:var(--chip);color:var(--ink);flex:1;min-width:120px}
+.btn.primary{background:var(--navy);color:#fff}.btn.gold{background:var(--gold);color:#fff}.btn.danger{background:#F8E1E4;color:var(--bad)}
+.btn:disabled{opacity:.5}
+.actions{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(12px + var(--sab));display:flex;gap:8px}
+.status{font-size:13px;color:var(--muted);margin:0 16px}
+pre.desc{white-space:pre-wrap;font:inherit;font-size:14px;margin:0;max-height:260px;overflow:auto}
+details summary{cursor:pointer;color:var(--navy);font-weight:600}
+@media (prefers-color-scheme:dark){details summary{color:#E8D5A8}}
+#toast{position:fixed;left:50%;bottom:calc(80px + var(--sab));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;font-size:14px;display:none;z-index:20;max-width:90vw}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:r 1s linear infinite;vertical-align:-2px}
+@keyframes r{to{transform:rotate(360deg)}}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.kpi b{font-size:26px;display:block}.kpi span{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="bar"></span>Missions <span class="right"><button class="icon" id="btnRefresh" title="Actualiser">↻</button><button class="icon" id="btnRun" title="Lancer un run">▶ Run</button></span></h1>
+  <div class="tabs">
+    <button data-tab="decider" class="on">À décider</button>
+    <button data-tab="dossiers">Dossiers</button>
+    <button data-tab="postulees">Postulées</button>
+    <button data-tab="sante">Santé</button>
+  </div>
+</header>
+<main id="list"><div class="empty">Chargement…</div></main>
+
+<div id="detail">
+  <div class="dhead"><button id="btnBack">‹ Retour</button><div class="ttl"><b id="dEmp"></b><span id="dPos"></span></div></div>
+  <div id="dBody"></div>
+</div>
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let tab = localStorage.getItem('mp.tab') || 'decider', current = null, poll = null;
+
+function toast(msg, ms=2600){const t=$('#toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',ms);}
+async function api(path, opts={}){
+  const r = await fetch(path, Object.assign({headers:{'Content-Type':'application/json'}}, opts));
+  if(!r.ok){let m='erreur '+r.status;try{m=(await r.json()).detail||m}catch(e){}throw new Error(m);}
+  return r.json();
+}
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const scoreClass = s => s>=70?'s-hi':s>=50?'s-mid':'s-lo';
+const fmtDate = d => d? new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '';
+
+function cardHtml(o){
+  const chips=[];
+  if(o.rang) chips.push(`<span class="chip rank">#${o.rang} du jour</span>`);
+  if(o.statut) chips.push(`<span class="chip">${esc(o.statut)}</span>`);
+  if(o.cluster) chips.push(`<span class="chip">${esc(o.cluster.split(' ')[0])}</span>`);
+  if(o.contrat && o.contrat!=='Non précisé') chips.push(`<span class="chip">${esc(o.contrat)}</span>`);
+  if(o.cv.length) chips.push(`<span class="chip ok">CV + lettre</span>`);
+  if(o.job) chips.push(`<span class="chip"><span class="spin"></span> ${esc(o.job.kind)}</span>`);
+  if(o.erreur) chips.push(`<span class="chip bad">erreur</span>`);
+  if(o.reponse && o.reponse!=='Néant') chips.push(`<span class="chip">${esc(o.reponse)}</span>`);
+  const where=[o.lieu, o.mode].filter(Boolean).join(' · ');
+  return `<div class="card" data-id="${o.id}">
+    <div class="score ${scoreClass(o.score)}">${o.score??'–'}<small>${esc((o.verdict||'').toUpperCase())}</small></div>
+    <div class="t"><div class="emp">${esc(o.employeur)}</div><div class="pos">${esc(o.poste)}</div>
+    <div class="meta">${where?`<span>${esc(where)}</span>`:''}${o.date_postule?`<span>postulé le ${fmtDate(o.date_postule)}</span>`:''}${chips.join('')}</div></div></div>`;
+}
+
+async function load(){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  localStorage.setItem('mp.tab',tab);
+  const list=$('#list');
+  if(tab==='sante') return loadSante();
+  list.innerHTML='<div class="empty">Chargement…</div>';
+  try{
+    const d=await api('/api/offres?tab='+tab);
+    list.innerHTML = d.items.length ? d.items.map(cardHtml).join('') :
+      `<div class="empty">${tab==='decider'?'Rien à décider. Le prochain run tourne à 06:30 et 18:30.':'Aucune offre ici.'}</div>`;
+  }catch(e){list.innerHTML=`<div class="empty">${esc(e.message)}</div>`;}
+}
+
+async function loadSante(){
+  const list=$('#list'); list.innerHTML='<div class="empty">Chargement…</div>';
+  try{
+    const s=await api('/api/sante'); const c=s.compteurs;
+    list.innerHTML=`<div class="kpis">
+      <div class="kpi"><b>${c.decider??'–'}</b><span>à décider</span></div>
+      <div class="kpi"><b>${c.dossiers??'–'}</b><span>dossiers prêts</span></div>
+      <div class="kpi"><b>${c.postulees_7j??'–'}</b><span>postulées sur 7 jours</span></div>
+      <div class="kpi"><b>${c.nouvelles_24h??'–'}</b><span>nouvelles offres sur 24 h</span></div>
+      <div class="kpi"><b>${c.erreurs??'–'}</b><span>offres en erreur</span></div>
+      <div class="kpi"><b style="font-size:15px">${esc(s.dernier_run||'jamais')}</b><span>dernier run ${s.run_en_cours?'(en cours)':''}</span></div>
+    </div><p class="status" style="margin:14px 0">mp ${esc(s.version)} · modèle ${esc(s.modele)}</p>`;
+  }catch(e){list.innerHTML=`<div class="empty">${esc(e.message)}</div>`;}
+}
+
+function detailHtml(o){
+  const links=[];
+  if(o.url) links.push(`<a href="${esc(o.url)}" target="_blank" rel="noopener">LinkedIn ↗</a>`);
+  o.cv.forEach(a=>links.push(`<a href="${esc(a.url)}" target="_blank" rel="noopener">CV ${a.name.endsWith('.pdf')?'PDF':'DOCX'}</a>`));
+  o.lettre_fichiers.forEach(a=>links.push(`<a href="${esc(a.url)}" target="_blank" rel="noopener">Lettre ${a.name.endsWith('.pdf')?'PDF':'DOCX'}</a>`));
+  links.push(`<a href="${esc(o.airtable_url)}" target="_blank" rel="noopener">Airtable ↗</a>`);
+  const facts=[o.lieu,o.mode,o.pays,o.contrat,o.langue,o.profil_cv].filter(x=>x&&x!=='Non précisé').map(esc).join(' · ');
+  const detailLine=(o.pourquoi.find(p=>p.startsWith('Détail :'))||'');
+  const why=o.pourquoi.filter(p=>!p.startsWith('Détail :'));
+  return `
+  <div class="sec"><div style="display:flex;gap:12px;align-items:center">
+    <div class="score ${scoreClass(o.score)}">${o.score??'–'}<small>${esc((o.verdict||'').toUpperCase())}</small></div>
+    <div><div>${facts}</div><div class="detail-line">${esc(detailLine.replace('Détail : ',''))}</div>
+    <div class="meta">${o.rang?`<span class="chip rank">#${o.rang} du jour</span>`:''}<span class="chip">${esc(o.statut||'—')}</span>${o.job?`<span class="chip"><span class="spin"></span> ${esc(o.job.kind)} en cours</span>`:''}</div></div></div>
+    ${o.erreur?`<p class="detail-line" style="color:var(--bad)">${esc(o.erreur)}</p>`:''}
+  </div>
+  <div class="sec"><h3>Pourquoi</h3><ul>${why.map(p=>`<li>${esc(p)}</li>`).join('')||'<li>—</li>'}</ul>
+    ${o.red_flags.length?`<h3 style="margin-top:10px">Red flags</h3><ul>${o.red_flags.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:''}
+    ${o.objections.length?`<h3 style="margin-top:10px">Objections à préparer</h3><ul>${o.objections.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:''}
+  </div>
+  <div class="sec links"><h3>Fichiers et liens</h3>${links.join('')}</div>
+  <div class="sec"><h3>Lettre</h3>
+    ${o.lettre_texte?`<textarea id="lettre" readonly>${esc(o.lettre_texte)}</textarea>
+    <div class="row"><button class="btn" id="btnCopy">Copier le texte</button></div>
+    <h3 style="margin-top:14px">Consigne pour Claude</h3>
+    <input type="text" id="consigne" placeholder="ex. plus court, insiste sur SimCorp, ton plus direct">
+    <div class="row"><button class="btn gold" id="btnProposer">Proposer une réécriture</button></div>
+    <div id="proposal"></div>`
+    :`<p class="status" style="margin:0">Pas encore de lettre. ${o.job?'Génération en cours…':'« Préparer le dossier » la génère avec le CV (deux à trois minutes).'}</p>`}
+  </div>
+  <div class="sec"><details><summary>Fiche de poste</summary><pre class="desc">${esc(o.description||'(non disponible)')}</pre></details></div>
+  <div class="actions">
+    ${o.je_postule?`<button class="btn" id="btnAnnule">Annuler « Je postule »</button>`:
+      `<button class="btn primary" id="btnPostule">Je postule</button>
+       ${o.j_ecarte?`<button class="btn" id="btnAnnule">Réactiver</button>`:`<button class="btn danger" id="btnEcarte">J'écarte</button>`}
+       ${(!o.dossier_le && !o.job)?`<button class="btn" id="btnDossier">Préparer le dossier</button>`:''}`}
+  </div>`;
+}
+
+async function openDetail(id){
+  current=id; $('#detail').classList.add('open'); window.scrollTo(0,0);
+  $('#dBody').innerHTML='<div class="empty">Chargement…</div>';
+  try{ render(await api('/api/offres/'+id)); }catch(e){$('#dBody').innerHTML=`<div class="empty">${esc(e.message)}</div>`;}
+}
+function render(o){
+  $('#dEmp').textContent=o.employeur; $('#dPos').textContent=o.poste;
+  $('#dBody').innerHTML=detailHtml(o);
+  bind(o);
+  clearInterval(poll);
+  if(o.job){ poll=setInterval(async()=>{ try{const n=await api('/api/offres/'+o.id); if(!n.job){clearInterval(poll); render(n); toast('Travail terminé');}}catch(e){} },5000); }
+}
+function bind(o){
+  const act=async(action,label)=>{ try{ toast(label+'…'); const n=await api(`/api/offres/${o.id}/decision`,{method:'POST',body:JSON.stringify({action})}); render(n); toast(n.erreur_sync?('Attention : '+n.erreur_sync):'Enregistré', n.erreur_sync?8000:2600); }catch(e){toast(e.message,4000);} };
+  $('#btnPostule')?.addEventListener('click',()=>act('postule','Je postule'));
+  $('#btnEcarte')?.addEventListener('click',()=>act('ecarte',"J'écarte"));
+  $('#btnDossier')?.addEventListener('click',()=>act('dossier','Dossier demandé'));
+  $('#btnAnnule')?.addEventListener('click',()=>act('annule','Annulation'));
+  $('#btnCopy')?.addEventListener('click',async()=>{ try{await navigator.clipboard.writeText($('#lettre').value); toast('Lettre copiée');}catch(e){$('#lettre').select(); toast('Sélectionne et copie manuellement');} });
+  $('#btnProposer')?.addEventListener('click',async()=>{
+    const c=$('#consigne').value.trim(); if(!c) return toast('Écris une consigne');
+    const btn=$('#btnProposer'); btn.disabled=true; btn.innerHTML='<span class="spin"></span> Claude réécrit…';
+    try{
+      const p=await api(`/api/offres/${o.id}/lettre/proposer`,{method:'POST',body:JSON.stringify({consigne:c})});
+      $('#proposal').innerHTML=`<h3 style="margin-top:14px">Proposition (${p.mots} mots)</h3><textarea id="prop">${esc(p.lettre)}</textarea>
+        <div class="row"><button class="btn primary" id="btnValider">Valider et enregistrer</button><button class="btn" id="btnRejeter">Rejeter</button></div>`;
+      $('#btnRejeter').addEventListener('click',()=>{$('#proposal').innerHTML='';});
+      $('#btnValider').addEventListener('click',async()=>{
+        try{ await api(`/api/offres/${o.id}/lettre`,{method:'PUT',body:JSON.stringify({texte:$('#prop').value})}); toast('Lettre enregistrée, fichiers en cours'); render(await api('/api/offres/'+o.id)); }
+        catch(e){toast(e.message,4000);}
+      });
+    }catch(e){toast(e.message,4000);}
+    btn.disabled=false; btn.textContent='Proposer une réécriture';
+  });
+}
+
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;load();}));
+$('#list').addEventListener('click',e=>{const c=e.target.closest('.card'); if(c) openDetail(c.dataset.id);});
+$('#btnBack').addEventListener('click',()=>{$('#detail').classList.remove('open'); clearInterval(poll); load();});
+$('#btnRefresh').addEventListener('click',load);
+$('#btnRun').addEventListener('click',async()=>{ if(!confirm('Lancer un run complet maintenant (ingestion, scoring, dossiers, suivi) ?')) return; try{await api('/api/run',{method:'POST'}); toast('Run lancé, quelques minutes');}catch(e){toast(e.message,4000);} });
+load();
+</script>
+</body>
+</html>

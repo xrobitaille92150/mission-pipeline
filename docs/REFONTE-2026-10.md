@@ -60,7 +60,7 @@ exemplaires divergents : nœud n8n, module `service/lib`, prompt. Aucune n'étai
 
 ### 2.1 Principes
 
-- **Un moteur** : le package Python `mp/` (15 modules, 2 900 lignes, 31 tests). Rien d'autre ne s'exécute.
+- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 46 tests). Rien d'autre ne s'exécute.
 - **Un ordonnanceur** : GitHub Actions (recommandé) ou launchd sur le Mac. Pas les deux.
 - **Une interface** : Airtable. Tout ce que Xavier fait se fait dans la vue « À décider » de la table Offres.
 - **Fichiers dans Airtable**, pas dans git : CV et lettre attachés à la ligne (PDF + DOCX éditable).
@@ -100,6 +100,15 @@ digest ─────► un email par run s'il y a quelque chose à dire (dossi
 
 Une offre vue ailleurs que dans Gmail : `mp dossier --url <URL>` (ou le skill `/postuler` en session Claude).
 Même résultat, même ligne Airtable.
+
+**Cockpit mobile (ajouté le 1er octobre, demande de Xavier : « un minimum de clics, depuis l'iPhone »).**
+`mp app` sert sur le Mac une page web minimaliste (`mp/web/index.html`, FastAPI derrière), exposée à l'iPhone
+par Tailscale Serve et ajoutée à l'écran d'accueil. Les trois clics deviennent trois boutons : **Je postule**,
+**J'écarte**, **Préparer le dossier**, appliqués tout de suite (le run suivant n'a plus rien à faire). La lettre
+se relit sur le téléphone, se copie, et se fait réécrire par Claude sur une consigne libre (« plus court »,
+« insiste sur IFRS 17 ») ; valider régénère PDF et DOCX dans Airtable. Un bouton lance un run complet.
+Choix de Xavier : auto-hébergement derrière Tailscale (pas d'app native, pas d'exposition Internet, secrets
+sur le Mac). Pas d'authentification applicative : c'est le réseau Tailscale qui limite l'accès.
 
 ### 2.4 Scoring : ce qui change
 
@@ -202,6 +211,10 @@ Puis, pour les dossiers « dans la minute », l'automation Airtable (`deploy/air
 
 **launchd** : `zsh deploy/launchd/install.sh` (06:30 / 18:30, logs dans `out/logs/`).
 
+**Cockpit iPhone** (indépendant de l'ordonnanceur, tourne sur le Mac) : `zsh deploy/launchd/install-app.sh`
+puis `tailscale serve --bg 8765` ; sur l'iPhone, Tailscale + Safari → Sur l'écran d'accueil. Pas à pas :
+`deploy/tailscale/README.md`.
+
 ### 5.4 Décommissionnement
 
 ```bash
@@ -232,14 +245,16 @@ autres (septembre) sont scorées par lots de 80 par run (`--limit`). Pour forcer
   à chaque run (≈ 1 min).
 - **Données personnelles dans le dépôt** : CV de base et dossiers générés (dans `out/`, ignoré par git ;
   les logs téléversés comme artefacts Actions ne contiennent pas les lettres). Le dépôt est privé.
-- **Pas d'interface d'édition de la lettre** : le DOCX attaché s'édite dans Word ; le texte collé dans le
-  formulaire vient de `Lettre texte`.
+- **Édition de la lettre** : depuis le cockpit (consigne à Claude, puis validation) ou dans le DOCX attaché ;
+  une retouche faite dans Word n'est pas reportée dans `Lettre texte`.
+- **Cockpit** : dépend du Mac allumé et de Tailscale actif des deux côtés ; un seul utilisateur, pas de
+  verrou : deux actions simultanées sur la même offre se suivent sans se contredire mais sans avertir.
 
 ---
 
 ## 7. Vérification
 
-- `python -m pytest` : 31 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI).
+- `python -m pytest` : 46 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI, config, cockpit).
 - `mp doctor` : secrets, LibreOffice, CV de base, règles, schéma Airtable, Gmail, Claude.
 - `mp run --dry-run -v` : exécution complète sans écriture.
 - Logs : `out/logs/mp_YYYY-MM-DD.log` (Mac) ou artefact `logs-<run>` (Actions).

@@ -10,7 +10,8 @@ Gmail ─► mp ingest ─► Airtable « Offres » ─► mp score (Claude) ─
                                    └──── mp track (emails de statut) ─► « Candidatures »
 ```
 
-Un seul moteur (`mp/`), un seul ordonnanceur (GitHub Actions ou launchd), une seule interface (Airtable).
+Un seul moteur (`mp/`), un seul ordonnanceur (GitHub Actions ou launchd), une seule interface (Airtable),
+plus un **cockpit sur l'iPhone** (`mp app` derrière Tailscale) pour décider et retoucher la lettre depuis le téléphone.
 Le détail de la refonte, l'audit chiffré et le runbook de migration : [`docs/REFONTE-2026-10.md`](docs/REFONTE-2026-10.md).
 
 ## Répondre à une offre
@@ -28,6 +29,20 @@ mp dossier --text annonce.txt --title "Head of Finance" --employer "Swiss Re"   
 ```
 
 En session Claude : le skill `/postuler` (`skills/postuler/SKILL.md`) fait la même chose.
+
+## Cockpit sur l'iPhone
+
+`mp app` sert une petite application web sur le Mac (`127.0.0.1:8765`), que Tailscale expose en HTTPS sur ton
+réseau privé, et nulle part ailleurs. Sur l'iPhone, Safari → Partager → **Sur l'écran d'accueil** : l'icône
+« Missions » ouvre le cockpit en plein écran.
+
+- **À décider** : les offres du jour avec score, pourquoi, red flags ; boutons **Je postule** / **J'écarte** /
+  **Préparer le dossier**, appliqués immédiatement (statut, ligne Candidatures, dossier en arrière-plan).
+- **Dossiers** : la lettre, à copier ou à faire réécrire par Claude sur une **consigne** (« plus court »,
+  « insiste sur IFRS 17 ») ; valider régénère le PDF et le DOCX attachés dans Airtable.
+- **Postulées** et **Santé** (dernier run, compteurs, bouton ▶ Run).
+
+Installation (Mac + iPhone, 15 minutes) : [`deploy/tailscale/README.md`](deploy/tailscale/README.md).
 
 ## Installation
 
@@ -62,6 +77,7 @@ mp run                         # run complet + digest par email
 | `mp digest` | renvoie le digest du dernier run |
 | `mp airtable-setup [--apply]` | schéma Airtable |
 | `mp doctor [--offline]` | diagnostic |
+| `mp app [--host 127.0.0.1] [--port 8765]` | cockpit mobile (serveur web local, exposé par Tailscale) |
 
 Options globales : `--dry-run` (n'écrit rien), `-v`.
 
@@ -85,18 +101,21 @@ Options globales : `--dry-run` (n'écrit rien), `-v`.
   06:30 et 18:30 (Paris, été), lancement manuel, et `repository_dispatch` depuis l'automation Airtable pour
   un dossier dans la minute ([`deploy/airtable/`](deploy/airtable/README.md)).
 - **launchd** (Mac) : `zsh deploy/launchd/install.sh`, mêmes horaires.
+- **Cockpit** (Mac, service permanent) : `zsh deploy/launchd/install-app.sh` puis `tailscale serve --bg 8765`
+  ([`deploy/tailscale/README.md`](deploy/tailscale/README.md)).
 - **Arrêt de l'ancien pipeline** (n8n + agents launchd v2) : `zsh deploy/decommission.sh`.
 
 ## Structure du dépôt
 
 ```
 mp/                 moteur (config, gmail, linkedin, airtable, claude, scoring, cv, letter, pdf, dossier,
-                    tracking, digest, pipeline, context, cli)
+                    tracking, digest, pipeline, context, cli, app)
+mp/web/             cockpit mobile : index.html (vanilla JS), icon.png
 mp/prompts/         prompts versionnés : profile, scoring, bareme, cv_edits, cover_common/fr/en, tracking
 assets/cv_base/     CV_XRO_{EN,FR}_{FinanceTransformation,AssetManagement,IFRS17_SolvencyII}_v4.docx
 assets/writing_rules/   WRITING RULES.md, REGLES-ECRITURE-FR.md
-tests/              31 tests pytest (doubles Airtable / Claude en mémoire)
-deploy/             launchd (Mac), automation Airtable
+tests/              46 tests pytest (doubles Airtable / Claude en mémoire)
+deploy/             launchd (Mac : pipeline + cockpit), Tailscale, automation Airtable
 skills/postuler/    skill Claude « prépare le dossier pour cette offre »
 docs/               REFONTE-2026-10.md
 legacy/             n8n, agents Python de juillet, scripts : plus exécutés, gardés pour mémoire
@@ -106,7 +125,7 @@ out/                sorties locales (dossiers, logs), ignorées par git
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest          # 31 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
+.venv/bin/python -m pytest          # 46 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
 ```
 
 ## Airtable

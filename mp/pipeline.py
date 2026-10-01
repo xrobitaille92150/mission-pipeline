@@ -196,35 +196,43 @@ def dossiers(ctx: Context, max_n: int = 6) -> list[dict]:
     recs = ctx.at.list(ctx.offres, formula=formula, sort=[("Score", "desc")], max_records=max_n)
     log.info("dossiers : %d offre(s) en attente", len(recs))
     for rec in recs:
-        f = rec["fields"]
-        try:
-            res = build_dossier(ctx, rec)
-            if not ctx.dry_run:
-                ctx.at.replace_attachments(ctx.offres, rec["id"], F_CV_FILES, [res.cv_pdf, res.cv_docx])
-                ctx.at.replace_attachments(ctx.offres, rec["id"], F_LETTER_FILES, [res.letter_pdf, res.letter_docx])
-            fields = {
-                "Lettre texte": res.letter_text,
-                "Objections": "\n".join(f"• {o}" for o in res.objections),
-                "Profil CV": res.profile, "Langue": res.lang, "Dossier le": today(), "Erreur": "",
-            }
-            if f.get("Statut") not in ("Postulée",):
-                fields["Statut"] = "Dossier prêt"
-            ctx.at.patch(ctx.offres, rec["id"], fields)
-            ctx.report.dossiers.append({
-                "record": rec["id"], "title": res.title, "employer": res.employer, "lang": res.lang,
-                "profile": res.profile, "cv": str(res.cv_pdf), "letter": str(res.letter_pdf),
-                "url": f.get("URL", ""), "airtable": record_url(ctx.s.airtable_base, ctx.offres, rec["id"]),
-                "edits": res.edits_applied, "gaps": res.gaps,
-            })
-            log.info("  dossier OK : %s — %s (%s, %s)", res.employer, res.title[:50], res.profile, res.lang)
-        except Exception as e:  # noqa: BLE001
-            msg = f"{f.get('Employeur', '?')} — {f.get('Poste', '?')[:50]} : {e}"
-            ctx.report.error(f"dossier KO : {msg}")
-            try:
-                ctx.at.patch(ctx.offres, rec["id"], {"Erreur": f"Dossier KO : {str(e)[:900]}"})
-            except Exception:  # noqa: BLE001
-                pass
+        make_dossier(ctx, rec)
     return ctx.report.dossiers
+
+
+def make_dossier(ctx: Context, rec: dict) -> dict | None:
+    """Construit et attache le dossier d'une offre ; consigne l'erreur sur la ligne en cas d'échec."""
+    f = rec["fields"]
+    try:
+        res = build_dossier(ctx, rec)
+        if not ctx.dry_run:
+            ctx.at.replace_attachments(ctx.offres, rec["id"], F_CV_FILES, [res.cv_pdf, res.cv_docx])
+            ctx.at.replace_attachments(ctx.offres, rec["id"], F_LETTER_FILES, [res.letter_pdf, res.letter_docx])
+        fields = {
+            "Lettre texte": res.letter_text,
+            "Objections": "\n".join(f"• {o}" for o in res.objections),
+            "Profil CV": res.profile, "Langue": res.lang, "Dossier le": today(), "Erreur": "",
+        }
+        if f.get("Statut") not in ("Postulée",):
+            fields["Statut"] = "Dossier prêt"
+        ctx.at.patch(ctx.offres, rec["id"], fields)
+        item = {
+            "record": rec["id"], "title": res.title, "employer": res.employer, "lang": res.lang,
+            "profile": res.profile, "cv": str(res.cv_pdf), "letter": str(res.letter_pdf),
+            "url": f.get("URL", ""), "airtable": record_url(ctx.s.airtable_base, ctx.offres, rec["id"]),
+            "edits": res.edits_applied, "gaps": res.gaps,
+        }
+        ctx.report.dossiers.append(item)
+        log.info("  dossier OK : %s — %s (%s, %s)", res.employer, res.title[:50], res.profile, res.lang)
+        return item
+    except Exception as e:  # noqa: BLE001
+        msg = f"{f.get('Employeur', '?')} — {f.get('Poste', '?')[:50]} : {e}"
+        ctx.report.error(f"dossier KO : {msg}")
+        try:
+            ctx.at.patch(ctx.offres, rec["id"], {"Erreur": f"Dossier KO : {str(e)[:900]}"})
+        except Exception:  # noqa: BLE001
+            pass
+        return None
 
 
 # ---------------------------------------------------------------------------

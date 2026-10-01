@@ -10,6 +10,7 @@
   mp digest              envoie le digest du dernier run (ou --force)
   mp airtable-setup      vérifie / crée les champs Airtable (--apply)
   mp doctor              vérifie secrets, LibreOffice, CV de base, Airtable, Gmail
+  mp app                 cockpit mobile : serveur web local (127.0.0.1:8765), exposé à l'iPhone via Tailscale
 """
 from __future__ import annotations
 
@@ -265,6 +266,13 @@ def cmd_doctor(args) -> int:
 # ---------------------------------------------------------------------------
 
 
+def cmd_app(args) -> int:
+    from mp.app import serve
+    log.info("cockpit : http://%s:%d (exposer avec `tailscale serve --bg %d`)", args.host, args.port, args.port)
+    serve(host=args.host, port=args.port)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="mp", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--version", action="version", version=f"mp {__version__}")
@@ -324,6 +332,11 @@ def build_parser() -> argparse.ArgumentParser:
     dr = sub.add_parser("doctor", parents=[common])
     dr.add_argument("--offline", action="store_true", help="ne teste ni Gmail ni Claude")
     dr.set_defaults(fn=cmd_doctor)
+
+    ap = sub.add_parser("app", help="cockpit mobile (serveur web local)", parents=[common])
+    ap.add_argument("--host", default="127.0.0.1", help="laisser 127.0.0.1 : Tailscale fait le pont")
+    ap.add_argument("--port", type=int, default=8765)
+    ap.set_defaults(fn=cmd_app)
     return p
 
 
