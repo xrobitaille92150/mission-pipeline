@@ -1,0 +1,125 @@
+import shutil
+from pathlib import Path
+
+import pytest
+from docx import Document
+
+from mp import cv as cvmod
+from mp import letter as lettermod
+from mp.models import CvEdit, Letter
+from mp.pdf import docx_to_pdf, soffice_binary
+from tests.conftest import FakeClaude
+
+
+def test_select_profile_tree():
+    assert cvmod.select_profile("Implementation of SimCorp Dimension front-to-back") == "AssetManagement"
+    assert cvmod.select_profile("IFRS 17 and Solvency II reporting, QRT") == "IFRS17SolvencyII"
+    assert cvmod.select_profile("IFRS 9 ECL on a SimCorp platform") == "AssetManagement"  # AM d'abord
+    assert cvmod.select_profile("Finance transformation PMO") == "FinanceTransformation"
+    assert cvmod.select_profile("Chef de projet", hint="IFRS17SolvencyII") == "IFRS17SolvencyII"
+    assert cvmod.select_profile("Chef de projet", hint="n'importe quoi") == "FinanceTransformation"
+
+
+def _make_cv(path: Path) -> Path:
+    doc = Document()
+    doc.add_paragraph("XAVIER ROBITAILLE")
+    p = doc.add_paragraph()
+    p.add_run("Finance Transformation  |  ")
+    r = p.add_run("PMO")
+    r.bold = True
+    p.add_run("  |  IFRS 9")
+    doc.add_paragraph("Led end-to-end delivery of a Clearwater Analytics SaaS platform for a French reinsurer.")
+    t = doc.add_table(rows=1, cols=1)
+    t.cell(0, 0).paragraphs[0].add_run("Core expertise: IFRS 9 / IFRS 17 implementation.")
+    doc.save(str(path))
+    return path
+
+
+def test_apply_edits_single_run_multi_run_table_and_unknown(tmp_path):
+    base = _make_cv(tmp_path / "base.docx")
+    out = tmp_path / "out.docx"
+    edits = [
+        CvEdit(old="Clearwater Analytics SaaS platform", new="Clearwater Analytics SaaS investment platform"),
+        CvEdit(old="PMO  |  IFRS 9", new="PMO  |  IFRS 9  |  IFRS 17"),          # chevauche 2 runs
+        CvEdit(old="IFRS 9 / IFRS 17 implementation", new="IFRS 9 / IFRS 17 / Solvency II implementation"),
+        CvEdit(old="texte qui n'existe pas", new="x"),
+    ]
+    applied, skipped = cvmod.apply_edits(base, out, edits)
+    assert (applied, skipped) == (3, 1)
+    text = cvmod.docx_text(out)
+    assert "SaaS investment platform" in text
+    assert "PMO  |  IFRS 9  |  IFRS 17" in text
+    assert "Solvency II implementation" in text
+    # la mise en forme du run « PMO » (gras) est conservée
+    doc = Document(str(out))
+    assert any(r.bold for r in doc.paragraphs[1].runs)
+
+
+def test_propose_edits_filters_unsafe(tmp_path):
+    base = _make_cv(tmp_path / "base.docx")
+    claude = FakeClaude([{"edits": [
+        {"old": "PMO", "new": "PMO " + "x" * 200},                       # dérive de longueur
+        {"old": "", "new": "y"},                                         # vide
+        {"old": "Finance Transformation", "new": "Finance Transformation (actuarial qualification)"},  # actuaire
+        {"old": "Finance Transformation", "new": "Finance & Insurance Transformation"},
+    ], "gaps": ["Aladdin non pratiqué"]}])
+    plan = cvmod.propose_edits(claude, cv_text=cvmod.docx_text(base), profile="FinanceTransformation", lang="EN",
+                               title="PMO", employer="AXA", jd_text="", keywords=["PMO"], profile_md="p")
+    assert [e.new for e in plan.edits] == ["Finance & Insurance Transformation"]
+    assert plan.gaps == ["Aladdin non pratiqué"]
+
+
+def test_base_cv_path_fallback(tmp_path):
+    (tmp_path / "CV_XRO_EN_FinanceTransformation_v4.docx").write_bytes(b"x")
+    p, lang = cvmod.base_cv_path(tmp_path, "FinanceTransformation", "FR")
+    assert lang == "EN" and p.name.startswith("CV_XRO_EN")
+    with pytest.raises(FileNotFoundError):
+        cvmod.base_cv_path(tmp_path, "AssetManagement", "EN")
+
+
+def test_output_names():
+    assert cvmod.output_name("FR", "AssetManagement", "Groupe P&V", "123", "20261001") == \
+        "CV_XRO_FR_AssetManagement_GroupePV_123_20261001"
+    assert lettermod.output_name("EN", "Swiss Re", "9", "20261001") == "CL_XRO_EN_SwissRe_9_20261001"
+    assert lettermod.output_name("FR", "", "", "20261001") == "LM_XRO_FR_offre_20261001"
+
+
+def test_geo_clauses():
+    uk = lettermod.geo_clauses("London, United Kingdom", "", "Programme Manager")
+    assert any("IR35" in c for c in uk) and any("HYBRIDE" in c for c in uk)
+    fr = lettermod.geo_clauses("Paris", "Poste en CDI au sein de la direction financière", "Head of Finance")
+    assert any("CDI" in c for c in fr) and not any("IR35" in c for c in fr)
+    assert lettermod.geo_clauses("Paris", "Mission freelance de 6 mois, TJM à négocier", "PMO") == []
+    assert any("HYBRIDE" in c for c in lettermod.geo_clauses("Dublin", "", ""))
+
+
+def test_write_letter_retries_when_too_short():
+    short = {"lettre": "Trop court. " * 10, "objections": []}
+    ok_text = " ".join(["mot"] * 230)
+    claude = FakeClaude([short, {"lettre": ok_text, "objections": ["TJM — à cadrer"]}])
+    letter = lettermod.write_letter(claude, lang="FR", title="PMO", employer="AXA", location="Paris", jd_text="",
+                                    profile_md="p", writing_rules="règles")
+    assert len(claude.prompts) == 2
+    assert "hors fourchette" in claude.prompts[1]["user"]
+    assert isinstance(letter, Letter) and letter.objections == ["TJM — à cadrer"]
+    assert claude.prompts[0]["system"][3] == "règles"
+
+
+def test_letter_docx_and_pdf(tmp_path):
+    text = ("L'enjeu auquel doit faire face la direction financière d'AXA est peu commun : un paragraphe.\n\n"
+            "Chez CNP, j'ai automatisé la production financière projetée multi-actifs.\n\n"
+            "Je serais heureux d'avoir l'opportunité d'en discuter avec vous.\n\nBien cordialement.")
+    out = lettermod.letter_docx(text, tmp_path / "lm.docx", employer="AXA", title="PMO Finance", lang="FR")
+    doc = Document(str(out))
+    paras = [p.text for p in doc.paragraphs if p.text.strip()]
+    assert paras[0] == "Xavier Robitaille"
+    assert "AXA" in paras and any(p.startswith("Objet : PMO Finance") for p in paras)
+    assert paras[-1] == "Xavier Robitaille" and paras[-2] == "Bien cordialement."
+    if not soffice_binary() or not shutil.which("pdfinfo"):
+        pytest.skip("LibreOffice absent")
+    pdf = docx_to_pdf(out, tmp_path)
+    assert pdf.exists() and pdf.stat().st_size > 5000
+
+
+def test_word_count():
+    assert lettermod.word_count("Bien cordialement. L'enjeu est peu commun — vraiment.") == 7  # L'enjeu = 1 mot

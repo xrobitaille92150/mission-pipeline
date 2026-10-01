@@ -1,0 +1,244 @@
+"""Structures de données partagées entre les étapes du pipeline."""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from pydantic import BaseModel, Field, field_validator
+
+# ---------------------------------------------------------------------------
+# Ingestion
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class Card:
+    """Une offre extraite d'un email LinkedIn (alerte, recommandation, offre enregistrée)."""
+
+    job_id: str
+    url: str
+    title: str
+    employer: str
+    location: str = ""
+    mode: str = ""              # À distance / Hybride / Sur site / ""
+    alert_name: str = ""        # nom de la recherche LinkedIn enregistrée (alertes)
+    easy_apply: bool = False
+    source: str = "Alerte"      # Alerte / Recommandation / Enregistrée / Manuelle
+    email_id: str = ""
+    email_date: str = ""        # YYYY-MM-DD
+
+
+@dataclass
+class Email:
+    uid: bytes
+    id: str                     # id Gmail (hex de X-GM-MSGID)
+    subject: str
+    from_name: str
+    from_email: str
+    date: str                   # YYYY-MM-DD
+    plain: str
+    html: str = ""
+    labels: list[str] = field(default_factory=list)
+
+    @property
+    def domain(self) -> str:
+        return self.from_email.split("@")[1] if "@" in self.from_email else ""
+
+
+@dataclass
+class JobDescription:
+    ok: bool = False
+    text: str = ""
+    title: str = ""
+    company: str = ""
+    location: str = ""
+    criteria: dict[str, str] = field(default_factory=dict)
+    mode: str = ""
+    easy_apply: bool = False
+    error: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Scoring (sortie structurée de Claude, validée par Pydantic)
+# ---------------------------------------------------------------------------
+
+CLUSTER_LABELS = {
+    "A": "A — Assurance/Passif",
+    "B": "B — Investissement/Actif",
+    "C": "C — Transformation/PMO",
+    "HORS_AXE": "Hors-axe",
+}
+VERDICT_LABELS = {"POSTULER": "Postuler", "ETUDIER": "Étudier", "ECARTER": "Écarter"}
+MODE_LABELS = {"remote": "À distance", "hybride": "Hybride", "sur_site": "Sur site", "non_precise": ""}
+CONTRAT_LABELS = {
+    "freelance": "Freelance", "cdi": "CDI", "interim": "Intérim", "cdd": "CDD", "non_precise": "Non précisé",
+}
+POSTURE_LABELS = {"projet": "Projet", "production": "Production", "mixte": "Mixte"}
+
+
+class Scoring(BaseModel):
+    cluster: str = Field(pattern="^(A|B|C|HORS_AXE)$")
+    posture: str = Field(pattern="^(projet|production|mixte)$")
+    langue: str = Field(pattern="^(FR|EN|AUTRE)$")
+    pays: str = ""
+    mode: str = Field(pattern="^(remote|hybride|sur_site|non_precise)$")
+    contrat: str = Field(pattern="^(freelance|cdi|interim|cdd|non_precise)$")
+    junior: bool = False
+    score: int = 0
+    verdict: str = Field(pattern="^(POSTULER|ETUDIER|ECARTER)$")
+    pourquoi: list[str] = Field(default_factory=list)
+    red_flags: list[str] = Field(default_factory=list)
+    profil_cv: str = Field(pattern="^(FinanceTransformation|AssetManagement|IFRS17SolvencyII)$")
+    mots_cles: list[str] = Field(default_factory=list)
+
+    @field_validator("score")
+    @classmethod
+    def _clamp(cls, v: int) -> int:
+        return max(0, min(100, int(v)))
+
+    @field_validator("pourquoi", "red_flags", "mots_cles")
+    @classmethod
+    def _strip(cls, v: list[str]) -> list[str]:
+        return [s.strip() for s in v if s and s.strip()]
+
+
+SCORING_SCHEMA: dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "cluster": {"type": "string", "enum": ["A", "B", "C", "HORS_AXE"]},
+        "posture": {"type": "string", "enum": ["projet", "production", "mixte"]},
+        "langue": {"type": "string", "enum": ["FR", "EN", "AUTRE"]},
+        "pays": {"type": "string"},
+        "mode": {"type": "string", "enum": ["remote", "hybride", "sur_site", "non_precise"]},
+        "contrat": {"type": "string", "enum": ["freelance", "cdi", "interim", "cdd", "non_precise"]},
+        "junior": {"type": "boolean"},
+        "score": {"type": "integer"},
+        "verdict": {"type": "string", "enum": ["POSTULER", "ETUDIER", "ECARTER"]},
+        "pourquoi": {"type": "array", "items": {"type": "string"}},
+        "red_flags": {"type": "array", "items": {"type": "string"}},
+        "profil_cv": {
+            "type": "string",
+            "enum": ["FinanceTransformation", "AssetManagement", "IFRS17SolvencyII"],
+        },
+        "mots_cles": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": [
+        "cluster", "posture", "langue", "pays", "mode", "contrat", "junior", "score", "verdict",
+        "pourquoi", "red_flags", "profil_cv", "mots_cles",
+    ],
+}
+
+
+# ---------------------------------------------------------------------------
+# Dossier (CV + lettre)
+# ---------------------------------------------------------------------------
+
+
+class CvEdit(BaseModel):
+    old: str
+    new: str
+
+
+class CvEditPlan(BaseModel):
+    edits: list[CvEdit] = Field(default_factory=list)
+    gaps: list[str] = Field(default_factory=list)
+
+
+CV_EDITS_SCHEMA: dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "edits": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {"old": {"type": "string"}, "new": {"type": "string"}},
+                "required": ["old", "new"],
+            },
+        },
+        "gaps": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["edits", "gaps"],
+}
+
+
+class Letter(BaseModel):
+    lettre: str
+    objections: list[str] = Field(default_factory=list)
+
+
+LETTER_SCHEMA: dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "lettre": {"type": "string"},
+        "objections": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["lettre", "objections"],
+}
+
+
+@dataclass
+class DossierResult:
+    job_id: str
+    employer: str
+    title: str
+    lang: str
+    profile: str
+    cv_docx: str
+    cv_pdf: str
+    letter_docx: str
+    letter_pdf: str
+    letter_text: str
+    objections: list[str]
+    edits_applied: int
+    edits_skipped: int
+    gaps: list[str]
+
+
+# ---------------------------------------------------------------------------
+# Suivi des réponses
+# ---------------------------------------------------------------------------
+
+RESPONSE_RANK = {"": 0, "Néant": 0, "Envoyé": 1, "A/R": 2, "Oui": 3, "Non": 3}
+
+
+@dataclass
+class StatusEvent:
+    email_id: str
+    date: str
+    status: str                 # Envoyé / A/R / Oui / Non
+    company: str = ""
+    title: str = ""
+    job_id: str = ""
+    url: str = ""
+    subject: str = ""
+    source: str = "linkedin"    # linkedin (règle déterministe) / classif (Claude)
+    confidence: str = "Haute"
+    note: str = ""
+
+
+class EmailClass(BaseModel):
+    categorie: str = Field(pattern="^(Accusé de réception|Réponse positive|Refus|Autre)$")
+    societe: str = ""
+    poste: str = ""
+    confiance: str = Field(pattern="^(Haute|Moyenne|Basse)$")
+    justification: str = ""
+
+
+EMAIL_CLASS_SCHEMA: dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "categorie": {
+            "type": "string",
+            "enum": ["Accusé de réception", "Réponse positive", "Refus", "Autre"],
+        },
+        "societe": {"type": "string"},
+        "poste": {"type": "string"},
+        "confiance": {"type": "string", "enum": ["Haute", "Moyenne", "Basse"]},
+        "justification": {"type": "string"},
+    },
+    "required": ["categorie", "societe", "poste", "confiance", "justification"],
+}
