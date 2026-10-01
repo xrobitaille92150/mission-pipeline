@@ -171,7 +171,8 @@ gh auth setup-git
 [ -d "$REPO/.git" ] || gh repo clone xrobitaille92150/mission-pipeline "$REPO"
 cd "$REPO"
 git fetch origin && git checkout claude/mission-pipeline-refonte-m50exw   # puis main après merge
-python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+python3.11 -m venv .venv                 # Python 3.11 minimum ; le python3 par défaut du Mac est 3.10
+.venv/bin/pip install -U pip && .venv/bin/pip install -e ".[dev]"
 brew install --cask libreoffice                                            # si absent
 
 # Secrets (fichiers existants + deux nouveaux)

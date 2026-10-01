@@ -33,7 +33,8 @@ En session Claude : le skill `/postuler` (`skills/postuler/SKILL.md`) fait la m√
 
 ```bash
 gh repo clone xrobitaille92150/mission-pipeline && cd mission-pipeline      # HTTPS via gh (aucune cl√© SSH requise)
-python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+python3.11 -m venv .venv                   # Python 3.11 minimum (python3.12 convient ; `brew install python@3.12` si absent)
+.venv/bin/pip install -U pip && .venv/bin/pip install -e ".[dev]"
 brew install --cask libreoffice            # Mac ; sur Linux : apt install libreoffice-writer
 ```
 
