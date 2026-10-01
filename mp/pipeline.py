@@ -118,7 +118,7 @@ def scoring_fields(s, jd: JobDescription | None, fetched: bool) -> dict:
         "Langue": "Autre" if s.langue == "AUTRE" else s.langue,
         "Pays": s.pays,
         "Contrat": CONTRAT_LABELS[s.contrat],
-        "Pourquoi": "\n".join(f"• {p}" for p in s.pourquoi),
+        "Pourquoi": "\n".join([f"• {p}" for p in s.pourquoi] + ([s.detail] if getattr(s, "detail", "") else [])),
         "Red flags": "\n".join(f"• {r}" for r in s.red_flags),
         "Mots-clés": ", ".join(s.mots_cles)[:250],
         "Profil CV": s.profil_cv,

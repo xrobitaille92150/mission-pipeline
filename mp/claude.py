@@ -103,6 +103,12 @@ class Claude:
             kw["output_config"]["effort"] = effort
         resp = self._create(**kw)
         self._account(resp)
+        if resp.stop_reason == "max_tokens" and max_tokens < 32000:
+            # la réflexion du modèle compte dans max_tokens : on double une fois avant d'abandonner
+            log.warning("réponse tronquée à %d tokens — nouvel essai à %d", max_tokens, max_tokens * 2)
+            kw["max_tokens"] = max_tokens * 2
+            resp = self._create(**kw)
+            self._account(resp)
         text = self._text(resp)
         try:
             return json.loads(text)

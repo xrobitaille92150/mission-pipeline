@@ -146,7 +146,7 @@ def propose_edits(claude: Claude, *, cv_text: str, profile: str, lang: str, titl
             f"Mots-clés repérés au scoring : {', '.join(keywords) or '—'}\n"
             f"Description :\n{(jd_text or '(non disponible — adapter sur le titre seul, 2 retouches max)')[:7000]}\n\n"
             "Propose les retouches (JSON).")
-    data = claude.json(system=system, user=user, schema=CV_EDITS_SCHEMA, effort="medium", max_tokens=3000)
+    data = claude.json(system=system, user=user, schema=CV_EDITS_SCHEMA, effort="medium", max_tokens=8000)
     plan = CvEditPlan.model_validate(data)
     # garde-fous : pas de retouche vide, pas de dérive de longueur, pas plus de 6
     safe = []

@@ -80,3 +80,36 @@ def test_rank_for_dossiers():
               ("r5", Scoring.model_validate(_scoring(score=55)))]
     ranks = rank_for_dossiers(scored, score_min=60, max_auto=2)
     assert ranks == {"r2": 1, "r4": 2}
+
+
+def _sub(**kw) -> dict:
+    base = dict(cluster="C", posture="projet", langue="FR", pays="France", europe=True, mode="hybride",
+                contrat="freelance", junior=False, fit=36, seniorite=13, geo=19, format_poste=8, signaux=6,
+                pourquoi=["x"], red_flags=[], profil_cv="FinanceTransformation", mots_cles=[])
+    base.update(kw)
+    return base
+
+
+def test_subscores_sum_and_verdict():
+    s = Scoring.model_validate(_sub())
+    assert s.score == 82 and s.verdict == "POSTULER"
+    assert "adéquation 36/40" in s.detail and "signaux 6/10" in s.detail
+    s = Scoring.model_validate(_sub(fit=30, geo=9, format_poste=6, signaux=4))       # UK, CDD
+    assert s.score == 62 and s.verdict == "ETUDIER"
+    s = Scoring.model_validate(_sub(fit=18, geo=11, format_poste=4, signaux=2))      # cluster A Londres
+    assert s.score == 48 and s.verdict == "ECARTER"
+
+
+def test_subscores_caps():
+    assert Scoring.model_validate(_sub(junior=True)).score <= 15
+    assert Scoring.model_validate(_sub(langue="AUTRE")).verdict == "ECARTER"
+    assert Scoring.model_validate(_sub(europe=False)).score <= 20
+    assert Scoring.model_validate(_sub(cluster="HORS_AXE")).score <= 40
+    assert Scoring.model_validate(_sub(fit=12)).score <= 49                          # sans adéquation, jamais Étudier
+    s = Scoring.model_validate(_sub(fit=99, seniorite=99, geo=99, format_poste=99, signaux=99))
+    assert s.score == 100 and (s.fit, s.geo) == (40, 20)                              # bornes par dimension
+
+
+def test_scoring_fields_includes_detail():
+    f = scoring_fields(Scoring.model_validate(_sub()), None, False)
+    assert f["Pourquoi"].endswith("signaux 6/10") and f["Score"] == 82

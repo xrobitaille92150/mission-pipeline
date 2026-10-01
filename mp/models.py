@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 # ---------------------------------------------------------------------------
 # Ingestion
@@ -75,16 +75,29 @@ CONTRAT_LABELS = {
 POSTURE_LABELS = {"projet": "Projet", "production": "Production", "mixte": "Mixte"}
 
 
+# Barème v3 : Claude note cinq dimensions sur des échelles ancrées ; le total, les plafonds et le verdict
+# sont calculés ici, jamais demandés au modèle (c'est ce qui évite les scores tassés entre 58 et 62).
+SUBSCORES = {"fit": 40, "seniorite": 15, "geo": 20, "format_poste": 15, "signaux": 10}
+SUBSCORE_LABELS = {"fit": "adéquation", "seniorite": "séniorité", "geo": "géographie", "format_poste": "format",
+                   "signaux": "signaux"}
+
+
 class Scoring(BaseModel):
     cluster: str = Field(pattern="^(A|B|C|HORS_AXE)$")
     posture: str = Field(pattern="^(projet|production|mixte)$")
     langue: str = Field(pattern="^(FR|EN|AUTRE)$")
     pays: str = ""
+    europe: bool = True
     mode: str = Field(pattern="^(remote|hybride|sur_site|non_precise)$")
     contrat: str = Field(pattern="^(freelance|cdi|interim|cdd|non_precise)$")
     junior: bool = False
+    fit: int | None = None
+    seniorite: int | None = None
+    geo: int | None = None
+    format_poste: int | None = None
+    signaux: int | None = None
     score: int = 0
-    verdict: str = Field(pattern="^(POSTULER|ETUDIER|ECARTER)$")
+    verdict: str = Field(default="ETUDIER", pattern="^(POSTULER|ETUDIER|ECARTER)$")
     pourquoi: list[str] = Field(default_factory=list)
     red_flags: list[str] = Field(default_factory=list)
     profil_cv: str = Field(pattern="^(FinanceTransformation|AssetManagement|IFRS17SolvencyII)$")
@@ -94,6 +107,34 @@ class Scoring(BaseModel):
     @classmethod
     def _clamp(cls, v: int) -> int:
         return max(0, min(100, int(v)))
+
+    @model_validator(mode="after")
+    def _compute(self) -> Scoring:
+        if self.fit is None:                      # ancien format (tests, exclusions) : score fourni tel quel
+            return self
+        total = 0
+        for name, top in SUBSCORES.items():
+            v = max(0, min(top, int(getattr(self, name) or 0)))
+            setattr(self, name, v)
+            total += v
+        # plafonds déterministes
+        if self.junior or self.langue == "AUTRE":
+            total = min(total, 15)
+        if not self.europe:
+            total = min(total, 20)
+        if self.cluster == "HORS_AXE":
+            total = min(total, 40)
+        if self.fit < 15:                         # sans adéquation métier, jamais au-dessus de « Écarter »
+            total = min(total, 49)
+        self.score = total
+        self.verdict = "POSTULER" if total >= 70 else "ETUDIER" if total >= 50 else "ECARTER"
+        return self
+
+    @property
+    def detail(self) -> str:
+        if self.fit is None:
+            return ""
+        return "Détail : " + " · ".join(f"{SUBSCORE_LABELS[k]} {getattr(self, k)}/{top}" for k, top in SUBSCORES.items())
 
     @field_validator("pourquoi", "red_flags", "mots_cles")
     @classmethod
@@ -112,8 +153,12 @@ SCORING_SCHEMA: dict = {
         "mode": {"type": "string", "enum": ["remote", "hybride", "sur_site", "non_precise"]},
         "contrat": {"type": "string", "enum": ["freelance", "cdi", "interim", "cdd", "non_precise"]},
         "junior": {"type": "boolean"},
-        "score": {"type": "integer"},
-        "verdict": {"type": "string", "enum": ["POSTULER", "ETUDIER", "ECARTER"]},
+        "europe": {"type": "boolean"},
+        "fit": {"type": "integer"},
+        "seniorite": {"type": "integer"},
+        "geo": {"type": "integer"},
+        "format_poste": {"type": "integer"},
+        "signaux": {"type": "integer"},
         "pourquoi": {"type": "array", "items": {"type": "string"}},
         "red_flags": {"type": "array", "items": {"type": "string"}},
         "profil_cv": {
@@ -123,7 +168,8 @@ SCORING_SCHEMA: dict = {
         "mots_cles": {"type": "array", "items": {"type": "string"}},
     },
     "required": [
-        "cluster", "posture", "langue", "pays", "mode", "contrat", "junior", "score", "verdict",
+        "cluster", "posture", "langue", "pays", "europe", "mode", "contrat", "junior",
+        "fit", "seniorite", "geo", "format_poste", "signaux",
         "pourquoi", "red_flags", "profil_cv", "mots_cles",
     ],
 }

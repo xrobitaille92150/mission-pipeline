@@ -106,7 +106,7 @@ Même résultat, même ligne Airtable.
 | Avant (v1) | Après (v3) |
 |---|---|
 | 7 blocs pondérés, 7 appels ou un prompt de 7 sections | filtres durs déterministes puis **un** appel Claude Opus avec sortie JSON validée (Pydantic) |
-| scores concentrés entre 58 et 72 | calibration explicite : 85-100 rare, ≥ 70 Postuler, 50-69 Étudier, < 50 Écarter ; plafond 69 sans fiche de poste |
+| scores concentrés entre 58 et 72 | Claude note cinq dimensions sur des échelles ancrées (adéquation 40, séniorité 15, géographie 20, format 15, signaux 10) ; le programme additionne, plafonne (junior, langue, hors Europe, hors axe, adéquation < 15) et tranche : ≥ 70 Postuler, 50-69 Étudier, < 50 Écarter ; plafond 69 sans fiche de poste. Le premier dry-run avec un score global demandé au modèle avait reproduit le tassement (58-62) |
 | CV pour toute offre scorée | **3 dossiers par run au maximum**, les mieux classées (`MP_AUTO_DOSSIERS_PER_RUN`, `MP_SCORE_MIN`) ; le reste attend une case cochée |
 | profil cible de juin (full remote, hors Europe acceptés) | profil du 6 septembre : mission hybride en France, ≈ 1 000 €/j, clusters B/C prioritaires, A secondaire, full remote et hors Europe rétrogradés |
 

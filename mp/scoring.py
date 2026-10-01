@@ -95,7 +95,7 @@ def score_offer(claude: Claude, *, title: str, employer: str, location: str, mod
     system = [prompt("profile"), prompt("scoring") + "\n\n" + prompt("bareme")]
     user = ("Évalue cette offre et rends le JSON demandé.\n\n"
             + _offer_block(title, employer, location, mode, source, jd))
-    data = claude.json(system=system, user=user, schema=SCORING_SCHEMA, effort=effort, max_tokens=2500)
+    data = claude.json(system=system, user=user, schema=SCORING_SCHEMA, effort=effort, max_tokens=6000)
     s = Scoring.model_validate(data)
     if jd is None or not jd.ok:
         s.score = min(s.score, 69)

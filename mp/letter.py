@@ -97,14 +97,14 @@ def write_letter(claude: Claude, *, lang: str, title: str, employer: str, locati
             f"{extra}\n\nRédige le texte de candidature en {'français' if lang == 'FR' else 'anglais'} et rends le JSON.")
     lo, hi = WORDS[lang]
     letter = Letter.model_validate(
-        claude.json(system=system, user=user, schema=LETTER_SCHEMA, effort="high", max_tokens=4000))
+        claude.json(system=system, user=user, schema=LETTER_SCHEMA, effort="high", max_tokens=10000))
     n = word_count(letter.lettre)
     if n < lo or n > hi:
         log.info("lettre hors fourchette (%d mots) — nouvel essai", n)
         user2 = (user + f"\n\nTa version précédente faisait {n} mots : hors fourchette ({lo}-{hi}). "
                  "Réécris en respectant strictement la longueur, sans perdre les faits durs ni les clauses.")
         letter = Letter.model_validate(
-            claude.json(system=system, user=user2, schema=LETTER_SCHEMA, effort="high", max_tokens=4000))
+            claude.json(system=system, user=user2, schema=LETTER_SCHEMA, effort="high", max_tokens=10000))
     if word_count(letter.lettre) < 120:
         raise RuntimeError(f"lettre trop courte ({word_count(letter.lettre)} mots) — dossier abandonné")
     return letter

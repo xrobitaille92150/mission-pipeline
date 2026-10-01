@@ -55,7 +55,7 @@ def cmd_run(args) -> int:
         ("sync", lambda: pipeline.sync_decisions(ctx)),      # décisions + expiration AVANT le scoring
         ("score", lambda: pipeline.score(ctx, limit=args.limit)),
         ("dossiers", lambda: pipeline.dossiers(ctx, max_n=args.max_dossiers)),
-        ("track", lambda: tracking.track(ctx, days=max(args.days, 3))),
+        ("track", lambda: tracking.track(ctx, days=max(args.days or ctx.s.ingest_days, 3))),
     ]
     for name, fn in steps:
         if name in (args.skip or []):
