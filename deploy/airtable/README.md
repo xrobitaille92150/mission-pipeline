@@ -14,6 +14,10 @@ mp airtable-setup           # liste les champs manquants
 mp airtable-setup --apply   # les crée (PAT avec le scope schema.bases:write)
 ```
 
+**Fait le 1er octobre 2026** : les 26 champs d'Offres et les 2 de Candidatures ont été créés via le connecteur
+Airtable ; `mp airtable-setup` doit répondre « 0 champ manquant ». La commande reste utile si un champ est
+supprimé par erreur.
+
 Les champs historiques sont réutilisés tels quels (`jobId`, `Employeur`, `Poste`, `Lieu`, `Mode`, `Score`,
 `Easy Apply`, `URL`, `Date 1ère vue`, `Préparer dossier`, `Je postule`, `J'écarte`, `Recherche LI`).
 Les champs ajoutés sont décrits dans `mp/airtable.py` (`OFFRES_FIELDS`, `CANDIDATURES_FIELDS`).
