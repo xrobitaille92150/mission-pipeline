@@ -39,13 +39,27 @@ def _parse_env_file(path: Path) -> dict[str, str]:
     return out
 
 
+# Provenance de chaque variable (diagnostic `mp doctor`) : nom du fichier, ou « shell » si elle était déjà
+# exportée avant le lancement. DUPLICATES liste les fichiers qui redéfinissent une variable déjà fixée (ignorés).
+SOURCES: dict[str, str] = {}
+DUPLICATES: dict[str, list[str]] = {}
+SHELL = "environnement du shell (export dans ~/.zshrc ou ~/.zprofile ?)"
+
+
 def load_env_files(config_dir: Path = CONFIG_DIR) -> None:
-    """Charge les *.env du dossier de config dans os.environ (sans écraser l'existant)."""
+    """Charge les *.env du dossier de config dans os.environ (sans écraser l'existant). Premier trouvé = gagnant :
+    une variable déjà exportée par le shell prime sur les fichiers, et les fichiers sont lus par ordre alphabétique."""
     if not config_dir.is_dir():
         return
     for path in sorted(config_dir.glob("*.env")):
         for key, value in _parse_env_file(path).items():
-            os.environ.setdefault(key, value)
+            if key in os.environ and os.environ[key] != "":
+                SOURCES.setdefault(key, SHELL)
+                if SOURCES[key] != path.name:
+                    DUPLICATES.setdefault(key, []).append(path.name)
+                continue
+            os.environ[key] = value
+            SOURCES[key] = path.name
 
 
 def env(name: str, default: str | None = None) -> str | None:

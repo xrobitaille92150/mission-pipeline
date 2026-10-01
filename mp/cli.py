@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -193,6 +194,14 @@ def cmd_doctor(args) -> int:
     print(f"mp {__version__} — diagnostic\n")
     missing = s.missing_secrets()
     check("secrets", not missing, ", ".join(missing) if missing else "ANTHROPIC / AIRTABLE / GMAIL présents")
+    from mp.config import DUPLICATES, SOURCES
+    for key in ("ANTHROPIC_API_KEY", "AIRTABLE_PAT", "GMAIL_USER", "GMAIL_APP_PASSWORD"):
+        value = os.environ.get(key, "")
+        shown = f"{value[:10]}… ({len(value)} caractères)" if len(value) > 14 else ("présente" if value else "absente")
+        detail = f"{shown} — lue depuis {SOURCES.get(key, '?')}" if value else "absente"
+        if DUPLICATES.get(key):
+            detail += f" ; définie aussi dans {', '.join(DUPLICATES[key])} (ignorée là)"
+        check(f"    {key}", bool(value), detail)
     check("LibreOffice", soffice_binary() is not None, soffice_binary() or "soffice introuvable")
     for lang, files in CV_FILES.items():
         for profile, name in files.items():
