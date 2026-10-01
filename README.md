@@ -73,6 +73,7 @@ Options globales : `--dry-run` (n'écrit rien), `-v`.
 | `MP_SCORE_MIN` | 60 | score minimal pour un dossier automatique |
 | `MP_AUTO_DOSSIERS_PER_RUN` | 3 | dossiers générés sans clic, par run |
 | `MP_INGEST_DAYS` | 2 | fenêtre Gmail |
+| `MP_EXPIRE_DAYS` | 30 | silence au-delà duquel une offre expire sans être scorée |
 | `MP_LABEL_DONE` | `MissionPipeline` | label Gmail des emails traités |
 | `MP_CV_BASE_DIR` | `assets/cv_base` | 6 CV de base (3 profils × FR/EN) |
 | `MP_WRITING_RULES_DIR` | `assets/writing_rules` | règles d'écriture FR / EN |

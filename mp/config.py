@@ -105,6 +105,7 @@ class Settings:
     score_min: int
     auto_dossiers: int
     ingest_days: int
+    expire_days: int
     label_done: str
     cv_base_dir: Path
     writing_rules_dir: Path
@@ -142,6 +143,7 @@ def settings() -> Settings:
         score_min=int(env("MP_SCORE_MIN", "60") or 60),
         auto_dossiers=int(env("MP_AUTO_DOSSIERS_PER_RUN", "3") or 3),
         ingest_days=int(env("MP_INGEST_DAYS", "2") or 2),
+        expire_days=int(env("MP_EXPIRE_DAYS", "30") or 30),
         label_done=env("MP_LABEL_DONE", "MissionPipeline") or "MissionPipeline",
         cv_base_dir=_path("MP_CV_BASE_DIR", REPO / "assets" / "cv_base"),
         writing_rules_dir=_path("MP_WRITING_RULES_DIR", REPO / "assets" / "writing_rules"),

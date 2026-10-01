@@ -235,8 +235,10 @@ def dossiers(ctx: Context, max_n: int = 6) -> list[dict]:
 MAX_POSTULE_PER_RUN = 15   # au-delà, c'est presque sûrement un stock de coches anciennes : on demande --force
 
 
-def sync_decisions(ctx: Context, expire_after_days: int = 30, force: bool = False) -> dict:
+def sync_decisions(ctx: Context, expire_after_days: int | None = None, force: bool = False) -> dict:
     from mp.tracking import upsert_candidature  # import tardif (dépendance croisée)
+
+    expire_after_days = expire_after_days or ctx.s.expire_days
 
     stats = {"postulees": 0, "ecartees": 0, "expirees": 0}
     d = today()
