@@ -54,7 +54,7 @@ mp run                         # run complet + digest par email
 |---|---|
 | `mp run [--days N] [--limit N] [--max-dossiers N] [--skip …] [--label matin]` | ingest → sync → score → dossiers → track → digest |
 | `mp ingest` | lit les digests LinkedIn des N derniers jours (label Gmail `MissionPipeline` posé sur les emails traités) |
-| `mp sync` | applique `Je postule` / `J'écarte`, expire les offres silencieuses depuis 30 jours |
+| `mp sync` | applique `Je postule` / `J'écarte`, expire les offres silencieuses depuis 14 jours |
 | `mp score [--rescore]` | filtres durs puis un appel Claude par offre ; coche `Préparer dossier` sur le top du jour |
 | `mp dossiers` | CV + lettre pour les lignes cochées, attachés dans Airtable |
 | `mp dossier --url … \| --job-id … \| --text …` | dossier à la demande |
@@ -73,7 +73,7 @@ Options globales : `--dry-run` (n'écrit rien), `-v`.
 | `MP_SCORE_MIN` | 60 | score minimal pour un dossier automatique |
 | `MP_AUTO_DOSSIERS_PER_RUN` | 3 | dossiers générés sans clic, par run |
 | `MP_INGEST_DAYS` | 2 | fenêtre Gmail |
-| `MP_EXPIRE_DAYS` | 30 | silence au-delà duquel une offre expire sans être scorée |
+| `MP_EXPIRE_DAYS` | 14 | silence au-delà duquel une offre expire sans être scorée |
 | `MP_LABEL_DONE` | `MissionPipeline` | label Gmail des emails traités |
 | `MP_CV_BASE_DIR` | `assets/cv_base` | 6 CV de base (3 profils × FR/EN) |
 | `MP_WRITING_RULES_DIR` | `assets/writing_rules` | règles d'écriture FR / EN |

@@ -265,7 +265,7 @@ def sync_decisions(ctx: Context, expire_after_days: int | None = None, force: bo
     for rec in ctx.at.list(ctx.offres, formula="AND({J'écarte}=1, NOT({Statut}='Écartée'))", fields=["jobId"]):
         ctx.at.patch(ctx.offres, rec["id"], {"Statut": "Écartée", "Préparer dossier": False})
         stats["ecartees"] += 1
-    # Offres jamais traitées depuis N jours → Expirée (rien n'est supprimé)
+    # Offres jamais traitées depuis N jours (MP_EXPIRE_DAYS) → Expirée (rien n'est supprimé)
     cutoff = (date.today() - timedelta(days=expire_after_days)).isoformat()
     # Une offre « Préparer dossier » cochée n'expire pas (le dossier arrive au même run), sauf si elle vient de
     # l'ancien pipeline (aucun Statut) : ces coches de l'été sont des reliquats, on les retire en expirant.

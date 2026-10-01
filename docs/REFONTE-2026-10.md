@@ -77,7 +77,7 @@ Gmail (jobalerts-noreply@, jobs-noreply@)
 mp ingest ──► Offres (Airtable)            upsert sur jobId, Statut = Nouvelle, Dernière vue
   │
 mp sync ────► décisions cochées            Je postule → Postulée + ligne Candidatures ; J'écarte → Écartée ;
-  │                                        silence 30 j → Expirée
+  │                                        silence 14 j → Expirée
 mp score ───► filtres durs (0 appel IA)    junior / hors Europe / langue ≠ FR-EN → Écartée
   │           + 1 appel Claude par offre   Score 0-100, Verdict IA, Cluster, Pourquoi, Red flags, Mots-clés, Profil CV
   │           + classement du jour         top 3 (score ≥ 60, verdict Postuler) → « Préparer dossier » coché, Rang du jour
@@ -212,7 +212,8 @@ Puis, après une semaine de v3 stable : résilier le VPS Hostinger.
 
 ### 5.5 Rattrapage des 392 offres jamais scorées
 
-Après `mp sync`, celles vues il y a plus de 30 jours passent en *Expirée* et ne seront jamais scorées. Les
+Après `mp sync`, celles vues il y a plus de 14 jours (`MP_EXPIRE_DAYS`, décision de Xavier du 1er octobre) passent en
+*Expirée* et ne seront jamais scorées. Les
 autres (septembre) sont scorées par lots de 80 par run (`--limit`). Pour forcer : `mp score --limit 400`
 (un appel Opus par offre).
 
