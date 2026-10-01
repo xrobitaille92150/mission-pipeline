@@ -140,7 +140,7 @@ def scoring_fields(s, jd: JobDescription | None, fetched: bool) -> dict:
 
 def score(ctx: Context, limit: int = 80, rescore: bool = False) -> list[dict]:
     live = "NOT({J'écarte}=1),NOT({Statut}='Écartée'),NOT({Statut}='Expirée')"
-    formula = f"AND({{Scoré le}}='',{live})" if not rescore else f"AND({live})"
+    formula = f"AND(NOT({{Scoré le}}),{live})" if not rescore else f"AND({live})"
     recs = ctx.at.list(ctx.offres, formula=formula, sort=[("Date 1ère vue", "desc")], max_records=limit,
                        fields=["jobId", "Poste", "Employeur", "Lieu", "Mode", "Source", "Description",
                                "Easy Apply", "Statut"])
@@ -191,7 +191,7 @@ def score(ctx: Context, limit: int = 80, rescore: bool = False) -> list[dict]:
 
 
 def dossiers(ctx: Context, max_n: int = 6) -> list[dict]:
-    formula = ("AND(OR({Préparer dossier}=1,{Je postule}=1),{Dossier le}='',NOT({J'écarte}=1),"
+    formula = ("AND(OR({Préparer dossier}=1,{Je postule}=1),NOT({Dossier le}),NOT({J'écarte}=1),"
                "NOT({Statut}='Écartée'))")
     recs = ctx.at.list(ctx.offres, formula=formula, sort=[("Score", "desc")], max_records=max_n)
     log.info("dossiers : %d offre(s) en attente", len(recs))
@@ -258,8 +258,9 @@ def sync_decisions(ctx: Context, expire_after_days: int = 30) -> dict:
     # Offres jamais traitées depuis N jours → Expirée (rien n'est supprimé)
     cutoff = (date.today() - timedelta(days=expire_after_days)).isoformat()
     last_seen = "IF({Dernière vue},{Dernière vue},{Date 1ère vue})"
-    formula = (f"AND(OR({{Statut}}='Nouvelle',{{Statut}}='À étudier',{{Statut}}=''),NOT({{Préparer dossier}}=1),"
-               f"NOT({{Je postule}}=1),NOT({{Dossier le}}),IS_BEFORE({last_seen},'{cutoff}'))")
+    formula = (f"AND(OR({{Statut}}='Nouvelle',{{Statut}}='À étudier',NOT({{Statut}})),NOT({{Préparer dossier}}=1),"
+               f"NOT({{Je postule}}=1),NOT({{Dossier le}}),"
+               f"IS_BEFORE({last_seen},DATETIME_PARSE('{cutoff}','YYYY-MM-DD')))")
     old = ctx.at.list(ctx.offres, formula=formula, fields=["jobId"])
     if old:
         ctx.at.patch_many(ctx.offres, [{"id": r["id"], "fields": {"Statut": "Expirée"}} for r in old])
