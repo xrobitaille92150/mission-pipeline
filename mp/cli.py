@@ -267,9 +267,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--version", action="version", version=f"mp {__version__}")
     p.add_argument("-v", "--verbose", action="store_true")
     p.add_argument("--dry-run", action="store_true", help="n'écrit rien (Airtable, Gmail, email)")
+    # Les mêmes options sont acceptées après la sous-commande (`mp run --dry-run -v`), sans écraser
+    # une valeur donnée avant (`mp --dry-run run`) : SUPPRESS ne touche au namespace que si l'option est présente.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("-v", "--verbose", action="store_true", default=argparse.SUPPRESS)
+    common.add_argument("--dry-run", action="store_true", default=argparse.SUPPRESS)
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    r = sub.add_parser("run", help="run complet")
+    r = sub.add_parser("run", help="run complet", parents=[common])
     r.add_argument("--days", type=int, default=None)
     r.add_argument("--limit", type=int, default=80, help="offres à scorer au maximum")
     r.add_argument("--max-dossiers", type=int, default=6)
@@ -277,20 +282,20 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--label", default="", help="étiquette du digest (ex. matin / soir)")
     r.set_defaults(fn=cmd_run)
 
-    i = sub.add_parser("ingest")
+    i = sub.add_parser("ingest", parents=[common])
     i.add_argument("--days", type=int, default=None)
     i.set_defaults(fn=cmd_ingest)
 
-    s = sub.add_parser("score")
+    s = sub.add_parser("score", parents=[common])
     s.add_argument("--limit", type=int, default=80)
     s.add_argument("--rescore", action="store_true", help="ré-évalue aussi les offres déjà scorées")
     s.set_defaults(fn=cmd_score)
 
-    d = sub.add_parser("dossiers")
+    d = sub.add_parser("dossiers", parents=[common])
     d.add_argument("--max-dossiers", type=int, default=6)
     d.set_defaults(fn=cmd_dossiers)
 
-    o = sub.add_parser("dossier", help="dossier à la demande")
+    o = sub.add_parser("dossier", help="dossier à la demande", parents=[common])
     o.add_argument("--url")
     o.add_argument("--job-id")
     o.add_argument("--text", help="texte de l'annonce (ou chemin d'un fichier) si LinkedIn est bloqué")
@@ -299,19 +304,19 @@ def build_parser() -> argparse.ArgumentParser:
     o.add_argument("--location")
     o.set_defaults(fn=cmd_dossier)
 
-    sub.add_parser("sync").set_defaults(fn=cmd_sync)
+    sub.add_parser("sync", parents=[common]).set_defaults(fn=cmd_sync)
 
-    t = sub.add_parser("track")
+    t = sub.add_parser("track", parents=[common])
     t.add_argument("--days", type=int, default=3)
     t.set_defaults(fn=cmd_track)
 
-    sub.add_parser("digest").set_defaults(fn=cmd_digest)
+    sub.add_parser("digest", parents=[common]).set_defaults(fn=cmd_digest)
 
-    a = sub.add_parser("airtable-setup")
+    a = sub.add_parser("airtable-setup", parents=[common])
     a.add_argument("--apply", action="store_true")
     a.set_defaults(fn=cmd_airtable_setup)
 
-    dr = sub.add_parser("doctor")
+    dr = sub.add_parser("doctor", parents=[common])
     dr.add_argument("--offline", action="store_true", help="ne teste ni Gmail ni Claude")
     dr.set_defaults(fn=cmd_doctor)
     return p

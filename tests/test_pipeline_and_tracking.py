@@ -76,5 +76,10 @@ def test_helpers_and_parser():
     p = build_parser()
     a = p.parse_args(["--dry-run", "run", "--skip", "track", "--days", "1"])
     assert a.dry_run and a.skip == ["track"] and a.days == 1
+    b = p.parse_args(["run", "--dry-run", "-v"])            # options acceptées aussi après la sous-commande
+    assert b.dry_run and b.verbose
+    c = p.parse_args(["--dry-run", "sync"])                  # et une valeur donnée avant n'est pas écrasée
+    assert c.dry_run and not c.verbose
+    assert not p.parse_args(["doctor", "--offline"]).dry_run
     d = p.parse_args(["dossier", "--url", "https://www.linkedin.com/jobs/view/4444856066/"])
     assert d.url.endswith("/4444856066/")
