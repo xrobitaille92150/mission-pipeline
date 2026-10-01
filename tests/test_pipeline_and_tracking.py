@@ -83,3 +83,15 @@ def test_helpers_and_parser():
     assert not p.parse_args(["doctor", "--offline"]).dry_run
     d = p.parse_args(["dossier", "--url", "https://www.linkedin.com/jobs/view/4444856066/"])
     assert d.url.endswith("/4444856066/")
+
+
+def test_sync_refuses_mass_postule_without_force():
+    from mp.pipeline import sync_decisions
+    recs = [{"id": f"rec{i:014d}", "fields": {"jobId": str(4400000000 + i), "Employeur": f"E{i}", "Poste": "P",
+                                             "Je postule": True}} for i in range(20)]
+    ctx = FakeContext(at=FakeAirtable({"OFFRES": recs, "CANDIDATURES": []}))
+    stats = sync_decisions(ctx)
+    assert stats["postulees"] == 0 and ctx.report.errors and "--force" in ctx.report.errors[0]
+    assert not [c for c in ctx.at.calls if c[0] == "create"]
+    stats = sync_decisions(ctx, force=True)
+    assert stats["postulees"] == 20

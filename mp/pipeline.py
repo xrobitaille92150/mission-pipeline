@@ -192,7 +192,7 @@ def score(ctx: Context, limit: int = 80, rescore: bool = False) -> list[dict]:
 
 def dossiers(ctx: Context, max_n: int = 6) -> list[dict]:
     formula = ("AND(OR({Préparer dossier}=1,{Je postule}=1),NOT({Dossier le}),NOT({J'écarte}=1),"
-               "NOT({Statut}='Écartée'))")
+               "NOT({Statut}='Écartée'),NOT({Statut}='Expirée'))")
     recs = ctx.at.list(ctx.offres, formula=formula, sort=[("Score", "desc")], max_records=max_n)
     log.info("dossiers : %d offre(s) en attente", len(recs))
     for rec in recs:
@@ -232,13 +232,21 @@ def dossiers(ctx: Context, max_n: int = 6) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 
-def sync_decisions(ctx: Context, expire_after_days: int = 30) -> dict:
+MAX_POSTULE_PER_RUN = 15   # au-delà, c'est presque sûrement un stock de coches anciennes : on demande --force
+
+
+def sync_decisions(ctx: Context, expire_after_days: int = 30, force: bool = False) -> dict:
     from mp.tracking import upsert_candidature  # import tardif (dépendance croisée)
 
     stats = {"postulees": 0, "ecartees": 0, "expirees": 0}
     d = today()
     # Je postule → Postulée + Candidature
-    for rec in ctx.at.list(ctx.offres, formula="AND({Je postule}=1, NOT({Statut}='Postulée'))"):
+    pending = ctx.at.list(ctx.offres, formula="AND({Je postule}=1, NOT({Statut}='Postulée'))")
+    if len(pending) > MAX_POSTULE_PER_RUN and not force:
+        ctx.report.error(f"{len(pending)} offres cochées « Je postule » en attente : au-delà de {MAX_POSTULE_PER_RUN}, "
+                         "rien n'est appliqué par sécurité. Vérifier les coches, puis `mp sync --force` si c'est voulu.")
+        pending = []
+    for rec in pending:
         f = rec["fields"]
         fields = {"Statut": "Postulée"}
         if not f.get("Date postulé"):
@@ -257,13 +265,17 @@ def sync_decisions(ctx: Context, expire_after_days: int = 30) -> dict:
         stats["ecartees"] += 1
     # Offres jamais traitées depuis N jours → Expirée (rien n'est supprimé)
     cutoff = (date.today() - timedelta(days=expire_after_days)).isoformat()
+    # Une offre « Préparer dossier » cochée n'expire pas (le dossier arrive au même run), sauf si elle vient de
+    # l'ancien pipeline (aucun Statut) : ces coches de l'été sont des reliquats, on les retire en expirant.
     last_seen = "IF({Dernière vue},{Dernière vue},{Date 1ère vue})"
-    formula = (f"AND(OR({{Statut}}='Nouvelle',{{Statut}}='À étudier',NOT({{Statut}})),NOT({{Préparer dossier}}=1),"
+    formula = (f"AND(OR({{Statut}}='Nouvelle',{{Statut}}='À étudier',NOT({{Statut}})),"
+               f"OR(NOT({{Préparer dossier}}=1),NOT({{Statut}})),"
                f"NOT({{Je postule}}=1),NOT({{Dossier le}}),"
                f"IS_BEFORE({last_seen},DATETIME_PARSE('{cutoff}','YYYY-MM-DD')))")
     old = ctx.at.list(ctx.offres, formula=formula, fields=["jobId"])
     if old:
-        ctx.at.patch_many(ctx.offres, [{"id": r["id"], "fields": {"Statut": "Expirée"}} for r in old])
+        ctx.at.patch_many(ctx.offres, [{"id": r["id"], "fields": {"Statut": "Expirée", "Préparer dossier": False}}
+                                       for r in old])
         stats["expirees"] = len(old)
     ctx.report.decisions = stats
     log.info("décisions : %s", stats)

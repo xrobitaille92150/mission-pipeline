@@ -137,8 +137,11 @@ def cmd_dossier(args) -> int:
 
 def cmd_sync(args) -> int:
     from mp import pipeline
-    pipeline.sync_decisions(_ctx(args))
-    return 0
+    ctx = _ctx(args)
+    pipeline.sync_decisions(ctx, force=args.force)
+    for err in ctx.report.errors:
+        print(f"[KO] {err}")
+    return 1 if ctx.report.errors else 0
 
 
 def cmd_track(args) -> int:
@@ -304,7 +307,9 @@ def build_parser() -> argparse.ArgumentParser:
     o.add_argument("--location")
     o.set_defaults(fn=cmd_dossier)
 
-    sub.add_parser("sync", parents=[common]).set_defaults(fn=cmd_sync)
+    sy = sub.add_parser("sync", parents=[common])
+    sy.add_argument("--force", action="store_true", help="applique les « Je postule » même au-delà du plafond de sécurité")
+    sy.set_defaults(fn=cmd_sync)
 
     t = sub.add_parser("track", parents=[common])
     t.add_argument("--days", type=int, default=3)
