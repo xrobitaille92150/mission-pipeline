@@ -203,8 +203,8 @@ def cmd_doctor(args) -> int:
         check(f"règles d'écriture {lang}", p.exists(), str(p))
     check("profil candidat", s.profile_file.exists(), str(s.profile_file))
     if s.airtable_pat:
+        ctx = _ctx(args)
         try:
-            ctx = _ctx(args)
             names = {t["id"]: t["name"] for t in ctx.at.tables()}
             check("Airtable", s.t_offres in names and s.t_candidatures in names,
                   f"{names.get(s.t_offres, '?')} / {names.get(s.t_candidatures, '?')}")
@@ -212,7 +212,19 @@ def cmd_doctor(args) -> int:
             miss = ctx.at.missing_fields(s.t_offres, OFFRES_FIELDS) + ctx.at.missing_fields(s.t_candidatures, CANDIDATURES_FIELDS)
             check("schéma Airtable", not miss, f"{len(miss)} champ(s) manquant(s) → mp airtable-setup --apply" if miss else "complet")
         except Exception as e:  # noqa: BLE001
-            check("Airtable", False, str(e)[:120])
+            msg = str(e)
+            if "INVALID_PERMISSIONS" in msg or "HTTP 403" in msg:
+                # L'API Meta (schéma) est refusée : le PAT n'a pas le scope schema.bases:read. Le pipeline n'en a
+                # pas besoin (il lit et écrit des enregistrements) ; on vérifie donc l'accès aux données.
+                try:
+                    ctx.at.list(s.t_offres, max_records=1, fields=["jobId"])
+                    ctx.at.list(s.t_candidatures, max_records=1, fields=["Société"])
+                    check("Airtable (données)", True, "lecture OK ; schéma non vérifiable : ajouter le scope "
+                          "schema.bases:read au PAT (airtable.com/create/tokens) pour mp airtable-setup")
+                except Exception as e2:  # noqa: BLE001
+                    check("Airtable", False, str(e2)[:160])
+            else:
+                check("Airtable", False, msg[:160])
     if s.gmail_user and s.gmail_app_password and not args.offline:
         try:
             with _ctx(args).gmail() as g:
@@ -225,7 +237,13 @@ def cmd_doctor(args) -> int:
             m = _ctx(args).claude.client.models.retrieve(s.model_main)
             check("Claude", True, f"{m.id} ({s.model_fast} pour le rapide)")
         except Exception as e:  # noqa: BLE001
-            check("Claude", False, str(e)[:120])
+            msg = str(e)
+            if "401" in msg or "authentication_error" in msg:
+                msg = ("clé refusée (401) : la régénérer sur console.anthropic.com → Settings → API keys, puis la "
+                       "coller dans ~/.config/mission-pipeline/anthropic.env (ANTHROPIC_API_KEY=sk-ant-…)")
+            elif "404" in msg or "not_found" in msg:
+                msg = f"modèle {s.model_main} introuvable pour cette clé : vérifier MP_MODEL_MAIN"
+            check("Claude", False, msg[:200])
     print("\nTout est prêt." if ok else "\nCorriger les points KO avant de lancer `mp run`.")
     return 0 if ok else 1
 
