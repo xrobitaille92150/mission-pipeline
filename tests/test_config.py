@@ -3,21 +3,32 @@ import os
 from mp import config
 
 
-def test_env_files_precedence_and_provenance(tmp_path, monkeypatch):
-    (tmp_path / "airtable.env").write_text("AIRTABLE_PAT=pat_a\nANTHROPIC_API_KEY=old-key-in-wrong-file\n")
-    (tmp_path / "anthropic.env").write_text('ANTHROPIC_API_KEY="new-key"   # commentaire\nGMAIL_USER=x@y\n')
-    for k in ("AIRTABLE_PAT", "ANTHROPIC_API_KEY", "GMAIL_USER", "GMAIL_APP_PASSWORD"):
+def _reset(monkeypatch, tmp_path):
+    for k in ("AIRTABLE_PAT", "ANTHROPIC_API_KEY", "GMAIL_USER", "GMAIL_APP_PASSWORD", "MP_SCORE_MIN"):
         monkeypatch.delenv(k, raising=False)
-    monkeypatch.setenv("GMAIL_APP_PASSWORD", "from-shell")
     monkeypatch.setattr(config, "SOURCES", {})
     monkeypatch.setattr(config, "DUPLICATES", {})
+    (tmp_path / "airtable.env").write_text("AIRTABLE_PAT=pat_a\nANTHROPIC_API_KEY=old-key-in-wrong-file\n")
+    (tmp_path / "anthropic.env").write_text('ANTHROPIC_API_KEY="new-key"   # commentaire\nGMAIL_USER=x@y\nMP_SCORE_MIN=70\n')
+
+
+def test_first_file_wins_and_duplicates_are_reported(tmp_path, monkeypatch):
+    _reset(monkeypatch, tmp_path)
     config.load_env_files(tmp_path)
-    # premier fichier (ordre alphabétique) gagnant ; le doublon est signalé, pas appliqué
     assert os.environ["ANTHROPIC_API_KEY"] == "old-key-in-wrong-file"
     assert config.SOURCES["ANTHROPIC_API_KEY"] == "airtable.env"
     assert config.DUPLICATES["ANTHROPIC_API_KEY"] == ["anthropic.env"]
-    # guillemets et commentaire retirés
     assert os.environ["GMAIL_USER"] == "x@y" and config.SOURCES["GMAIL_USER"] == "anthropic.env"
-    # une variable exportée par le shell prime sur les fichiers
-    assert os.environ["GMAIL_APP_PASSWORD"] == "from-shell"
-    assert "GMAIL_APP_PASSWORD" not in config.SOURCES
+
+
+def test_secrets_file_beats_shell_but_settings_do_not(tmp_path, monkeypatch):
+    _reset(monkeypatch, tmp_path)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "stale-key-exported-in-zshrc")
+    monkeypatch.setenv("MP_SCORE_MIN", "55")
+    config.load_env_files(tmp_path)
+    # secret : la vieille clé du shell est écartée au profit du fichier, et doctor saura le dire
+    assert os.environ["ANTHROPIC_API_KEY"] == "old-key-in-wrong-file"
+    assert config.DUPLICATES["ANTHROPIC_API_KEY"] == ["le shell", "anthropic.env"]
+    # réglage : l'environnement garde la main (essai ponctuel, GitHub Actions)
+    assert os.environ["MP_SCORE_MIN"] == "55"
+    assert config.SOURCES["MP_SCORE_MIN"] == config.SHELL

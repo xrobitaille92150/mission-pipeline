@@ -39,25 +39,34 @@ def _parse_env_file(path: Path) -> dict[str, str]:
     return out
 
 
-# Provenance de chaque variable (diagnostic `mp doctor`) : nom du fichier, ou « shell » si elle était déjà
-# exportée avant le lancement. DUPLICATES liste les fichiers qui redéfinissent une variable déjà fixée (ignorés).
+# Provenance de chaque variable (diagnostic `mp doctor`) : nom du fichier, ou « shell » si elle vient de
+# l'environnement du processus. DUPLICATES liste les autres définitions trouvées et ignorées.
 SOURCES: dict[str, str] = {}
 DUPLICATES: dict[str, list[str]] = {}
-SHELL = "environnement du shell (export dans ~/.zshrc ou ~/.zprofile ?)"
+SHELL = "environnement du shell (export dans ~/.zshrc ou ~/.zprofile)"
+# Pour les secrets, les fichiers de ~/.config/mission-pipeline font foi : une vieille clé exportée par le shell
+# ne doit pas masquer la clé à jour du fichier. Les autres variables (MP_*) gardent la règle habituelle
+# « l'environnement prime », utile pour un essai ponctuel ou GitHub Actions (où aucun fichier n'existe).
+SECRETS = ("ANTHROPIC_API_KEY", "AIRTABLE_PAT", "GMAIL_USER", "GMAIL_APP_PASSWORD")
 
 
 def load_env_files(config_dir: Path = CONFIG_DIR) -> None:
-    """Charge les *.env du dossier de config dans os.environ (sans écraser l'existant). Premier trouvé = gagnant :
-    une variable déjà exportée par le shell prime sur les fichiers, et les fichiers sont lus par ordre alphabétique."""
+    """Charge les *.env du dossier de config dans os.environ. Fichiers lus par ordre alphabétique, premier
+    trouvé gagnant. Secrets : le fichier prime sur le shell ; autres variables : le shell prime."""
     if not config_dir.is_dir():
         return
     for path in sorted(config_dir.glob("*.env")):
         for key, value in _parse_env_file(path).items():
-            if key in os.environ and os.environ[key] != "":
-                SOURCES.setdefault(key, SHELL)
-                if SOURCES[key] != path.name:
-                    DUPLICATES.setdefault(key, []).append(path.name)
+            if key in SOURCES:                                   # déjà fixée par un fichier précédent
+                DUPLICATES.setdefault(key, []).append(path.name)
                 continue
+            in_shell = bool(os.environ.get(key))
+            if in_shell and key not in SECRETS:
+                SOURCES[key] = SHELL
+                DUPLICATES.setdefault(key, []).append(path.name)
+                continue
+            if in_shell:
+                DUPLICATES.setdefault(key, []).append("le shell")
             os.environ[key] = value
             SOURCES[key] = path.name
 
