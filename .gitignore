@@ -1,22 +1,29 @@
-# Managed Agents — IDs de ressources (spécifiques à l'org, à ne pas committer)
-scripts/.ma_email_triage.ids.json
-scripts/.ma_*.ids.json
-
-# Emails réels passés à l'agent (PII) — l'échantillon de démo committé reste email_samples.example.json
-scripts/email_samples.json
-scripts/*.emails.json
-
-# Secrets (ne devraient jamais être ici, mais ceinture + bretelles)
+# ── Secrets : jamais ici (ils vivent dans ~/.config/mission-pipeline/*.env ou dans les secrets GitHub)
 *.env
 .env
+!.env.example
 
-# Logs
+# ── Sorties du pipeline v3 (dossiers générés, logs, caches)
+out/
+tests/_out/
 logs/
 *.log
 
-# Python
+# ── Python
 __pycache__/
 *.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
 .venv/
 venv/
+
+# ── macOS / éditeurs
 .DS_Store
+.idea/
+.vscode/
+
+# ── Legacy (juin-juillet 2026) : fichiers locaux qui n'ont jamais dû être versionnés
+legacy/scripts/.ma_*.ids.json
+legacy/scripts/email_samples.json
+legacy/scripts/*.emails.json
