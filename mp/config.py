@@ -50,12 +50,21 @@ SHELL = "environnement du shell (export dans ~/.zshrc ou ~/.zprofile)"
 SECRETS = ("ANTHROPIC_API_KEY", "AIRTABLE_PAT", "GMAIL_USER", "GMAIL_APP_PASSWORD")
 
 
+# Fichiers canoniques (voir .env.example), lus avant les autres : un `airtable-codex.env` ou un `anthropic-old.env`
+# ne peut pas passer devant `airtable.env` ou `anthropic.env`.
+CANONICAL = ("anthropic.env", "airtable.env", "gmail.env", "n8n.env")
+
+
+def _load_order(path: Path) -> tuple[int, str]:
+    return (CANONICAL.index(path.name) if path.name in CANONICAL else len(CANONICAL), path.name)
+
+
 def load_env_files(config_dir: Path = CONFIG_DIR) -> None:
-    """Charge les *.env du dossier de config dans os.environ. Fichiers lus par ordre alphabétique, premier
-    trouvé gagnant. Secrets : le fichier prime sur le shell ; autres variables : le shell prime."""
+    """Charge les *.env du dossier de config dans os.environ. Fichiers canoniques d'abord, puis les autres par
+    ordre alphabétique ; premier trouvé gagnant. Secrets : le fichier prime sur le shell ; autres : le shell prime."""
     if not config_dir.is_dir():
         return
-    for path in sorted(config_dir.glob("*.env")):
+    for path in sorted(config_dir.glob("*.env"), key=_load_order):
         for key, value in _parse_env_file(path).items():
             if key in SOURCES:                                   # déjà fixée par un fichier précédent
                 DUPLICATES.setdefault(key, []).append(path.name)
