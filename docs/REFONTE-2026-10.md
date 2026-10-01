@@ -151,6 +151,7 @@ Même résultat, même ligne Airtable.
 | Schéma Airtable | **création automatique** | champs créés le jour même via le connecteur Airtable (même liste que `mp airtable-setup --apply`) ; `mp doctor` doit afficher « schéma complet » |
 | `candidatures/` | **dossier supprimé** | 130 Mo retirés du dépôt courant ; les PDF restent dans l'historique git (réécriture possible plus tard) |
 | Ancien pipeline | **n8n et launchd v2 arrêtés maintenant, VPS après** | `deploy/decommission.sh` ; résiliation Hostinger après une semaine de v3 stable |
+| Emplacement du clone Mac | **hors Drive** : `~/Claude/Artifacts/mission-pipeline` | exception à la règle d'organisation du 15/07 ; un `.git` synchronisé par Drive Mirror se corrompt |
 | Actifs dans le dépôt | **CV de base et règles d'écriture versionnés** (choix technique, non soumis) | indispensable pour Actions ; `MP_CV_BASE_DIR` permet de pointer vers le Drive en launchd |
 
 ---
@@ -159,8 +160,14 @@ Même résultat, même ligne Airtable.
 
 ### 5.1 Sur le Mac (15 minutes)
 
+Le clone vit **hors du Drive** (décision du 1er octobre : un `.git` sous Google Drive Mirror se corrompt, la
+synchronisation verrouille et réécrit les milliers de petits fichiers de l'index). C'est l'exception explicite à la
+règle d'organisation ; les dossiers produits peuvent être copiés vers le Drive via `MP_DRIVE_DOSSIERS_DIR`.
+
 ```bash
-cd /Users/xavierrobitaille/Claude/Artifacts/mission-pipeline
+REPO=/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline
+[ -d "$REPO/.git" ] || git clone git@github.com:xrobitaille92150/mission-pipeline.git "$REPO"
+cd "$REPO"
 git fetch origin && git checkout claude/mission-pipeline-refonte-m50exw   # puis main après merge
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 brew install --cask libreoffice                                            # si absent

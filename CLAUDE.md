@@ -1,6 +1,7 @@
 # Mission Pipeline v3 — instructions pour les sessions Claude
 
-**Dépôt** : `xrobitaille92150/mission-pipeline` (privé). Clone Mac : `/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/`.
+**Dépôt** : `xrobitaille92150/mission-pipeline` (privé). Clone Mac : `/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/`, **hors Google Drive** (exception voulue par
+Xavier le 1er octobre 2026 : un `.git` sous Drive Mirror se corrompt). Ne jamais cloner ni déplacer le dépôt sous `~/Mon Drive/`.
 **Rôle** : moteur technique des candidatures de Xavier (alertes LinkedIn Gmail → scoring → CV + lettre → suivi), piloté
 depuis Airtable. Le suivi humain et le contexte utilisateur vivent dans le dossier Cowork `Candidatures/`.
 
