@@ -82,8 +82,9 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
   `dossier` depuis l'automation Airtable `deploy/airtable/automation_dossier.js`).
 - launchd : `deploy/launchd/install.sh` (même horaire, logs dans `out/logs/`).
 - Un seul des deux à la fois.
-- Cockpit : `deploy/launchd/install-app.sh` (service `com.xrobitaille.mp-app`, KeepAlive) + `tailscale serve --bg 8765`
-  (`deploy/tailscale/README.md`). Le cockpit tourne sur le Mac quel que soit l'ordonnanceur choisi.
+- Cockpit : `deploy/launchd/install-app.sh` (service `com.xrobitaille.mp-app`, KeepAlive) + `tailscale serve --bg --https=8443 8765`
+  (`deploy/tailscale/README.md`). **Toujours `--https=8443`** : l'adresse sans port (HTTPS 443) du Mac mini
+  appartient au cockpit LinkedIn (`com.xavieradvisory.cockpit`, port 8766) ; ne jamais lancer `tailscale serve reset`. Le cockpit tourne sur le Mac quel que soit l'ordonnanceur choisi.
 
 ## Skills liés
 

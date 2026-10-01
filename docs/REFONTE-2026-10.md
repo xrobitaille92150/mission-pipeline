@@ -212,7 +212,7 @@ Puis, pour les dossiers « dans la minute », l'automation Airtable (`deploy/air
 **launchd** : `zsh deploy/launchd/install.sh` (06:30 / 18:30, logs dans `out/logs/`).
 
 **Cockpit iPhone** (indépendant de l'ordonnanceur, tourne sur le Mac) : `zsh deploy/launchd/install-app.sh`
-puis `tailscale serve --bg 8765` ; sur l'iPhone, Tailscale + Safari → Sur l'écran d'accueil. Pas à pas :
+puis `tailscale serve --bg --https=8443 8765` (le port 8443 laisse l'adresse sans port au cockpit LinkedIn) ; sur l'iPhone, Tailscale + Safari → Sur l'écran d'accueil. Pas à pas :
 `deploy/tailscale/README.md`.
 
 ### 5.4 Décommissionnement

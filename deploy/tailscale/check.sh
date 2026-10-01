@@ -24,12 +24,17 @@ if [ -x "$TS" ] || command -v tailscale >/dev/null; then
   "$TS" status 2>&1 | head -n 4 | sed 's/^/   /'
   echo "   -- publication (tailscale serve status) :"
   "$TS" serve status 2>&1 | sed 's/^/   /'
-  URL=$("$TS" serve status 2>/dev/null | grep -o 'https://[^ ]*' | head -n 1)
+  STATUS="$("$TS" serve status 2>/dev/null)"
+  URL=$(echo "$STATUS" | grep -o 'https://[^ ]*:8443' | head -n 1)
   if [ -n "$URL" ]; then
     code=$(curl -s -m 30 -o /dev/null -w "%{http_code}" "$URL/")
-    echo "   adresse $URL → HTTP $code (attendu : 200)"
+    echo "   Missions : $URL → HTTP $code (attendu : 200)"
   else
-    echo "   rien n'est publié → tailscale serve --bg 8765"
+    echo "   Missions n'est pas publié sur 8443 → tailscale serve --bg --https=8443 8765"
+  fi
+  # L'adresse sans port (HTTPS 443) appartient au cockpit LinkedIn (port local 8766).
+  if echo "$STATUS" | awk '/:8443/{p=0} /https:\/\/[^ ]*ts\.net( |$)/{p=1} p' | grep -q '127.0.0.1:8765'; then
+    echo "   ATTENTION : l'adresse sans port pointe vers Missions et masque le cockpit LinkedIn → tailscale serve --bg 8766"
   fi
 else
   echo "   Tailscale introuvable sur ce Mac"

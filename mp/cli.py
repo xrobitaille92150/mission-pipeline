@@ -268,7 +268,7 @@ def cmd_doctor(args) -> int:
 
 def cmd_app(args) -> int:
     from mp.app import serve
-    log.info("cockpit : http://%s:%d (exposer avec `tailscale serve --bg %d`)", args.host, args.port, args.port)
+    log.info("cockpit : http://%s:%d (exposer avec `tailscale serve --bg --https=8443 %d`)", args.host, args.port, args.port)
     serve(host=args.host, port=args.port)
     return 0
 

@@ -19,28 +19,36 @@ aucun mot de passe à gérer : seul un appareil connecté à ton réseau Tailsca
    ```
 
    Attendu : `cockpit démarré : http://127.0.0.1:8765`.
-3. Publier le cockpit sur le réseau Tailscale (HTTPS automatique) :
+3. Publier le cockpit sur le réseau Tailscale (HTTPS automatique), **sur le port 8443** :
 
    ```bash
-   tailscale serve --bg 8765
+   tailscale serve --bg --https=8443 8765
    tailscale serve status
    ```
 
-   La deuxième commande affiche l'adresse, de la forme `https://<nom-du-mac>.<ton-tailnet>.ts.net`.
-   C'est l'adresse à ouvrir sur l'iPhone. Si `tailscale` est introuvable dans Terminal, utiliser le chemin
-   complet : `/Applications/Tailscale.app/Contents/MacOS/Tailscale serve --bg 8765`.
-   Si la commande est refusée (version plus ancienne de Tailscale), la syntaxe longue est
-   `tailscale serve https / http://127.0.0.1:8765`.
+   La deuxième commande affiche l'adresse, de la forme `https://<nom-du-mac>.<ton-tailnet>.ts.net:8443`
+   (sur le Mac mini : `https://mac-mini-de-xavier.tail5f18a8.ts.net:8443`). C'est l'adresse à ouvrir sur
+   l'iPhone. Si `tailscale` est introuvable dans Terminal, utiliser le chemin complet
+   `/Applications/Tailscale.app/Contents/MacOS/Tailscale` à la place du mot `tailscale`.
    Si Tailscale répond que HTTPS doit être activé, l'activer dans la console
    <https://login.tailscale.com/admin/dns> (« Enable HTTPS »), puis relancer la commande.
 
-Pour arrêter l'exposition : `tailscale serve reset`. Pour arrêter le cockpit : `zsh deploy/launchd/install-app.sh --remove`.
+> **Pourquoi 8443 et pas l'adresse sans port.** Un Mac n'a qu'une adresse `ts.net`, et l'adresse sans port
+> (HTTPS 443) ne peut mener qu'à une seule application. Sur le Mac mini, elle appartient au **cockpit
+> LinkedIn** (service `com.xavieradvisory.cockpit`, port local 8766). `tailscale serve --bg 8765` sans
+> `--https=8443` la reprend et le cockpit LinkedIn devient inaccessible. Pour la lui rendre :
+> `tailscale serve --bg 8766`.
+
+Pour arrêter l'exposition du seul cockpit Missions : `tailscale serve --https=8443 off` (jamais
+`tailscale serve reset`, qui coupe aussi le cockpit LinkedIn). Pour arrêter le cockpit :
+`zsh deploy/launchd/install-app.sh --remove`.
 
 ## 2. Sur l'iPhone (une fois, 3 minutes)
 
 1. App Store → installer **Tailscale**, ouvrir, se connecter **avec le même compte** que sur le Mac,
    activer le VPN (bouton en haut). L'iPhone apparaît dans la liste des appareils, avec le Mac.
-2. Safari → ouvrir l'adresse `https://<nom-du-mac>.<ton-tailnet>.ts.net` affichée à l'étape 1.3.
+2. Safari → ouvrir l'adresse `https://<nom-du-mac>.<ton-tailnet>.ts.net:8443` affichée à l'étape 1.3
+   (avec `:8443` à la fin).
 3. Bouton **Partager** (carré avec flèche) → **Sur l'écran d'accueil** → Ajouter.
    L'icône « Missions » s'ouvre ensuite en plein écran, comme une app.
 
@@ -79,6 +87,7 @@ certificat HTTPS.
 | Symptôme | Cause probable | Remède |
 |---|---|---|
 | Safari : « impossible de se connecter » | VPN Tailscale coupé sur l'iPhone, ou Mac éteint | ouvrir l'app Tailscale sur l'iPhone, vérifier le Mac dans la liste |
+| L'adresse sans port ouvre Missions au lieu du cockpit LinkedIn | publication faite sans `--https=8443` | `tailscale serve --bg 8766` puis `tailscale serve --bg --https=8443 8765` |
 | Page blanche ou erreur 502 | le cockpit ne tourne pas sur le Mac | `curl http://127.0.0.1:8765/api/sante` sur le Mac ; sinon `zsh deploy/launchd/install-app.sh` |
 | « erreur 500 » sur une action | Airtable ou Claude a refusé | `out/logs/app.err.log` sur le Mac, et le champ `Erreur` de la ligne Airtable |
 | Les compteurs de Santé sont vides | AIRTABLE_PAT absent ou expiré | `.venv/bin/mp doctor` sur le Mac |

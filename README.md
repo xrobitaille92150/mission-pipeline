@@ -42,6 +42,7 @@ réseau privé, et nulle part ailleurs. Sur l'iPhone, Safari → Partager → **
   « insiste sur IFRS 17 ») ; valider régénère le PDF et le DOCX attachés dans Airtable.
 - **Postulées** et **Santé** (dernier run, compteurs, bouton ▶ Run).
 
+Adresse : `https://<mac>.<tailnet>.ts.net:8443`. L'adresse sans port reste celle du cockpit LinkedIn.
 Installation (Mac + iPhone, 15 minutes) : [`deploy/tailscale/README.md`](deploy/tailscale/README.md).
 
 ## Installation
@@ -101,7 +102,7 @@ Options globales : `--dry-run` (n'écrit rien), `-v`.
   06:30 et 18:30 (Paris, été), lancement manuel, et `repository_dispatch` depuis l'automation Airtable pour
   un dossier dans la minute ([`deploy/airtable/`](deploy/airtable/README.md)).
 - **launchd** (Mac) : `zsh deploy/launchd/install.sh`, mêmes horaires.
-- **Cockpit** (Mac, service permanent) : `zsh deploy/launchd/install-app.sh` puis `tailscale serve --bg 8765`
+- **Cockpit** (Mac, service permanent) : `zsh deploy/launchd/install-app.sh` puis `tailscale serve --bg --https=8443 8765`
   ([`deploy/tailscale/README.md`](deploy/tailscale/README.md)).
 - **Arrêt de l'ancien pipeline** (n8n + agents launchd v2) : `zsh deploy/decommission.sh`.
 
