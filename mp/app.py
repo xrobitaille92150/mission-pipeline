@@ -189,7 +189,9 @@ def create_app(ctx: Context | None = None) -> FastAPI:
         return JSONResponse({
             "name": "Mission Pipeline", "short_name": "Missions", "start_url": "/", "display": "standalone",
             "background_color": "#1F2A44", "theme_color": "#1F2A44", "lang": "fr",
-            "icons": [{"src": "/icon.png", "sizes": "180x180", "type": "image/png"}],
+            "icons": [{"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                      {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"},
+                      {"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml"}],
         }, media_type="application/manifest+json")
 
     @app.get("/icon.png")
@@ -201,6 +203,18 @@ def create_app(ctx: Context | None = None) -> FastAPI:
     @app.get("/favicon.ico")
     def favicon() -> FileResponse:
         return FileResponse(WEB / "icon.png", media_type="image/png")
+
+    @app.get("/icon-192.png")
+    def icon192() -> FileResponse:
+        return FileResponse(WEB / "icon-192.png", media_type="image/png")
+
+    @app.get("/icon-512.png")
+    def icon512() -> FileResponse:
+        return FileResponse(WEB / "icon-512.png", media_type="image/png")
+
+    @app.get("/icon.svg")
+    def icon_svg() -> FileResponse:
+        return FileResponse(WEB / "icon.svg", media_type="image/svg+xml")
 
     # -- API -----------------------------------------------------------------
     @app.get("/api/offres")

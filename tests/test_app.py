@@ -53,6 +53,9 @@ def test_index_manifest_and_icon():
     assert "<title>Missions</title>" in c.get("/").text
     assert c.get("/manifest.webmanifest").json()["display"] == "standalone"
     assert c.get("/icon.png").headers["content-type"] == "image/png"
+    for icon in c.get("/manifest.webmanifest").json()["icons"]:
+        assert c.get(icon["src"]).status_code == 200, icon["src"]
+    assert c.get("/apple-touch-icon.png").content == c.get("/icon.png").content
 
 
 def test_list_tab_sorted_by_rank_then_score():
