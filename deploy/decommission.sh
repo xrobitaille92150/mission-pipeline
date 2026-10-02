@@ -27,12 +27,21 @@ if [ -f "$ENV" ]; then
                "$BASE/api/v1/workflows?active=true" 2>&1 || true)"
     CODE="${REP##*$'\n'}"; CORPS="${REP%$'\n'*}"
     if [ "$CODE" != "200" ]; then
-      echo "  n8n répond HTTP $CODE : clé refusée ou serveur injoignable ($(echo "$CORPS" | head -c 200))"
+      echo "  n8n répond HTTP $CODE : clé refusée ou serveur injoignable ($(printf '%s' "$CORPS" | head -c 200))"
       echo "  → désactiver les workflows à la main dans l'interface n8n, ou renouveler la clé dans $ENV."
     else
-      LISTE_WF="$(echo "$CORPS" | python3 -c 'import json,sys; d=json.load(sys.stdin); [print(w["id"], w["name"]) for w in d.get("data", [])]')"
-      [ -z "$LISTE_WF" ] && echo "  aucun workflow actif"
-      echo "$LISTE_WF" | while read -r id name; do
+      # printf et non echo : l'echo de zsh transforme les « \n » du JSON en vrais sauts de ligne.
+      LISTE_WF="$(printf '%s' "$CORPS" | python3 -c '
+import json, sys
+try:
+    d = json.loads(sys.stdin.read(), strict=False)
+except ValueError as e:
+    sys.exit(f"réponse n8n illisible : {e}")
+for w in d.get("data", []):
+    print(w["id"], w.get("name", ""))
+')" || { echo "  → lecture impossible : désactiver les workflows à la main dans l'interface n8n."; LISTE_WF=""; }
+      [ -z "$LISTE_WF" ] && echo "  aucun workflow actif (ou liste illisible, voir ci-dessus)"
+      printf '%s\n' "$LISTE_WF" | while read -r id name; do
         [ -z "$id" ] && continue
         if [ "$LISTE" = 1 ]; then echo "  serait désactivé : $id  ($name)"; continue; fi
         echo "  désactive $id  ($name)"
