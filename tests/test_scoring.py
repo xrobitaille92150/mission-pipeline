@@ -113,3 +113,49 @@ def test_subscores_caps():
 def test_scoring_fields_includes_detail():
     f = scoring_fields(Scoring.model_validate(_sub()), None, False)
     assert f["Pourquoi"].endswith("signaux 6/10") and f["Score"] == 82
+
+
+# ---------------------------------------------------------------------------
+# Notation d'une offre isolée (cockpit « Ajouter une offre », mp dossier) et boucle du run
+# ---------------------------------------------------------------------------
+
+DESC = "Pilotage d'un programme de transformation finance pour un assureur, PMO, IFRS 17. " * 6
+
+
+def test_score_one_writes_fields_and_report():
+    from mp.pipeline import score_one
+    from tests.conftest import FakeAirtable, FakeClaude, FakeContext
+    rec = {"id": "rec1", "fields": {"jobId": "1", "Poste": "Directeur de programme", "Employeur": "AXA",
+                                    "Lieu": "Paris", "Description": DESC}}
+    ctx = FakeContext(at=FakeAirtable({"OFFRES": [rec]}), claude=FakeClaude([_sub()]))
+    s = score_one(ctx, rec)
+    assert s.score == 82
+    f = ctx.at.tables_data["OFFRES"][0]["fields"]
+    assert f["Score"] == 82 and f["Statut"] == "À étudier" and f["Scoré le"]
+    assert ctx.report.scored[0]["employer"] == "AXA"
+
+
+def test_score_run_ranks_best_offer_for_a_dossier():
+    from mp.pipeline import score
+    from tests.conftest import FakeAirtable, FakeClaude, FakeContext
+    rows = [{"id": "rec1", "fields": {"jobId": "1", "Poste": "Directeur de programme", "Employeur": "AXA",
+                                      "Lieu": "Paris", "Description": DESC, "Date 1ère vue": "2026-10-01"}}]
+    ctx = FakeContext(at=FakeAirtable({"OFFRES": rows}, formulas=True), claude=FakeClaude([_sub()]))
+    score(ctx)
+    f = ctx.at.tables_data["OFFRES"][0]["fields"]
+    assert f["Préparer dossier"] is True and f["Rang du jour"] == 1
+
+
+def test_process_new_offer_scores_then_builds_dossier(monkeypatch):
+    import mp.pipeline as pl
+    from tests.conftest import FakeAirtable, FakeClaude, FakeContext
+    rows = [{"id": "rec9", "fields": {"jobId": "manuel-1", "Poste": "PMO", "Employeur": "Allianz", "Lieu": "Paris",
+                                      "Description": DESC, "Statut": "À étudier"}}]
+    ctx = FakeContext(at=FakeAirtable({"OFFRES": rows}), claude=FakeClaude([_sub()]))
+    monkeypatch.setattr(pl, "make_dossier", lambda c, rec: {"profile": "FinanceTransformation", "lang": "FR"})
+    msg = pl.process_new_offer(ctx, "rec9")
+    assert msg.startswith("notée 82/100") and "dossier prêt (FinanceTransformation, FR)" in msg
+    monkeypatch.setattr(pl, "make_dossier", lambda c, rec: None)
+    import pytest
+    with pytest.raises(RuntimeError):                        # déjà notée : pas de second appel Claude
+        pl.process_new_offer(ctx, "rec9")

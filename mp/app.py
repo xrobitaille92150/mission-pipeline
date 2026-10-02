@@ -141,6 +141,14 @@ class Texte(BaseModel):
     texte: str
 
 
+class Nouvelle(BaseModel):
+    url: str = ""
+    texte: str = ""
+    poste: str = ""
+    employeur: str = ""
+    lieu: str = ""
+
+
 def _letter_files(ctx: Context, rec: dict, text: str) -> str:
     """Régénère DOCX + PDF de la lettre et les attache à la ligne. Appelé en arrière-plan."""
     from mp import letter as lettermod
@@ -275,6 +283,26 @@ def create_app(ctx: Context | None = None) -> FastAPI:
         if item is None:
             raise RuntimeError(ctx.report.errors[-1] if ctx.report.errors else "dossier KO")
         return f"dossier prêt ({item['profile']}, {item['lang']})"
+
+    @app.post("/api/offres/nouvelle")
+    def nouvelle(body: Nouvelle) -> dict:
+        """Offre trouvée ailleurs : ligne Offres, puis notation + dossier en arrière-plan (ancien « Postuler proprement »)."""
+        from mp.linkedin import extract_job_id
+        from mp.pipeline import add_offer, process_new_offer
+        url, texte = body.url.strip(), body.texte.strip()
+        if url and not extract_job_id(url):
+            raise HTTPException(400, "lien non reconnu : coller l'adresse d'une offre LinkedIn (…/jobs/view/…)")
+        if not url and len(texte) < 200:
+            raise HTTPException(400, "coller un lien LinkedIn, ou le texte complet de l'annonce")
+        if not url and not (body.poste.strip() and body.employeur.strip()):
+            raise HTTPException(400, "avec un texte seul, indiquer le poste et l'employeur")
+        ctx = get_ctx()
+        rec = add_offer(ctx, url=url, text=texte, title=body.poste.strip(), employer=body.employeur.strip(),
+                        location=body.lieu.strip())
+        if rec["id"] != "dry-run" and not JOBS.for_record(rec["id"]):
+            rid = rec["id"]
+            JOBS.start("nouvelle", lambda: process_new_offer(ctx, rid), rid)
+        return to_json(ctx, record(rec["id"]), detail=True)
 
     @app.post("/api/offres/{record_id}/lettre/proposer")
     def proposer(record_id: str, body: Consigne) -> dict:

@@ -211,6 +211,31 @@ def scoring_fields(s, jd: JobDescription | None, fetched: bool) -> dict:
     return fields
 
 
+def score_one(ctx: Context, rec: dict):
+    """Note une offre (fiche, filtres durs, Claude) et écrit le résultat sur sa ligne. Lève en cas d'échec."""
+    f = rec["fields"]
+    title, employer, location = f.get("Poste", ""), f.get("Employeur", ""), f.get("Lieu", "")
+    jd, fetched = _jd_for(ctx, rec)
+    reason = hard_filter(title, location, jd if jd.ok else None)
+    if reason:
+        s = excluded_scoring(reason)
+    else:
+        s = score_offer(ctx.claude, title=title, employer=employer, location=location,
+                        mode=f.get("Mode", ""), source=f.get("Source", "Alerte"), jd=jd)
+    fields = scoring_fields(s, jd, fetched)
+    if not jd.ok and jd.error:
+        fields["Erreur"] = f"Fiche LinkedIn non récupérée : {jd.error}"
+    ctx.at.patch(ctx.offres, rec["id"], fields)
+    rec["fields"].update(fields)
+    ctx.report.scored.append({
+        "record": rec["id"], "title": title, "employer": employer, "score": s.score,
+        "verdict": VERDICT_LABELS[s.verdict], "why": s.pourquoi, "url": f.get("URL", ""),
+        "airtable": record_url(ctx.s.airtable_base, ctx.offres, rec["id"]), "rank": None,
+    })
+    log.info("  %3d %-8s %-28.28s | %s", s.score, VERDICT_LABELS[s.verdict], employer, title[:60])
+    return s
+
+
 def score(ctx: Context, limit: int = 80, rescore: bool = False) -> list[dict]:
     live = "NOT({J'écarte}=1),NOT({Statut}='Écartée'),NOT({Statut}='Expirée'),NOT({Statut}='Doublon')"
     formula = f"AND(NOT({{Scoré le}}),{live})" if not rescore else f"AND({live})"
@@ -221,26 +246,9 @@ def score(ctx: Context, limit: int = 80, rescore: bool = False) -> list[dict]:
     scored: list[tuple[str, object]] = []
     for rec in recs:
         f = rec["fields"]
-        title, employer, location = f.get("Poste", ""), f.get("Employeur", ""), f.get("Lieu", "")
+        title, employer = f.get("Poste", ""), f.get("Employeur", "")
         try:
-            jd, fetched = _jd_for(ctx, rec)
-            reason = hard_filter(title, location, jd if jd.ok else None)
-            if reason:
-                s = excluded_scoring(reason)
-            else:
-                s = score_offer(ctx.claude, title=title, employer=employer, location=location,
-                                mode=f.get("Mode", ""), source=f.get("Source", "Alerte"), jd=jd)
-            fields = scoring_fields(s, jd, fetched)
-            if not jd.ok and jd.error:
-                fields["Erreur"] = f"Fiche LinkedIn non récupérée : {jd.error}"
-            ctx.at.patch(ctx.offres, rec["id"], fields)
-            scored.append((rec["id"], s))
-            ctx.report.scored.append({
-                "record": rec["id"], "title": title, "employer": employer, "score": s.score,
-                "verdict": VERDICT_LABELS[s.verdict], "why": s.pourquoi, "url": f.get("URL", ""),
-                "airtable": record_url(ctx.s.airtable_base, ctx.offres, rec["id"]), "rank": None,
-            })
-            log.info("  %3d %-8s %-28.28s | %s", s.score, VERDICT_LABELS[s.verdict], employer, title[:60])
+            scored.append((rec["id"], score_one(ctx, rec)))
         except Exception as e:  # noqa: BLE001 — on consigne l'erreur sur la ligne et on continue
             msg = f"{employer} — {title[:50]} : {e}"
             ctx.report.error(f"scoring KO : {msg}")
@@ -311,6 +319,37 @@ def make_dossier(ctx: Context, rec: dict) -> dict | None:
 # ---------------------------------------------------------------------------
 # 4. Décisions prises dans Airtable (cases à cocher) → statuts + Candidatures
 # ---------------------------------------------------------------------------
+
+
+def add_offer(ctx: Context, *, url: str = "", job_id: str = "", text: str = "", title: str = "", employer: str = "",
+              location: str = "") -> dict:
+    """Offre trouvée ailleurs (URL LinkedIn, jobId ou texte collé) : retrouve ou crée sa ligne dans Offres.
+    Reprend l'ancien outil « Postuler proprement » et `mp dossier`."""
+    from mp.dossier import ensure_record
+    from mp.linkedin import extract_job_id
+
+    job_id = job_id or (extract_job_id(url) if url else "") or ""
+    if job_id and not url:
+        url = f"https://www.linkedin.com/jobs/view/{job_id}/"
+    if job_id and not (title and employer):
+        jd = fetch_jd(job_id)
+        title, employer, location = title or jd.title, employer or jd.company, location or jd.location
+        text = text or jd.text
+    return ensure_record(ctx, job_id=job_id or None, url=url, title=title, employer=employer, location=location,
+                         description=text)
+
+
+def process_new_offer(ctx: Context, record_id: str) -> str:
+    """Note l'offre si besoin, puis prépare son dossier (CV + lettre). Pour le cockpit, en arrière-plan."""
+    rec = ctx.at.get(ctx.offres, record_id)
+    note = ""
+    if not rec["fields"].get("Scoré le"):
+        s = score_one(ctx, rec)
+        note = f"notée {s.score}/100 ({VERDICT_LABELS[s.verdict]}), "
+    item = make_dossier(ctx, ctx.at.get(ctx.offres, record_id))
+    if item is None:
+        raise RuntimeError(note + (ctx.report.errors[-1] if ctx.report.errors else "dossier KO"))
+    return note + f"dossier prêt ({item['profile']}, {item['lang']})"
 
 
 MAX_POSTULE_PER_RUN = 15   # au-delà, c'est presque sûrement un stock de coches anciennes : on demande --force

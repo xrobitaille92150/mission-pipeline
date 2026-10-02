@@ -101,22 +101,14 @@ def cmd_dossiers(args) -> int:
 
 
 def cmd_dossier(args) -> int:
-    from mp.dossier import build_dossier, ensure_record, local_paths
-    from mp.linkedin import extract_job_id, fetch_jd
-    from mp.pipeline import F_CV_FILES, F_LETTER_FILES
+    from mp.dossier import build_dossier, local_paths
+    from mp.pipeline import F_CV_FILES, F_LETTER_FILES, add_offer
     from mp.scoring import today
 
     ctx = _ctx(args)
-    job_id = args.job_id or (extract_job_id(args.url) if args.url else None)
-    url = args.url or (f"https://www.linkedin.com/jobs/view/{job_id}/" if job_id else "")
     text = Path(args.text).read_text(encoding="utf-8") if args.text and Path(args.text).exists() else (args.text or "")
-    title, employer, location = args.title or "", args.employer or "", args.location or ""
-    if job_id and not (title and employer):
-        jd = fetch_jd(job_id)
-        title, employer, location = title or jd.title, employer or jd.company, location or jd.location
-        text = text or jd.text
-    rec = ensure_record(ctx, job_id=job_id, url=url, title=title, employer=employer, location=location,
-                        description=text)
+    rec = add_offer(ctx, url=args.url or "", job_id=args.job_id or "", text=text, title=args.title or "",
+                    employer=args.employer or "", location=args.location or "")
     res = build_dossier(ctx, rec)
     if not ctx.dry_run and rec["id"] != "dry-run":
         ctx.at.replace_attachments(ctx.offres, rec["id"], F_CV_FILES, [Path(res.cv_pdf), Path(res.cv_docx)])

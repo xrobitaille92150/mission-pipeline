@@ -55,6 +55,9 @@ input[type=text]{width:100%;border:1px solid var(--line);border-radius:10px;padd
 .btn{border:0;border-radius:10px;padding:11px 14px;font:inherit;font-weight:600;background:var(--chip);color:var(--ink);flex:1;min-width:120px}
 .btn.primary{background:var(--navy);color:#fff}.btn.gold{background:var(--gold);color:#fff}.btn.danger{background:#F8E1E4;color:var(--bad)}
 .btn:disabled{opacity:.5}
+.form label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.form input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;font-size:16px;background:var(--bg);color:var(--ink)}
+.form textarea{min-height:140px}.form .hint{font-size:13px;color:var(--muted);margin:8px 0 0}
 .actions{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(12px + var(--sab));display:flex;gap:8px}
 .status{font-size:13px;color:var(--muted);margin:0 16px}
 pre.desc{white-space:pre-wrap;font:inherit;font-size:14px;margin:0;max-height:260px;overflow:auto}
@@ -70,7 +73,7 @@ details summary{cursor:pointer;color:var(--navy);font-weight:600}
 </head>
 <body>
 <header>
-  <h1><span class="bar"></span>Missions <span class="right"><button class="icon" id="btnRefresh" title="Actualiser">↻</button><button class="icon" id="btnRun" title="Lancer un run">▶ Run</button></span></h1>
+  <h1><span class="bar"></span>Missions <span class="right"><button class="icon" id="btnAdd" title="Ajouter une offre">＋</button><button class="icon" id="btnRefresh" title="Actualiser">↻</button><button class="icon" id="btnRun" title="Lancer un run">▶ Run</button></span></h1>
   <div class="tabs">
     <button data-tab="decider" class="on">À décider</button>
     <button data-tab="dossiers">Dossiers</button>
@@ -156,6 +159,8 @@ async function loadSante(){
   }catch(e){list.innerHTML=`<div class="empty">${esc(e.message)}</div>`;}
 }
 
+const JOB_LABEL={dossier:'Dossier en préparation',nouvelle:'Notation et dossier en cours',lettre:'Fichiers de la lettre en cours',run:'Run en cours'};
+
 function driveLine(d){
   if(!d.dossier) return 'Copie Drive : aucun dossier Drive sur ce Mac';
   if(d.erreur) return `Copie Drive : erreur à ${esc(d.quand||'')} (${esc(d.erreur)})`;
@@ -176,7 +181,7 @@ function detailHtml(o){
   <div class="sec"><div style="display:flex;gap:12px;align-items:center">
     <div class="score ${scoreClass(o.score)}">${o.score??'–'}<small>${esc((o.verdict||'').toUpperCase())}</small></div>
     <div><div>${facts}</div><div class="detail-line">${esc(detailLine.replace('Détail : ',''))}</div>
-    <div class="meta">${o.rang?`<span class="chip rank">#${o.rang} du jour</span>`:''}<span class="chip">${esc(o.statut||'—')}</span>${o.job?`<span class="chip"><span class="spin"></span> ${esc(o.job.kind)} en cours</span>`:''}</div></div></div>
+    <div class="meta">${o.rang?`<span class="chip rank">#${o.rang} du jour</span>`:''}<span class="chip">${esc(o.statut||'—')}</span>${o.job?`<span class="chip"><span class="spin"></span> ${esc(JOB_LABEL[o.job.kind]||o.job.kind)}</span>`:''}</div></div></div>
     ${o.erreur?`<p class="detail-line" style="color:var(--bad)">${esc(o.erreur)}</p>`:''}
   </div>
   <div class="sec"><h3>Pourquoi</h3><ul>${why.map(p=>`<li>${esc(p)}</li>`).join('')||'<li>—</li>'}</ul>
@@ -240,6 +245,31 @@ function bind(o){
 
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;load();}));
 $('#list').addEventListener('click',e=>{const c=e.target.closest('.card'); if(c) openDetail(c.dataset.id);});
+function openAdd(){
+  current=null; clearInterval(poll); $('#detail').classList.add('open'); window.scrollTo(0,0);
+  $('#dEmp').textContent='Ajouter une offre'; $('#dPos').textContent='trouvée ailleurs que dans les alertes';
+  $('#dBody').innerHTML=`<div class="sec form">
+    <label for="aUrl">Lien LinkedIn de l'offre</label>
+    <input id="aUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://www.linkedin.com/jobs/view/…">
+    <p class="hint">Ou, si l'offre n'est pas sur LinkedIn, colle son texte&nbsp;:</p>
+    <label for="aTexte">Texte de l'annonce</label><textarea id="aTexte" placeholder="Texte complet de l'annonce"></textarea>
+    <label for="aPoste">Poste</label><input id="aPoste" autocomplete="off">
+    <label for="aEmp">Employeur</label><input id="aEmp" autocomplete="off">
+    <label for="aLieu">Lieu</label><input id="aLieu" autocomplete="off">
+    <p class="hint">Avec un lien LinkedIn, poste, employeur et lieu se remplissent tout seuls. Claude note l'offre puis prépare le CV et la lettre (deux à trois minutes).</p>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="btnAddGo">Noter et préparer le dossier</button></div>
+  </div>`;
+  $('#btnAddGo').addEventListener('click',async()=>{
+    const body={url:$('#aUrl').value.trim(),texte:$('#aTexte').value.trim(),poste:$('#aPoste').value.trim(),
+                employeur:$('#aEmp').value.trim(),lieu:$('#aLieu').value.trim()};
+    if(!body.url&&!body.texte) return toast("Colle un lien LinkedIn ou le texte de l'annonce");
+    if(!body.url&&!(body.poste&&body.employeur)) return toast('Avec un texte seul, indique le poste et l\'employeur');
+    $('#btnAddGo').disabled=true; toast('Ajout en cours…');
+    try{ const o=await api('/api/offres/nouvelle',{method:'POST',body:JSON.stringify(body)}); current=o.id; render(o); toast('Offre ajoutée, notation et dossier en cours'); }
+    catch(e){ $('#btnAddGo').disabled=false; toast(e.message,5000); }
+  });
+}
+$('#btnAdd').addEventListener('click',openAdd);
 $('#btnBack').addEventListener('click',()=>{$('#detail').classList.remove('open'); clearInterval(poll); load();});
 $('#btnRefresh').addEventListener('click',load);
 $('#btnRun').addEventListener('click',async()=>{ if(!confirm('Lancer un run complet maintenant (ingestion, scoring, dossiers, suivi) ?')) return; try{await api('/api/run',{method:'POST'}); toast('Run lancé, quelques minutes');}catch(e){toast(e.message,4000);} });

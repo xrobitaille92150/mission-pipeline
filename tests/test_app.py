@@ -155,3 +155,42 @@ def test_cli_drive_sync_parser():
     from mp.cli import build_parser
     a = build_parser().parse_args(["drive-sync", "--days", "30"])
     assert a.days == 30 and a.fn.__name__ == "cmd_drive_sync"
+
+
+def test_nouvelle_offre_validation():
+    c, _ = _client()
+    assert c.post("/api/offres/nouvelle", json={}).status_code == 400
+    assert c.post("/api/offres/nouvelle", json={"url": "https://example.com/emploi/12"}).status_code == 400
+    assert c.post("/api/offres/nouvelle", json={"texte": "court"}).status_code == 400
+    long = "Mission de pilotage de programme IFRS 17 pour un assureur vie. " * 5
+    r = c.post("/api/offres/nouvelle", json={"texte": long})
+    assert r.status_code == 400 and "employeur" in r.json()["detail"]
+
+
+def test_nouvelle_offre_from_text_creates_row_and_starts_job(monkeypatch):
+    c, ctx = _client()
+    started: list[str] = []
+    monkeypatch.setattr("mp.pipeline.process_new_offer", lambda ctx_, rid: started.append(rid) or "ok")
+    long = "Mission de pilotage de programme IFRS 17 pour un assureur vie. " * 5
+    o = c.post("/api/offres/nouvelle", json={"texte": long, "poste": "Directeur IFRS 17", "employeur": "Generali",
+                                             "lieu": "Paris"}).json()
+    assert o["employeur"] == "Generali" and o["poste"] == "Directeur IFRS 17" and o["statut"] == "À étudier"
+    row = next(r for r in ctx.at.tables_data["OFFRES"] if r["id"] == o["id"])["fields"]
+    assert row["Source"] == "Manuelle" and row["Description"].startswith("Mission de pilotage")
+    _wait_jobs()
+    assert started == [o["id"]]
+
+
+def test_nouvelle_offre_from_linkedin_url_fetches_the_posting(monkeypatch):
+    from mp.models import JobDescription
+    c, ctx = _client()
+    monkeypatch.setattr("mp.pipeline.process_new_offer", lambda ctx_, rid: "ok")
+    monkeypatch.setattr("mp.pipeline.fetch_jd", lambda jid: JobDescription(
+        ok=True, text="Fiche complète " * 30, title="Head of Finance Transformation", company="SCOR", location="Paris"))
+    o = c.post("/api/offres/nouvelle", json={"url": "https://www.linkedin.com/jobs/view/4471234567/"}).json()
+    assert o["jobId"] == "4471234567" and o["employeur"] == "SCOR" and o["poste"] == "Head of Finance Transformation"
+    assert o["url"] == "https://www.linkedin.com/jobs/view/4471234567/"
+    # même lien une seconde fois : la ligne existante est reprise, pas de doublon
+    o2 = c.post("/api/offres/nouvelle", json={"url": "https://www.linkedin.com/jobs/view/4471234567/"}).json()
+    assert o2["id"] == o["id"]
+    _wait_jobs()
