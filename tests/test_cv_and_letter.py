@@ -89,6 +89,18 @@ def test_propose_edits_filters_unsafe(tmp_path):
     assert plan.gaps == ["Aladdin non pratiqué"]
 
 
+def test_fallback_prompt_carries_tailoring_rules(tmp_path):
+    # Repli API : mêmes règles de surfaçage que la skill cv-tailoring (migration, apurement, VBA, SAP).
+    base = _make_cv(tmp_path / "base.docx")
+    claude = FakeClaude([{"edits": [], "gaps": []}])
+    cvmod.propose_edits(claude, cv_text=cvmod.docx_text(base), profile="FinanceTransformation", lang="FR",
+                        title="Chef de projet migration comptable", employer="AXA", jd_text="", keywords=[],
+                        profile_md="p")
+    system = "\n".join(claude.prompts[0]["system"])
+    for term in ("bascule d'interfaces comptables", "apurement de suspens", "macros VBA", "comptabilité auxiliaire"):
+        assert term in system
+
+
 def test_base_cv_path_fallback(tmp_path):
     (tmp_path / "CV_XRO_EN_FinanceTransformation_v4.docx").write_bytes(b"x")
     p, lang = cvmod.base_cv_path(tmp_path, "FinanceTransformation", "FR")
