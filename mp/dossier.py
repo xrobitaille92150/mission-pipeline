@@ -59,7 +59,7 @@ def build_dossier(ctx: Context, rec: dict) -> DossierResult:
     letter_pdf = docx_to_pdf(letter_docx, out_dir)
 
     # 5. Copie éditable vers le miroir Drive (facultatif, non bloquant)
-    if ctx.s.drive_dossiers_dir:
+    if ctx.s.drive_dossiers_dir and not ctx.dry_run:      # une répétition n'écrit rien dans le Drive
         try:
             dest = ctx.s.drive_dossiers_dir / date.today().isoformat()
             dest.mkdir(parents=True, exist_ok=True)

@@ -245,12 +245,16 @@ puis `tailscale serve --bg --https=8443 8765` (le port 8443 laisse l'adresse san
 ### 5.4 Décommissionnement
 
 ```bash
-zsh deploy/decommission.sh      # désactive les workflows n8n actifs (API, clé dans n8n.env) + agents launchd v2
+zsh deploy/decommission.sh --liste      # ce qui serait mis en pause, sans rien toucher
+zsh deploy/decommission.sh              # pause : workflows n8n de l'ancien pipeline + agents launchd v2
+zsh deploy/decommission.sh --restaurer  # annule la pause, à l'identique
 ```
 
 Le script ne désactive que les workflows n8n de l'ancien pipeline (les deux « Gmail Bridge ») et les agents
 launchd v2 (`missionrun` 06:15/18:15, `jack` toutes les heures, qui supprimait des lignes d'Offres, `applytool`,
-qui occupait le port 8765 du cockpit). `--liste` montre ce qui serait arrêté sans rien toucher.
+qui occupait le port 8765 du cockpit). `--liste` montre ce qui serait arrêté sans rien toucher. Rien n'est
+supprimé : les agents sont renommés en `.plist.disabled`, les workflows désactivés, et tout est noté dans
+`~/.config/mission-pipeline/ancien-pipeline-arrete.txt` ; `--restaurer` remet exactement ces éléments en service.
 Puis, après une semaine de v3 stable : résilier le VPS Hostinger, **seulement si** les autres workflows qu'il
 héberge (huit automatisations hors pipeline au 2 octobre) ne servent plus.
 

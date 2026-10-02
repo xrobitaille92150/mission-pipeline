@@ -107,7 +107,8 @@ Options globales : `--dry-run` (n'écrit rien), `-v`.
 - **launchd** (Mac) : `zsh deploy/launchd/install.sh`, mêmes horaires.
 - **Cockpit** (Mac, service permanent) : `zsh deploy/launchd/install-app.sh` puis `tailscale serve --bg --https=8443 8765`
   ([`deploy/tailscale/README.md`](deploy/tailscale/README.md)).
-- **Arrêt de l'ancien pipeline** (n8n + agents launchd v2) : `zsh deploy/decommission.sh`.
+- **Pause de l'ancien pipeline** (workflows n8n « Gmail Bridge » + agents launchd v2) : `zsh deploy/decommission.sh`
+  (`--liste` pour voir avant, `--restaurer` pour annuler ; rien n'est supprimé).
 
 ## Structure du dépôt
 
