@@ -118,8 +118,9 @@ def cmd_dossier(args) -> int:
             "Profil CV": res.profile, "Langue": res.lang, "Dossier le": today(), "Statut": "Dossier prêt",
             "Erreur": ""})
     print("\n=== DOSSIER PRÊT ===")
+    how = "rédigé par Claude Code avec tes skills" if res.engine == "claude-code" else "rédigé par l'API (prompts du dépôt)"
     print(f"{res.employer} — {res.title}  [{res.profile} / {res.lang}] "
-          f"({res.edits_applied} retouche(s) CV, {res.edits_skipped} ignorée(s))")
+          f"({res.edits_applied} retouche(s) CV, {res.edits_skipped} ignorée(s)) — {how}")
     for p in local_paths(res):
         print(f"  {p}")
     if res.gaps:
