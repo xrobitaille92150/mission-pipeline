@@ -13,8 +13,8 @@ Lire d'abord : `README.md` (usage) puis `docs/REFONTE-2026-10.md` (pourquoi, dé
 
 | Fichier | Rôle | Testé par |
 |---|---|---|
-| `mp/cli.py` | commandes `mp run / ingest / sync / score / dossiers / dossier / track / digest / airtable-setup / doctor / app` | `test_pipeline_and_tracking` |
-| `mp/pipeline.py` | ingest (Gmail → Offres), score (+ classement du jour), dossiers / `make_dossier`, sync_decisions | `test_scoring`, `test_pipeline_and_tracking` |
+| `mp/cli.py` | commandes `mp run / ingest / dedup / sync / score / dossiers / dossier / track / digest / drive-sync / airtable-setup / doctor / app` | `test_pipeline_and_tracking` |
+| `mp/pipeline.py` | ingest (Gmail → Offres), `dedupe` (Doublon, jamais de suppression), score / `score_one` (+ classement du jour), dossiers / `make_dossier`, `add_offer` / `process_new_offer` (offre ajoutée à la main), sync_decisions | `test_scoring`, `test_pipeline_and_tracking` |
 | `mp/gmail.py` | IMAP, parseur des digests LinkedIn (`parse_job_cards`), emails de statut (`parse_linkedin_status`), label de traitement, envoi SMTP | `test_gmail_parser` |
 | `mp/linkedin.py` | fiche de poste via `jobs-guest`, jamais d'exception (`JobDescription.ok`) | — (réseau) |
 | `mp/airtable.py` | client REST (upsert, patch, pièces jointes via `content.airtable.com`, Meta API) et **schéma attendu** (`OFFRES_FIELDS`) | double `FakeAirtable` |
@@ -24,14 +24,16 @@ Lire d'abord : `README.md` (usage) puis `docs/REFONTE-2026-10.md` (pourquoi, dé
 | `mp/letter.py` | lettre (HARD FACTS, fourchettes de mots, clauses géo), `rewrite_letter` sur consigne, DOCX à en-tête | `test_cv_and_letter`, `test_app` |
 | `mp/pdf.py` | LibreOffice headless | `test_cv_and_letter` (sauté sans soffice) |
 | `mp/dossier.py` | `build_dossier` : fiche → profil → CV → lettre → PDF → Drive | — (intégration) |
-| `mp/tracking.py` | index Candidatures, événements de statut, entonnoir sans retour arrière | `test_pipeline_and_tracking` |
+| `mp/tracking.py` | index Candidatures, événements de statut, entonnoir sans retour arrière, revue manuelle (table A traiter) si la société n'est pas identifiée | `test_pipeline_and_tracking` |
 | `mp/digest.py` | email de fin de run (texte + HTML) | — |
-| `mp/app.py` + `mp/web/` | cockpit mobile (FastAPI + page vanilla JS) : onglets, décisions immédiates, consigne → réécriture de la lettre, run à distance | `test_app` |
+| `mp/drive.py` | copie des dossiers vers le Drive du Mac depuis les pièces jointes Airtable (lancée par le cockpit toutes les 30 min) | `test_drive` |
+| `mp/app.py` + `mp/web/` | cockpit mobile (FastAPI + page vanilla JS) : onglets, décisions immédiates, consigne → réécriture de la lettre, ajout d'offre (lien ou texte), run à distance | `test_app` |
 | `mp/models.py` | dataclasses + schémas Pydantic (`Scoring`, `CvEditPlan`, `Letter`, `EmailClass`) | `test_scoring` |
 | `mp/config.py` | `settings()`, lecture de `~/.config/mission-pipeline/*.env`, ids Airtable | — |
 | `mp/prompts/*.md` | profil candidat, méthode et barème de scoring, retouches CV, lettre FR/EN (HARD FACTS verbatim), tri des emails | — |
 
-Ids Airtable : base `apphTpnW5vu0OdnfC`, Offres `tblrCyL6huHkUPZbF` (ex-« Veille 2 »), Candidatures `tblF3jpncEXA647ou`.
+Ids Airtable : base `apphTpnW5vu0OdnfC`, Offres `tblrCyL6huHkUPZbF` (ex-« Veille 2 »), Candidatures `tblF3jpncEXA647ou`,
+A traiter `tblSeyppFhxU3i8Ev` (réponses à revoir à la main).
 Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
 
 ## Règles de travail
@@ -86,6 +88,14 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
   (`deploy/tailscale/README.md`). **Toujours `--https=8443`** : l'adresse sans port (HTTPS 443) du Mac mini
   appartient au cockpit LinkedIn (`com.xavieradvisory.cockpit`, port 8766) ; ne jamais lancer `tailscale serve reset`. Le cockpit tourne sur le Mac quel que soit l'ordonnanceur choisi.
 
+## Parité avec l'ancien système (audit du 2 octobre 2026)
+
+Avant l'arrêt de l'ancien pipeline, Xavier a demandé que la v3 reprenne ses fonctions. Repris : copie des dossiers
+dans le Drive, doublons employeur + poste (rangés en Doublon au lieu d'être supprimés), file A traiter, ajout d'une
+offre trouvée ailleurs (cockpit), personnalisation CV + lettre (profil choisi sur mots entiers, règles d'écriture
+transmises en entier). Écarts voulus : pas de « Je postule » coché automatiquement, pas de dossier pour toute offre
+≥ 50, aucune suppression de ligne, plus de PDF dans GitHub. Détail : `docs/REFONTE-2026-10.md` § 2.7.
+
 ## Skills liés
 
 - `skills/postuler/SKILL.md` : en session Claude, « postule à cette offre » → `mp dossier --url …`.
@@ -94,7 +104,7 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
 
 ## État au 1er octobre 2026
 
-- v3 écrite et testée (46 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
+- v3 écrite et testée (67 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
   ordonnanceur à mettre en place selon `docs/REFONTE-2026-10.md` § 5.
 - Décisions de Xavier (1er octobre) : ordonnanceur GitHub Actions ; schéma créé automatiquement ; `candidatures/`
   supprimé ; n8n et agents launchd v2 arrêtés tout de suite (`deploy/decommission.sh`), VPS résilié après une

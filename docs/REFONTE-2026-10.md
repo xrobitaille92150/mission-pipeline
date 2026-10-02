@@ -60,7 +60,7 @@ exemplaires divergents : nœud n8n, module `service/lib`, prompt. Aucune n'étai
 
 ### 2.1 Principes
 
-- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 46 tests). Rien d'autre ne s'exécute.
+- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 67 tests). Rien d'autre ne s'exécute.
 - **Un ordonnanceur** : GitHub Actions (recommandé) ou launchd sur le Mac. Pas les deux.
 - **Une interface** : Airtable. Tout ce que Xavier fait se fait dans la vue « À décider » de la table Offres.
 - **Fichiers dans Airtable**, pas dans git : CV et lettre attachés à la ligne (PDF + DOCX éditable).
@@ -138,6 +138,33 @@ sur le Mac). Pas d'authentification applicative : c'est le réseau Tailscale qui
 
 ---
 
+### 2.7 Parité avec l'ancien système (audit du 2 octobre)
+
+Avant d'arrêter l'ancien pipeline, Xavier a demandé une comparaison fonction par fonction avec le code qui tourne
+sur le Mac (branche `main`, inchangée hors PDF : JOE, BOB, MATT, JACK, `apply_tool.py`). Les manques ont été comblés
+le même jour ; les écarts restants sont voulus.
+
+| Fonction | Ancien | v3 |
+|---|---|---|
+| Lecture des alertes | JOE via le pont n8n « Gmail Bridge » | IMAP direct (`mp ingest`) |
+| Fiche, mode, Easy Apply | JOE | `linkedin.fetch_jd` |
+| Notation | Haiku, « Note rôle » / « Note critères » | Opus, cinq sous-scores, Pourquoi, Red flags (écart voulu) |
+| Choix des dossiers | toute offre ≥ 50 | top 3 ≥ 60 par passage + coches de Xavier (écart voulu) |
+| « Je postule » automatique | coché sur Easy Apply ≥ 50 | jamais (écart voulu : décision de Xavier) |
+| CV + lettre | MATT : 3-6 retouches, faits durs, clauses géo | idem, CV complet fourni à Claude, profil choisi sur mots entiers, règles d'écriture en entier |
+| Copie dans le Drive | MATT, `10_Work/Candidatures/dossiers/<date>/` | même dossier par défaut sur le Mac ; rattrapage depuis Airtable par le cockpit (`mp drive-sync`) |
+| Dossier dans l'heure | JACK, toutes les heures | immédiat depuis le cockpit |
+| Offres écartées / anciennes | supprimées par JACK | gardées : Écartée, Expirée (écart voulu) |
+| Doublons employeur + poste | supprimés par JACK | rangés en « Doublon » (`mp dedup`, étape du run) ; une offre déjà décidée couvre ses réapparitions |
+| Suivi des réponses | BOB | `mp track`, même entonnoir |
+| Société non identifiée | BOB → table A traiter | idem (table A traiter, upsert par ID Email) |
+| Offre trouvée ailleurs | `apply_tool.py` (UI locale) | cockpit « ＋ Ajouter une offre » et `mp dossier` |
+| Email de fin de run | n8n « send digest » | SMTP direct |
+
+Deux interférences observées tant que les deux systèmes tournent ensemble : JACK supprime des lignes que la v3 garde,
+et les « Je postule » cochés automatiquement par l'ancien sont appliqués par la v3 (Postulée + Candidatures) au
+premier passage de `sync`. D'où l'arrêt de l'ancien dès la parité atteinte.
+
 ## 3. Décisions prises
 
 | Décision | Choix | Pourquoi |
@@ -159,7 +186,7 @@ sur le Mac). Pas d'authentification applicative : c'est le réseau Tailscale qui
 | Ordonnanceur | **GitHub Actions** | quatre secrets à saisir dans le dépôt ; automation Airtable pour le dossier dans la minute ; launchd reste disponible en secours |
 | Schéma Airtable | **création automatique** | champs créés le jour même via le connecteur Airtable (même liste que `mp airtable-setup --apply`) ; `mp doctor` doit afficher « schéma complet » |
 | `candidatures/` | **dossier supprimé** | 130 Mo retirés du dépôt courant ; les PDF restent dans l'historique git (réécriture possible plus tard) |
-| Ancien pipeline | **n8n et launchd v2 arrêtés maintenant, VPS après** | `deploy/decommission.sh` ; résiliation Hostinger après une semaine de v3 stable |
+| Ancien pipeline | **n8n et launchd v2 arrêtés maintenant, VPS après** ; précisé le 2 octobre : **manques comblés d'abord, pause ensuite** | `deploy/decommission.sh` (réversible) après l'audit de parité (§ 2.7) ; résiliation Hostinger après une semaine de v3 stable |
 | Emplacement du clone Mac | **hors Drive** : `~/Claude/Artifacts/mission-pipeline` | exception à la règle d'organisation du 15/07 ; un `.git` synchronisé par Drive Mirror se corrompt |
 | Actifs dans le dépôt | **CV de base et règles d'écriture versionnés** (choix technique, non soumis) | indispensable pour Actions ; `MP_CV_BASE_DIR` permet de pointer vers le Drive en launchd |
 
@@ -258,7 +285,7 @@ autres (septembre) sont scorées par lots de 80 par run (`--limit`). Pour forcer
 
 ## 7. Vérification
 
-- `python -m pytest` : 46 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI, config, cockpit).
+- `python -m pytest` : 67 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI, config, cockpit).
 - `mp doctor` : secrets, LibreOffice, CV de base, règles, schéma Airtable, Gmail, Claude.
 - `mp run --dry-run -v` : exécution complète sans écriture.
 - Logs : `out/logs/mp_YYYY-MM-DD.log` (Mac) ou artefact `logs-<run>` (Actions).

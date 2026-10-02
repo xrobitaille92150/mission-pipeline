@@ -40,7 +40,8 @@ réseau privé, et nulle part ailleurs. Sur l'iPhone, Safari → Partager → **
   **Préparer le dossier**, appliqués immédiatement (statut, ligne Candidatures, dossier en arrière-plan).
 - **Dossiers** : la lettre, à copier ou à faire réécrire par Claude sur une **consigne** (« plus court »,
   « insiste sur IFRS 17 ») ; valider régénère le PDF et le DOCX attachés dans Airtable.
-- **Postulées** et **Santé** (dernier run, compteurs, bouton ▶ Run).
+- **＋ Ajouter une offre** trouvée ailleurs : lien LinkedIn ou texte collé ; Claude la note puis prépare le dossier.
+- **Postulées** et **Santé** (dernier run, compteurs, copie Drive, bouton ▶ Run).
 
 Adresse : `https://<mac>.<tailnet>.ts.net:8443`. L'adresse sans port reste celle du cockpit LinkedIn.
 Installation (Mac + iPhone, 15 minutes) : [`deploy/tailscale/README.md`](deploy/tailscale/README.md).
@@ -68,8 +69,9 @@ mp run                         # run complet + digest par email
 
 | Commande | Rôle |
 |---|---|
-| `mp run [--days N] [--limit N] [--max-dossiers N] [--skip …] [--label matin]` | ingest → sync → score → dossiers → track → digest |
+| `mp run [--days N] [--limit N] [--max-dossiers N] [--skip …] [--label matin]` | ingest → dedup → sync → score → dossiers → track → digest |
 | `mp ingest` | lit les digests LinkedIn des N derniers jours (label Gmail `MissionPipeline` posé sur les emails traités) |
+| `mp dedup` | range en « Doublon » les offres même employeur + même poste (rien n'est supprimé) |
 | `mp sync` | applique `Je postule` / `J'écarte`, expire les offres silencieuses depuis 14 jours |
 | `mp score [--rescore]` | filtres durs puis un appel Claude par offre ; coche `Préparer dossier` sur le top du jour |
 | `mp dossiers` | CV + lettre pour les lignes cochées, attachés dans Airtable |
@@ -78,6 +80,7 @@ mp run                         # run complet + digest par email
 | `mp digest` | renvoie le digest du dernier run |
 | `mp airtable-setup [--apply]` | schéma Airtable |
 | `mp doctor [--offline]` | diagnostic |
+| `mp drive-sync [--days 14]` | copie dans le Drive du Mac les dossiers produits ailleurs (GitHub Actions) |
 | `mp app [--host 127.0.0.1] [--port 8765]` | cockpit mobile (serveur web local, exposé par Tailscale) |
 
 Options globales : `--dry-run` (n'écrit rien), `-v`.
@@ -115,7 +118,7 @@ mp/web/             cockpit mobile : index.html (vanilla JS), icon.png
 mp/prompts/         prompts versionnés : profile, scoring, bareme, cv_edits, cover_common/fr/en, tracking
 assets/cv_base/     CV_XRO_{EN,FR}_{FinanceTransformation,AssetManagement,IFRS17_SolvencyII}_v4.docx
 assets/writing_rules/   WRITING RULES.md, REGLES-ECRITURE-FR.md
-tests/              46 tests pytest (doubles Airtable / Claude en mémoire)
+tests/              67 tests pytest (doubles Airtable / Claude en mémoire)
 deploy/             launchd (Mac : pipeline + cockpit), Tailscale, automation Airtable
 skills/postuler/    skill Claude « prépare le dossier pour cette offre »
 docs/               REFONTE-2026-10.md
@@ -126,7 +129,7 @@ out/                sorties locales (dossiers, logs), ignorées par git
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest          # 46 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
+.venv/bin/python -m pytest          # 67 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
 ```
 
 ## Airtable

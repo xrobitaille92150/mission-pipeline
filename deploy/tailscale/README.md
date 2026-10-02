@@ -62,7 +62,8 @@ de la maison, ça marche aussi : Tailscale passe par la 4G/5G.
 | **À décider** | offres « À étudier » et « Dossier prêt », rang du jour puis score | ouvrir le détail, **Je postule**, **J'écarte**, **Préparer le dossier**, Annuler |
 | **Dossiers** | offres dont le dossier (CV + lettre) est prêt | lire / copier la lettre, donner une **consigne à Claude** (« plus court », « insiste sur IFRS 17 »), valider la réécriture → nouveaux PDF/DOCX attachés dans Airtable |
 | **Postulées** | candidatures envoyées, avec la réponse connue | ouvrir l'annonce, la ligne Airtable |
-| **Santé** | dernier run, compteurs, erreurs | **▶ Run** lance un run complet depuis le téléphone |
+| **＋** (en haut) | offre trouvée ailleurs que dans les alertes | coller un lien LinkedIn ou le texte de l'annonce : Claude la note puis prépare CV et lettre |
+| **Santé** | dernier run, compteurs, erreurs, copie Drive | **▶ Run** lance un run complet depuis le téléphone |
 
 « Je postule » et « J'écarte » sont appliqués tout de suite (statut, ligne Candidatures) : pas besoin
 d'attendre le run suivant. « Je postule » sur une offre sans dossier lance la préparation du dossier en
