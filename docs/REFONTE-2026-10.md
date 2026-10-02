@@ -221,7 +221,11 @@ puis `tailscale serve --bg --https=8443 8765` (le port 8443 laisse l'adresse san
 zsh deploy/decommission.sh      # désactive les workflows n8n actifs (API, clé dans n8n.env) + agents launchd v2
 ```
 
-Puis, après une semaine de v3 stable : résilier le VPS Hostinger.
+Le script ne désactive que les workflows n8n de l'ancien pipeline (les deux « Gmail Bridge ») et les agents
+launchd v2 (`missionrun` 06:15/18:15, `jack` toutes les heures, qui supprimait des lignes d'Offres, `applytool`,
+qui occupait le port 8765 du cockpit). `--liste` montre ce qui serait arrêté sans rien toucher.
+Puis, après une semaine de v3 stable : résilier le VPS Hostinger, **seulement si** les autres workflows qu'il
+héberge (huit automatisations hors pipeline au 2 octobre) ne servent plus.
 
 ### 5.5 Rattrapage des 392 offres jamais scorées
 

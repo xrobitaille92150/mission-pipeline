@@ -1,8 +1,10 @@
 #!/bin/zsh
 # Arrête l'ancien pipeline (décision du 1er octobre 2026) :
-#   1. désactive tous les workflows n8n encore actifs sur le VPS (ingestion 04:15 / 16:15 UTC comprise)
+#   1. désactive les workflows n8n de l'ancien pipeline (noms « Gmail Bridge », « Veille », « Mission »,
+#      « Candidature », « Dossier », « LinkedIn ») ; les autres workflows du VPS restent actifs
 #   2. retire les agents launchd v2 du Mac (com.xrobitaille.dossiers, purge horaire JACK, …)
-# Le VPS Hostinger lui-même se résilie à la main, après une semaine de v3 stable.
+# Le VPS Hostinger se résilie à la main, après une semaine de v3 stable, et seulement si les autres
+# workflows qu'il héberge (automatisations hors pipeline, laissées actives) ne servent plus.
 #   zsh deploy/decommission.sh            # arrête
 #   zsh deploy/decommission.sh --liste    # montre ce qui serait arrêté, sans rien toucher
 # Ne touche jamais aux services v3 (com.xrobitaille.mp, com.xrobitaille.mp-app) ni au cockpit LinkedIn
@@ -37,12 +39,17 @@ try:
     d = json.loads(sys.stdin.read(), strict=False)
 except ValueError as e:
     sys.exit(f"réponse n8n illisible : {e}")
+import re
+# Seuls les workflows de l ancien pipeline sont visés ; le VPS héberge aussi d autres automatisations.
+PIPELINE = re.compile(r"gmail bridge|veille|mission|candidat|dossier|linkedin", re.I)
 for w in d.get("data", []):
-    print(w["id"], w.get("name", ""))
+    name = w.get("name", "").replace("\t", " ")
+    print("P" if PIPELINE.search(name) else "A", w["id"], name, sep="\t")
 ')" || { echo "  → lecture impossible : désactiver les workflows à la main dans l'interface n8n."; LISTE_WF=""; }
       [ -z "$LISTE_WF" ] && echo "  aucun workflow actif (ou liste illisible, voir ci-dessus)"
-      printf '%s\n' "$LISTE_WF" | while read -r id name; do
+      printf '%s\n' "$LISTE_WF" | while IFS=$'\t' read -r cible id name; do
         [ -z "$id" ] && continue
+        if [ "$cible" != "P" ]; then echo "  laissé actif (hors pipeline) : $id  ($name)"; continue; fi
         if [ "$LISTE" = 1 ]; then echo "  serait désactivé : $id  ($name)"; continue; fi
         echo "  désactive $id  ($name)"
         curl -sS -m 30 -o /dev/null -w "    HTTP %{http_code}\n" -X POST \
@@ -67,4 +74,5 @@ for plist in "$HOME"/Library/LaunchAgents/*xrobitaille*.plist(N); do
   mv "$plist" "$plist.disabled"
   echo "  $label arrêté → $base.disabled"
 done
-echo "Terminé. Reste à faire à la main : résilier le VPS Hostinger après une semaine de v3 stable."
+echo "Terminé. Le VPS Hostinger héberge aussi les workflows n8n « laissés actifs » ci-dessus :"
+echo "le résilier les arrêterait. Décider de leur sort avant de le résilier."
