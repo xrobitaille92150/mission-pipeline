@@ -20,6 +20,26 @@ def test_select_profile_tree():
     assert cvmod.select_profile("Chef de projet", hint="n'importe quoi") == "FinanceTransformation"
 
 
+def test_select_profile_whole_words_only():
+    # Faux positifs de l'ancien MATT (sous-chaînes) : ABOR dans « collaboration », OMS dans « telecoms »,
+    # ECL dans « declaration », PAA dans « paas ».
+    ft = "FinanceTransformation"
+    assert cvmod.select_profile("Transformation finance, forte collaboration avec les métiers") == ft
+    assert cvmod.select_profile("Program manager, elaborate the roadmap for a telecoms client") == ft
+    assert cvmod.select_profile("Tax declaration process redesign on a PaaS platform") == ft
+    assert cvmod.select_profile("Implémentation d'un OMS pour une société de gestion") == "AssetManagement"
+    assert cvmod.select_profile("ABOR / IBOR reconciliation") == "AssetManagement"
+    assert cvmod.select_profile("Expected credit loss (ECL) model") == "IFRS17SolvencyII"
+    assert cvmod.select_profile("Reporting prudentiel et provisions techniques") == "IFRS17SolvencyII"
+
+
+def test_select_profile_hint_arbitrates_when_both_families_match():
+    both = "IFRS 17 programme on a SimCorp platform"
+    assert cvmod.select_profile(both) == "AssetManagement"                       # ordre du skill
+    assert cvmod.select_profile(both, hint="IFRS17SolvencyII") == "IFRS17SolvencyII"
+    assert cvmod.select_profile("SimCorp migration", hint="IFRS17SolvencyII") == "AssetManagement"
+
+
 def _make_cv(path: Path) -> Path:
     doc = Document()
     doc.add_paragraph("XAVIER ROBITAILLE")
@@ -103,6 +123,17 @@ def test_write_letter_retries_when_too_short():
     assert "hors fourchette" in claude.prompts[1]["user"]
     assert isinstance(letter, Letter) and letter.objections == ["TJM — à cadrer"]
     assert claude.prompts[0]["system"][3] == "règles"
+
+
+def test_writing_rules_sent_in_full():
+    # L'ancien MATT chargeait les règles d'écriture en entier ; la v3 les tronquait à 16 000 caractères.
+    rules = "Règle. " * 5000                      # ≈ 35 000 caractères, plus long que les vrais fichiers
+    claude = FakeClaude([{"lettre": " ".join(["mot"] * 230), "objections": []}])
+    lettermod.write_letter(claude, lang="FR", title="PMO", employer="AXA", location="Paris", jd_text="",
+                           profile_md="p", writing_rules=rules)
+    assert claude.prompts[0]["system"][3] == rules
+    real = lettermod.load_writing_rules(Path(__file__).parents[1] / "assets" / "writing_rules", "FR")
+    assert len(real) > 16000                      # le fichier réel dépasse l'ancienne coupure
 
 
 def test_letter_docx_and_pdf(tmp_path):

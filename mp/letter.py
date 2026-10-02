@@ -83,7 +83,7 @@ def write_letter(claude: Claude, *, lang: str, title: str, employer: str, locati
                  profile_md: str, writing_rules: str, gaps: list[str] | None = None) -> Letter:
     lang = "FR" if lang == "FR" else "EN"
     system = [prompt("cover_common"), prompt("cover_fr" if lang == "FR" else "cover_en"),
-              profile_md, (writing_rules[:16000] if writing_rules else "")]
+              profile_md, (writing_rules or "")]
     clauses = geo_clauses(location, jd_text, title)
     extra = ""
     if clauses:
@@ -115,7 +115,7 @@ def rewrite_letter(claude: Claude, *, lang: str, text: str, consigne: str, title
     """Réécrit une lettre existante selon une consigne de Xavier, mêmes garde-fous que la rédaction."""
     lang = "FR" if lang == "FR" else "EN"
     system = [prompt("cover_common"), prompt("cover_fr" if lang == "FR" else "cover_en"),
-              profile_md, (writing_rules[:16000] if writing_rules else "")]
+              profile_md, (writing_rules or "")]
     lo, hi = WORDS[lang]
     user = (f"OFFRE\nEmployeur : {employer}\nPoste : {title}\nLieu : {location or 'n.c.'}\n\n"
             f"LETTRE ACTUELLE :\n{text}\n\n"

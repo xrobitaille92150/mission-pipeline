@@ -40,13 +40,26 @@ IFRS_KW = ["ifrs 17", "ifrs17", "ifrs 9", "ifrs9", "solvency ii", "solvency 2", 
            "reporting prudentiel", "regulatory reporting", "pillar 3", "pilier 3", "rsr", "sfcr"]
 
 
+def _kw_regex(words: list[str]) -> re.Pattern:
+    # Mots entiers seulement : « abor » (ABOR) ne doit pas matcher « collaboration », ni « ecl » (ECL)
+    # « declaration », ni « oms » (OMS) « telecoms ». \w couvre les lettres accentuées.
+    return re.compile(r"(?<!\w)(?:" + "|".join(re.escape(w) for w in words) + r")(?!\w)")
+
+
+AM_RE, IFRS_RE = _kw_regex(AM_KW), _kw_regex(IFRS_KW)
+
+
 def select_profile(text: str, hint: str | None = None) -> str:
-    """Profil CV : règle déterministe du skill cv-tailoring ; `hint` (avis de Claude au scoring)
-    ne tranche que si aucun mot-clé ne matche."""
+    """Profil CV : règle déterministe du skill cv-tailoring (mots entiers, AM avant IFRS).
+    `hint` (avis de Claude au scoring) tranche quand les deux familles de mots-clés sont présentes,
+    ou quand aucune ne l'est."""
     t = (text or "").lower()
-    if any(k in t for k in AM_KW):
+    am, ifrs = bool(AM_RE.search(t)), bool(IFRS_RE.search(t))
+    if am and ifrs and hint in ("AssetManagement", "IFRS17SolvencyII"):
+        return hint
+    if am:
         return "AssetManagement"
-    if any(k in t for k in IFRS_KW):
+    if ifrs:
         return "IFRS17SolvencyII"
     if hint in PROFILES:
         return hint
