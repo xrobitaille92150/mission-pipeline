@@ -148,3 +148,10 @@ def test_run_and_sante(monkeypatch):
     s = c.get("/api/sante").json()
     assert s["version"] and s["run_en_cours"] is False
     assert set(s["compteurs"]) == {"decider", "dossiers", "postulees_7j", "erreurs", "nouvelles_24h"}
+    assert "dossier" in s["drive"]
+
+
+def test_cli_drive_sync_parser():
+    from mp.cli import build_parser
+    a = build_parser().parse_args(["drive-sync", "--days", "30"])
+    assert a.days == 30 and a.fn.__name__ == "cmd_drive_sync"

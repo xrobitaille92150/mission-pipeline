@@ -121,6 +121,7 @@ class Jobs:
 
 
 JOBS = Jobs()
+DRIVE_STATE: dict[str, Any] = {}          # dernière synchro Drive (affichée dans Santé)
 
 
 # ---------------------------------------------------------------------------
@@ -155,6 +156,15 @@ def _letter_files(ctx: Context, rec: dict, text: str) -> str:
     lettermod.letter_docx(text, docx, employer=f.get("Employeur", ""), title=f.get("Poste", ""), lang=lang)
     pdf = docx_to_pdf(docx, out_dir)
     ctx.at.replace_attachments(ctx.offres, rec["id"], F_LETTER_FILES, [pdf, docx])
+    if ctx.s.drive_dossiers_dir:                  # même rangement que les dossiers : <Drive>/<date du jour>/
+        import shutil
+        try:
+            dest = ctx.s.drive_dossiers_dir / date.today().isoformat()
+            dest.mkdir(parents=True, exist_ok=True)
+            for p in (docx, pdf):
+                shutil.copy2(p, dest / p.name)
+        except OSError as e:
+            log.warning("copie Drive de la lettre KO (non bloquant) : %s", e)
     return "lettre : PDF et DOCX régénérés"
 
 
@@ -338,11 +348,28 @@ def create_app(ctx: Context | None = None) -> FastAPI:
                 counts[key] = None
                 log.warning("santé %s : %s", key, e)
         return {"version": __version__, "dernier_run": last, "run_en_cours": JOBS.running("run"), "compteurs": counts,
-                "modele": s.model_main}
+                "modele": s.model_main, "drive": DRIVE_STATE or {"dossier": str(s.drive_dossiers_dir or "")}}
 
     return app
 
 
+def drive_loop(interval: int = 1800) -> None:
+    """Toutes les 30 minutes : rattrape dans le Drive les dossiers produits ailleurs (GitHub Actions)."""
+    import time
+
+    from mp import drive
+    while True:
+        try:
+            stats = drive.sync(Context())
+            DRIVE_STATE.clear()
+            DRIVE_STATE.update(stats, quand=datetime.now().isoformat(timespec="minutes"))
+        except Exception as e:  # noqa: BLE001 — la boucle ne doit jamais mourir
+            log.warning("synchro Drive KO : %s", e)
+            DRIVE_STATE.update(erreur=str(e)[:200], quand=datetime.now().isoformat(timespec="minutes"))
+        time.sleep(interval)
+
+
 def serve(host: str = "127.0.0.1", port: int = 8765) -> None:
     import uvicorn
+    threading.Thread(target=drive_loop, name="drive-sync", daemon=True).start()
     uvicorn.run(create_app(), host=host, port=port, log_level="info")

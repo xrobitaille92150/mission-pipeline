@@ -127,10 +127,23 @@ class Settings:
         return missing
 
 
+# Miroir Drive du Mac (règle d'organisation de Xavier : les livrables vivent sous 10_Work/). L'ancien MATT y
+# copiait chaque dossier ; la v3 fait de même par défaut, dès que le dossier Candidatures existe sur la machine.
+DRIVE_DEFAULT = Path.home() / "Mon Drive" / "XavierAdvisory" / "10_Work" / "Candidatures" / "dossiers"
+
+
+def _drive_dir() -> Path | None:
+    raw = os.environ.get("MP_DRIVE_DOSSIERS_DIR")
+    if raw is not None and raw.strip().lower() in ("", "off", "non", "0", "false"):
+        return None                                  # désactivé explicitement
+    if raw:
+        return Path(raw).expanduser()
+    return DRIVE_DEFAULT if DRIVE_DEFAULT.parent.is_dir() else None   # jamais de dossier créé hors structure
+
+
 @lru_cache(maxsize=1)
 def settings() -> Settings:
     load_env_files()
-    drive = env("MP_DRIVE_DOSSIERS_DIR")
     return Settings(
         anthropic_api_key=env("ANTHROPIC_API_KEY"),
         airtable_pat=env("AIRTABLE_PAT"),
@@ -148,7 +161,7 @@ def settings() -> Settings:
         cv_base_dir=_path("MP_CV_BASE_DIR", REPO / "assets" / "cv_base"),
         writing_rules_dir=_path("MP_WRITING_RULES_DIR", REPO / "assets" / "writing_rules"),
         out_dir=_path("MP_OUT_DIR", REPO / "out"),
-        drive_dossiers_dir=Path(drive).expanduser() if drive else None,
+        drive_dossiers_dir=_drive_dir(),
         profile_file=_path("MP_PROFILE_FILE", REPO / "mp" / "prompts" / "profile.md"),
         airtable_base=env("MP_AIRTABLE_BASE", AIRTABLE_BASE) or AIRTABLE_BASE,
         t_offres=env("MP_T_OFFRES", T_OFFRES) or T_OFFRES,

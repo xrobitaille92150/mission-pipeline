@@ -151,8 +151,16 @@ async function loadSante(){
       <div class="kpi"><b>${c.nouvelles_24h??'–'}</b><span>nouvelles offres sur 24 h</span></div>
       <div class="kpi"><b>${c.erreurs??'–'}</b><span>offres en erreur</span></div>
       <div class="kpi"><b style="font-size:15px">${esc(s.dernier_run||'jamais')}</b><span>dernier run ${s.run_en_cours?'(en cours)':''}</span></div>
-    </div><p class="status" style="margin:14px 0">mp ${esc(s.version)} · modèle ${esc(s.modele)}</p>`;
+    </div><p class="status" style="margin:14px 0">mp ${esc(s.version)} · modèle ${esc(s.modele)}</p>
+    <p class="status">${driveLine(s.drive||{})}</p>`;
   }catch(e){list.innerHTML=`<div class="empty">${esc(e.message)}</div>`;}
+}
+
+function driveLine(d){
+  if(!d.dossier) return 'Copie Drive : aucun dossier Drive sur ce Mac';
+  if(d.erreur) return `Copie Drive : erreur à ${esc(d.quand||'')} (${esc(d.erreur)})`;
+  if(!d.quand) return 'Copie Drive : première synchronisation en cours';
+  return `Copie Drive à ${esc(d.quand)} : ${d.copies} fichier(s) copié(s), ${d.deja} déjà présent(s)` + (d.erreurs?`, ${d.erreurs} en erreur`:'');
 }
 
 function detailHtml(o){

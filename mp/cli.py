@@ -10,6 +10,7 @@
   mp digest              envoie le digest du dernier run (ou --force)
   mp airtable-setup      vérifie / crée les champs Airtable (--apply)
   mp doctor              vérifie secrets, LibreOffice, CV de base, Airtable, Gmail
+  mp drive-sync          copie dans le Drive du Mac les dossiers produits ailleurs (GitHub Actions)
   mp app                 cockpit mobile : serveur web local (127.0.0.1:8765), exposé à l'iPhone via Tailscale
 """
 from __future__ import annotations
@@ -266,6 +267,13 @@ def cmd_doctor(args) -> int:
 # ---------------------------------------------------------------------------
 
 
+def cmd_drive_sync(args) -> int:
+    from mp import drive
+    stats = drive.sync(_ctx(args), days=args.days)
+    print(f"copie Drive : {stats}")
+    return 1 if stats.get("erreurs") else 0
+
+
 def cmd_app(args) -> int:
     from mp.app import serve
     log.info("cockpit : http://%s:%d (exposer avec `tailscale serve --bg --https=8443 %d`)", args.host, args.port, args.port)
@@ -332,6 +340,10 @@ def build_parser() -> argparse.ArgumentParser:
     dr = sub.add_parser("doctor", parents=[common])
     dr.add_argument("--offline", action="store_true", help="ne teste ni Gmail ni Claude")
     dr.set_defaults(fn=cmd_doctor)
+
+    ds = sub.add_parser("drive-sync", help="copie les dossiers récents dans le Drive du Mac", parents=[common])
+    ds.add_argument("--days", type=int, default=14)
+    ds.set_defaults(fn=cmd_drive_sync)
 
     ap = sub.add_parser("app", help="cockpit mobile (serveur web local)", parents=[common])
     ap.add_argument("--host", default="127.0.0.1", help="laisser 127.0.0.1 : Tailscale fait le pont")

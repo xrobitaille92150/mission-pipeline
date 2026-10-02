@@ -94,7 +94,7 @@ Options globales : `--dry-run` (n'écrit rien), `-v`.
 | `MP_LABEL_DONE` | `MissionPipeline` | label Gmail des emails traités |
 | `MP_CV_BASE_DIR` | `assets/cv_base` | 6 CV de base (3 profils × FR/EN) |
 | `MP_WRITING_RULES_DIR` | `assets/writing_rules` | règles d'écriture FR / EN |
-| `MP_DRIVE_DOSSIERS_DIR` | (vide) | copie des dossiers vers le miroir Drive, si renseigné |
+| `MP_DRIVE_DOSSIERS_DIR` | `~/Mon Drive/XavierAdvisory/10_Work/Candidatures/dossiers` si Candidatures existe | copie des dossiers (PDF + DOCX) dans le Drive, comme l'ancien MATT ; `off` pour couper. Le cockpit rattrape toutes les 30 min les dossiers produits ailleurs (`mp drive-sync`) |
 
 ## Ordonnancement
 
