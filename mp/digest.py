@@ -28,9 +28,10 @@ def render(report: RunReport, label: str = "") -> tuple[str, str, str]:
         lines.append("DOSSIERS PRÊTS (CV + lettre dans Airtable) :")
         h.append("<h3>Dossiers prêts</h3><ul>")
         for d in report.dossiers:
-            lines.append(f"  • {d['employer']} — {d['title']} [{d['profile']} / {d['lang']}] → {d['airtable']}")
+            how = "skills" if d.get("engine") == "claude-code" else "API"
+            lines.append(f"  • {d['employer']} — {d['title']} [{d['profile']} / {d['lang']} / {how}] → {d['airtable']}")
             h.append(f"<li><b>{_esc(d['employer'])}</b> — {_esc(d['title'])} "
-                     f"<small>({_esc(d['profile'])}, {_esc(d['lang'])})</small> · "
+                     f"<small>({_esc(d['profile'])}, {_esc(d['lang'])}, {how})</small> · "
                      f"<a href='{_esc(d['airtable'])}'>Airtable</a> · <a href='{_esc(d['url'])}'>LinkedIn</a></li>")
         h.append("</ul>")
         lines.append("")

@@ -252,6 +252,25 @@ def cmd_doctor(args) -> int:
             elif "404" in msg or "not_found" in msg:
                 msg = f"modèle {s.model_main} introuvable pour cette clé : vérifier MP_MODEL_MAIN"
             check("Claude", False, msg[:200])
+    # Claude Code : CV et lettres rédigés avec les skills du compte, sur l'abonnement (option « Mixte »)
+    from mp import claude_code
+    eng = claude_code.engine()
+    exe = claude_code.binary()
+    if eng == "claude-code":
+        check("Claude Code (dossiers)", True, exe or "")
+        auth = claude_code.auth_status()
+        method = auth.get("authMethod", "inconnu")
+        check("    connexion abonnement", method == "claude.ai",
+              "claude.ai" if method == "claude.ai" else
+              f"{method} : ouvrir un terminal, taper `claude`, puis /login avec le compte claude.ai")
+        skills = claude_code.synced_skills()
+        missing_sk = [x for x in claude_code.SKILLS if x not in skills]
+        check("    skills du compte", not missing_sk,
+              ", ".join(skills) if not missing_sk else
+              f"absentes : {', '.join(missing_sk)} (lancer `claude` une fois, connecté, pour les synchroniser)")
+    else:
+        print(f"  [--] Claude Code : non utilisé ({'MP_DOSSIER_ENGINE=api' if exe else 'commande claude absente'}) ;"
+              " dossiers rédigés par l'API avec les prompts du dépôt")
     print("\nTout est prêt." if ok else "\nCorriger les points KO avant de lancer `mp run`.")
     return 0 if ok else 1
 

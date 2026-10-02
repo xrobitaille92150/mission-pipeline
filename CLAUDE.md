@@ -21,6 +21,7 @@ Lire d'abord : `README.md` (usage) puis `docs/REFONTE-2026-10.md` (pourquoi, dé
 | `mp/claude.py` | SDK `anthropic` : sorties JSON (schema), cache de prompt, repli serveur, comptage d'usage | double `FakeClaude` |
 | `mp/scoring.py` | filtres durs (langue, junior, géo), `score_offer`, `rank_for_dossiers` | `test_scoring` |
 | `mp/cv.py` | choix du profil, retouches python-docx run par run, garde-fous | `test_cv_and_letter` |
+| `mp/claude_code.py` | `claude -p` en mode headless : dossier (retouches CV + lettre) et réécriture rédigés avec les skills du compte (`cv-tailoring`, `cover-letter`, `voix-xavier`) sur l'abonnement ; repli API | `test_claude_code` |
 | `mp/letter.py` | lettre (HARD FACTS, fourchettes de mots, clauses géo), `rewrite_letter` sur consigne, DOCX à en-tête | `test_cv_and_letter`, `test_app` |
 | `mp/pdf.py` | LibreOffice headless | `test_cv_and_letter` (sauté sans soffice) |
 | `mp/dossier.py` | `build_dossier` : fiche → profil → CV → lettre → PDF → Drive | — (intégration) |
@@ -80,10 +81,13 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
 
 ## Déploiement
 
-- GitHub Actions : `.github/workflows/pipeline.yml` (06:30 / 18:30 Paris, `workflow_dispatch`, `repository_dispatch` type
-  `dossier` depuis l'automation Airtable `deploy/airtable/automation_dossier.js`).
-- launchd : `deploy/launchd/install.sh` (même horaire, logs dans `out/logs/`).
-- Un seul des deux à la fois.
+- **launchd sur le Mac** (décision du 2 octobre, option « Mixte ») : `deploy/launchd/install.sh` (06:30 / 18:30, logs
+  dans `out/logs/`). CV et lettres par Claude Code (`claude -p`, abonnement, skills du compte synchronisées dans
+  `~/.claude/skills/synced/`), scoring et tri des emails par l'API. `mp doctor` vérifie `claude`, la connexion claude.ai
+  et les trois skills. Les tests forcent `MP_DOSSIER_ENGINE=api` : ne jamais appeler un vrai `claude` dans un test.
+- GitHub Actions : `.github/workflows/pipeline.yml`, lancement manuel seulement (secours), dossiers par l'API.
+  L'automation Airtable `deploy/airtable/automation_dossier.js` (repository_dispatch) n'est plus utilisée : le
+  cockpit prépare les dossiers à la demande.
 - Cockpit : `deploy/launchd/install-app.sh` (service `com.xrobitaille.mp-app`, KeepAlive) + `tailscale serve --bg --https=8443 8765`
   (`deploy/tailscale/README.md`). **Toujours `--https=8443`** : l'adresse sans port (HTTPS 443) du Mac mini
   appartient au cockpit LinkedIn (`com.xavieradvisory.cockpit`, port 8766) ; ne jamais lancer `tailscale serve reset`. Le cockpit tourne sur le Mac quel que soit l'ordonnanceur choisi.
@@ -99,12 +103,13 @@ transmises en entier). Écarts voulus : pas de « Je postule » coché automatiq
 ## Skills liés
 
 - `skills/postuler/SKILL.md` : en session Claude, « postule à cette offre » → `mp dossier --url …`.
-- Skills du compte (`cv-tailoring`, `cover-letter`, `voix-xavier`) : leur contenu validé est repris dans `mp/prompts/` ;
-  en cas d'évolution d'un skill, répercuter dans le prompt correspondant et committer.
+- Skills du compte (`cv-tailoring`, `cover-letter`, `voix-xavier`) : sur le Mac, Claude Code les charge directement
+  (`mp/claude_code.py`) : une évolution d'un skill s'applique aux dossiers sans toucher au dépôt. `mp/prompts/`
+  (cv_edits, cover_*) ne sert plus qu'au repli API : y répercuter les changements importants des skills.
 
 ## État au 1er octobre 2026
 
-- v3 écrite et testée (67 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
+- v3 écrite et testée (75 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
   ordonnanceur à mettre en place selon `docs/REFONTE-2026-10.md` § 5.
 - Décisions de Xavier (1er octobre) : ordonnanceur GitHub Actions ; schéma créé automatiquement ; `candidatures/`
   supprimé ; n8n et agents launchd v2 arrêtés tout de suite (`deploy/decommission.sh`), VPS résilié après une

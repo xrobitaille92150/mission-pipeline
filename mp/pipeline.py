@@ -301,10 +301,11 @@ def make_dossier(ctx: Context, rec: dict) -> dict | None:
             "record": rec["id"], "title": res.title, "employer": res.employer, "lang": res.lang,
             "profile": res.profile, "cv": str(res.cv_pdf), "letter": str(res.letter_pdf),
             "url": f.get("URL", ""), "airtable": record_url(ctx.s.airtable_base, ctx.offres, rec["id"]),
-            "edits": res.edits_applied, "gaps": res.gaps,
+            "edits": res.edits_applied, "gaps": res.gaps, "engine": res.engine,
         }
         ctx.report.dossiers.append(item)
-        log.info("  dossier OK : %s — %s (%s, %s)", res.employer, res.title[:50], res.profile, res.lang)
+        log.info("  dossier OK : %s — %s (%s, %s, %s)", res.employer, res.title[:50], res.profile, res.lang,
+                 "skills" if res.engine == "claude-code" else "API")
         return item
     except Exception as e:  # noqa: BLE001
         msg = f"{f.get('Employeur', '?')} — {f.get('Poste', '?')[:50]} : {e}"

@@ -97,14 +97,18 @@ Options globales : `--dry-run` (n'écrit rien), `-v`.
 | `MP_LABEL_DONE` | `MissionPipeline` | label Gmail des emails traités |
 | `MP_CV_BASE_DIR` | `assets/cv_base` | 6 CV de base (3 profils × FR/EN) |
 | `MP_WRITING_RULES_DIR` | `assets/writing_rules` | règles d'écriture FR / EN |
+| `MP_DOSSIER_ENGINE` | `auto` | `auto` : Claude Code + skills si la commande `claude` est installée (hors GitHub Actions), sinon l'API ; `claude-code` ou `api` pour forcer |
+| `MP_CLAUDE_BIN` / `MP_CLAUDE_CODE_MODEL` | (détectés) | chemin de `claude` si launchd ne le trouve pas ; modèle de Claude Code (défaut : celui du compte) |
 | `MP_DRIVE_DOSSIERS_DIR` | `~/Mon Drive/XavierAdvisory/10_Work/Candidatures/dossiers` si Candidatures existe | copie des dossiers (PDF + DOCX) dans le Drive, comme l'ancien MATT ; `off` pour couper. Le cockpit rattrape toutes les 30 min les dossiers produits ailleurs (`mp drive-sync`) |
 
 ## Ordonnancement
 
-- **GitHub Actions** (recommandé) : [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml),
-  06:30 et 18:30 (Paris, été), lancement manuel, et `repository_dispatch` depuis l'automation Airtable pour
-  un dossier dans la minute ([`deploy/airtable/`](deploy/airtable/README.md)).
-- **launchd** (Mac) : `zsh deploy/launchd/install.sh`, mêmes horaires.
+- **launchd sur le Mac** (choix du 2 octobre, option « Mixte ») : `zsh deploy/launchd/install.sh`, 06:30 et 18:30.
+  CV et lettres y sont rédigés par **Claude Code** (`claude -p`) avec les skills du compte claude.ai
+  (`cv-tailoring`, `cover-letter`, `voix-xavier`) sur l'abonnement ; scoring et tri des emails restent sur l'API.
+  Si Claude Code échoue (quota, déconnexion), le dossier est rédigé par l'API et le digest le signale.
+- **GitHub Actions** : lancement manuel seulement, en secours si le Mac est éteint
+  ([`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml)) ; dossiers rédigés par l'API.
 - **Cockpit** (Mac, service permanent) : `zsh deploy/launchd/install-app.sh` puis `tailscale serve --bg --https=8443 8765`
   ([`deploy/tailscale/README.md`](deploy/tailscale/README.md)).
 - **Pause de l'ancien pipeline** (workflows n8n « Gmail Bridge » + agents launchd v2) : `zsh deploy/decommission.sh`
@@ -119,7 +123,7 @@ mp/web/             cockpit mobile : index.html (vanilla JS), icon.png
 mp/prompts/         prompts versionnés : profile, scoring, bareme, cv_edits, cover_common/fr/en, tracking
 assets/cv_base/     CV_XRO_{EN,FR}_{FinanceTransformation,AssetManagement,IFRS17_SolvencyII}_v4.docx
 assets/writing_rules/   WRITING RULES.md, REGLES-ECRITURE-FR.md
-tests/              67 tests pytest (doubles Airtable / Claude en mémoire)
+tests/              75 tests pytest (doubles Airtable / Claude en mémoire)
 deploy/             launchd (Mac : pipeline + cockpit), Tailscale, automation Airtable
 skills/postuler/    skill Claude « prépare le dossier pour cette offre »
 docs/               REFONTE-2026-10.md
@@ -130,7 +134,7 @@ out/                sorties locales (dossiers, logs), ignorées par git
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest          # 67 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
+.venv/bin/python -m pytest          # 75 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
 ```
 
 ## Airtable

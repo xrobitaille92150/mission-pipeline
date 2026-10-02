@@ -60,7 +60,7 @@ exemplaires divergents : nœud n8n, module `service/lib`, prompt. Aucune n'étai
 
 ### 2.1 Principes
 
-- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 67 tests). Rien d'autre ne s'exécute.
+- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 75 tests). Rien d'autre ne s'exécute.
 - **Un ordonnanceur** : GitHub Actions (recommandé) ou launchd sur le Mac. Pas les deux.
 - **Une interface** : Airtable. Tout ce que Xavier fait se fait dans la vue « À décider » de la table Offres.
 - **Fichiers dans Airtable**, pas dans git : CV et lettre attachés à la ligne (PDF + DOCX éditable).
@@ -183,7 +183,7 @@ premier passage de `sync`. D'où l'arrêt de l'ancien dès la parité atteinte.
 
 | Question | Décision | Conséquence |
 |---|---|---|
-| Ordonnanceur | **GitHub Actions** | quatre secrets à saisir dans le dépôt ; automation Airtable pour le dossier dans la minute ; launchd reste disponible en secours |
+| Ordonnanceur | **GitHub Actions** ; **remplacé le 2 octobre par launchd sur le Mac** (option « Mixte » : CV et lettres par Claude Code avec les skills du compte, sur l'abonnement ; scoring et tri des emails sur l'API) | quatre secrets à saisir dans le dépôt ; automation Airtable pour le dossier dans la minute ; launchd reste disponible en secours |
 | Schéma Airtable | **création automatique** | champs créés le jour même via le connecteur Airtable (même liste que `mp airtable-setup --apply`) ; `mp doctor` doit afficher « schéma complet » |
 | `candidatures/` | **dossier supprimé** | 130 Mo retirés du dépôt courant ; les PDF restent dans l'historique git (réécriture possible plus tard) |
 | Ancien pipeline | **n8n et launchd v2 arrêtés maintenant, VPS après** ; précisé le 2 octobre : **manques comblés d'abord, pause ensuite** | `deploy/decommission.sh` (réversible) après l'audit de parité (§ 2.7) ; résiliation Hostinger après une semaine de v3 stable |
@@ -231,12 +231,14 @@ Créer les vues « À décider », « Dossiers prêts », « Postulées », « E
 
 ### 5.3 Ordonnanceur
 
-**GitHub Actions** : Settings → Secrets and variables → Actions → ajouter `ANTHROPIC_API_KEY`,
-`AIRTABLE_PAT`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`. Le workflow `.github/workflows/pipeline.yml` tourne
-à 06:30 et 18:30 (heure de Paris en été). Lancer un premier run depuis l'onglet Actions (*Run workflow*).
-Puis, pour les dossiers « dans la minute », l'automation Airtable (`deploy/airtable/`).
+**launchd sur le Mac** (décision du 2 octobre) : `zsh deploy/launchd/install.sh` (06:30 / 18:30, logs dans `out/logs/`).
+Prérequis pour les dossiers par Claude Code : la commande `claude` installée et connectée au compte claude.ai
+(`claude`, puis `/login`) ; `mp doctor` vérifie la connexion et la présence des skills `cv-tailoring`, `cover-letter`,
+`voix-xavier`. Documentation : https://code.claude.com/docs/en/headless.md et https://code.claude.com/docs/en/skills.md.
 
-**launchd** : `zsh deploy/launchd/install.sh` (06:30 / 18:30, logs dans `out/logs/`).
+**GitHub Actions** : lancement manuel seulement, en secours (Settings → Secrets : `ANTHROPIC_API_KEY`, `AIRTABLE_PAT`,
+`GMAIL_USER`, `GMAIL_APP_PASSWORD`). L'automation Airtable (`deploy/airtable/`) n'est plus nécessaire : le cockpit
+prépare un dossier à la demande.
 
 **Cockpit iPhone** (indépendant de l'ordonnanceur, tourne sur le Mac) : `zsh deploy/launchd/install-app.sh`
 puis `tailscale serve --bg --https=8443 8765` (le port 8443 laisse l'adresse sans port au cockpit LinkedIn) ; sur l'iPhone, Tailscale + Safari → Sur l'écran d'accueil. Pas à pas :
@@ -289,7 +291,7 @@ autres (septembre) sont scorées par lots de 80 par run (`--limit`). Pour forcer
 
 ## 7. Vérification
 
-- `python -m pytest` : 67 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI, config, cockpit).
+- `python -m pytest` : 75 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI, config, cockpit).
 - `mp doctor` : secrets, LibreOffice, CV de base, règles, schéma Airtable, Gmail, Claude.
 - `mp run --dry-run -v` : exécution complète sans écriture.
 - Logs : `out/logs/mp_YYYY-MM-DD.log` (Mac) ou artefact `logs-<run>` (Actions).

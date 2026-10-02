@@ -1,5 +1,7 @@
 # Airtable — l'unique interface du pipeline
 
+> **2 octobre 2026** : l'automation « dossier dans la minute » (§ automation, `automation_dossier.js`) n'est plus utilisée. Les runs tournent sur le Mac et le cockpit prépare un dossier à la demande.
+
 Base **Mission Pipeline** (`apphTpnW5vu0OdnfC`). Deux tables :
 
 | Table | Id | Rôle |

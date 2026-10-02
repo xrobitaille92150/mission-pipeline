@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 
 os.environ.setdefault("MP_OUT_DIR", str(Path(__file__).parent / "_out"))
+# Jamais de vrai Claude Code dans les tests : les tests de mp/claude_code.py injectent un faux `claude`.
+os.environ["MP_DOSSIER_ENGINE"] = "api"
 
 
 def eval_formula(formula: str, fields: dict) -> bool:

@@ -1,10 +1,10 @@
-# Mission Pipeline v3 — ordonnanceur GitHub Actions
+# Mission Pipeline v3 — secours sur GitHub Actions
 #
-# Trois déclencheurs :
-#   • schedule            : deux runs complets par jour (06:30 et 18:30 heure de Paris en été ; une heure plus tôt en hiver)
-#   • repository_dispatch : type « dossier », envoyé par l'automation Airtable quand « Préparer dossier » ou
-#                           « Je postule » est coché → run court (sync + dossiers), sans relire Gmail
-#   • workflow_dispatch   : lancement manuel depuis l'onglet Actions (run complet ou dossier à la demande par URL)
+# Depuis le 2 octobre 2026 (option « Mixte » choisie par Xavier), les runs planifiés tournent sur le Mac (launchd,
+# deploy/launchd/install.sh) : c'est là que Claude Code rédige CV et lettres avec les skills du compte claude.ai.
+# Ce workflow ne garde que le lancement manuel (onglet Actions → Run workflow), en secours si le Mac est éteint.
+# Ici, les dossiers sont rédigés par l'API avec les prompts du dépôt (MP_DOSSIER_ENGINE=api) et ne sont pas
+# copiés dans le Drive (le cockpit du Mac les rattrape ensuite, mp drive-sync).
 #
 # Secrets du dépôt (Settings → Secrets and variables → Actions → Secrets) :
 #   ANTHROPIC_API_KEY, AIRTABLE_PAT, GMAIL_USER, GMAIL_APP_PASSWORD
@@ -14,11 +14,6 @@
 name: mission-pipeline
 
 on:
-  schedule:
-    - cron: "30 4 * * *"    # 06:30 Paris (CEST) / 05:30 (CET)
-    - cron: "30 16 * * *"   # 18:30 Paris (CEST) / 17:30 (CET)
-  repository_dispatch:
-    types: [dossier]
   workflow_dispatch:
     inputs:
       mode:
@@ -42,6 +37,7 @@ jobs:
     env:
       TZ: Europe/Paris
       PYTHONUNBUFFERED: "1"
+      MP_DOSSIER_ENGINE: api            # pas de skills du compte ici : prompts du dépôt
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
       GMAIL_USER: ${{ secrets.GMAIL_USER }}
@@ -80,14 +76,12 @@ jobs:
         run: |
           if [ -n "${{ github.event.inputs.url }}" ]; then
             echo "args=dossier --url ${{ github.event.inputs.url }}" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            echo "args=run --skip ingest score track --label 'à la demande'" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.mode }}" != "run" ]; then
             echo "args=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT"
           elif [ "$(date +%H)" -lt 12 ]; then
-            echo "args=run --label matin" >> "$GITHUB_OUTPUT"
+            echo "args=run --label 'secours matin'" >> "$GITHUB_OUTPUT"
           else
-            echo "args=run --label soir" >> "$GITHUB_OUTPUT"
+            echo "args=run --label 'secours soir'" >> "$GITHUB_OUTPUT"
           fi
 
       - name: mp ${{ steps.cmd.outputs.args }}

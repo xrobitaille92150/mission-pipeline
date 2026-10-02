@@ -4,7 +4,7 @@
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO"
-export PATH="/opt/homebrew/bin:/usr/local/bin:/Applications/LibreOffice.app/Contents/MacOS:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:/Applications/LibreOffice.app/Contents/MacOS:$PATH"   # claude (Claude Code) et soffice
 export TZ="Europe/Paris"
 if [ ! -x .venv/bin/mp ]; then
   echo "pas de .venv : lancer d'abord l'installation (README § Installation)"; exit 1

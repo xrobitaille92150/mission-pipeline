@@ -316,11 +316,24 @@ def create_app(ctx: Context | None = None) -> FastAPI:
         if not body.consigne.strip():
             raise HTTPException(400, "consigne vide")
         lang = _sel(f.get("Langue")) or "FR"
-        letter = lettermod.rewrite_letter(
-            ctx.claude, lang=lang, text=current, consigne=body.consigne, title=f.get("Poste", ""),
-            employer=f.get("Employeur", ""), location=f.get("Lieu", ""), profile_md=ctx.profile_md,
-            writing_rules=lettermod.load_writing_rules(ctx.s.writing_rules_dir, lang))
-        return {"lettre": letter.lettre, "objections": letter.objections, "mots": lettermod.word_count(letter.lettre)}
+        from mp import claude_code
+        letter, moteur = None, "api"
+        if claude_code.engine() == "claude-code":
+            try:                                 # skills cover-letter + voix-xavier, sur l'abonnement
+                letter = claude_code.rewrite_content(
+                    title=f.get("Poste", ""), employer=f.get("Employeur", ""), location=f.get("Lieu", ""),
+                    text=current, consigne=body.consigne, lang=lang, profile_md=ctx.profile_md,
+                    words=lettermod.WORDS["FR" if lang == "FR" else "EN"])
+                moteur = "claude-code"
+            except Exception as e:  # noqa: BLE001 — repli API
+                log.warning("réécriture Claude Code KO (%s) : repli sur l'API", e)
+        if letter is None:
+            letter = lettermod.rewrite_letter(
+                ctx.claude, lang=lang, text=current, consigne=body.consigne, title=f.get("Poste", ""),
+                employer=f.get("Employeur", ""), location=f.get("Lieu", ""), profile_md=ctx.profile_md,
+                writing_rules=lettermod.load_writing_rules(ctx.s.writing_rules_dir, lang))
+        return {"lettre": letter.lettre, "objections": letter.objections, "mots": lettermod.word_count(letter.lettre),
+                "moteur": moteur}
 
     @app.put("/api/offres/{record_id}/lettre")
     def enregistrer(record_id: str, body: Texte) -> dict:

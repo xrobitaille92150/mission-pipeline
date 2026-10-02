@@ -225,6 +225,20 @@ LETTER_SCHEMA: dict = {
 }
 
 
+# Dossier complet rédigé en un appel (Claude Code + skills du compte) : retouches du CV et lettre.
+DOSSIER_SCHEMA: dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "edits": CV_EDITS_SCHEMA["properties"]["edits"],
+        "gaps": {"type": "array", "items": {"type": "string"}},
+        "lettre": {"type": "string"},
+        "objections": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["edits", "gaps", "lettre", "objections"],
+}
+
+
 @dataclass
 class DossierResult:
     job_id: str
@@ -241,6 +255,7 @@ class DossierResult:
     edits_applied: int
     edits_skipped: int
     gaps: list[str]
+    engine: str = "api"          # « claude-code » : rédigé avec les skills du compte ; « api » : prompts du dépôt
 
 
 # ---------------------------------------------------------------------------
