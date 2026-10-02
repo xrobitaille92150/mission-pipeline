@@ -179,6 +179,19 @@ def cmd_airtable_setup(args) -> int:
     return 0
 
 
+SECRET_KEYS = {"ANTHROPIC_API_KEY", "AIRTABLE_PAT", "GMAIL_APP_PASSWORD"}
+
+
+def shown_value(key: str, value: str) -> str:
+    """Ce que `mp doctor` affiche d'une variable : jamais un caractère d'un secret (la sortie finit souvent collée
+    dans une conversation), seulement sa longueur ; l'adresse Gmail, qui n'est pas secrète, en clair."""
+    if not value:
+        return "absente"
+    if key in SECRET_KEYS:
+        return f"présente ({len(value)} caractères)"
+    return value
+
+
 def cmd_doctor(args) -> int:
     from mp.cv import CV_FILES
     from mp.letter import WRITING_RULES_FILES
@@ -197,8 +210,7 @@ def cmd_doctor(args) -> int:
     from mp.config import DUPLICATES, SOURCES
     for key in ("ANTHROPIC_API_KEY", "AIRTABLE_PAT", "GMAIL_USER", "GMAIL_APP_PASSWORD"):
         value = os.environ.get(key, "")
-        shown = f"{value[:10]}… ({len(value)} caractères)" if len(value) > 14 else ("présente" if value else "absente")
-        detail = f"{shown} — lue depuis {SOURCES.get(key, '?')}" if value else "absente"
+        detail = f"{shown_value(key, value)} — lue depuis {SOURCES.get(key, '?')}" if value else "absente"
         if DUPLICATES.get(key):
             detail += f" ; définie aussi dans {', '.join(DUPLICATES[key])} (ignorée là)"
         check(f"    {key}", bool(value), detail)

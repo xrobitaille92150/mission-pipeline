@@ -38,3 +38,17 @@ def test_secrets_file_beats_shell_but_settings_do_not(tmp_path, monkeypatch):
     # réglage : l'environnement garde la main (essai ponctuel, GitHub Actions)
     assert os.environ["MP_SCORE_MIN"] == "55"
     assert config.SOURCES["MP_SCORE_MIN"] == config.SHELL
+
+
+def test_doctor_never_prints_secret_characters():
+    # Le 2 octobre, doctor affichait les 10 premiers caractères de chaque secret, dont 10 des 16 du mot de passe
+    # d'application Gmail ; sa sortie est collée telle quelle dans les conversations.
+    from mp.cli import shown_value
+    secrets = {"ANTHROPIC_API_KEY": "sk-ant-abcdefghijklmnopqrstuvwxyz0123456789",
+               "AIRTABLE_PAT": "patABCDEFGHIJKLMN.0123456789abcdef", "GMAIL_APP_PASSWORD": "abcdwxyzefghstuv"}
+    for key, value in secrets.items():
+        shown = shown_value(key, value)
+        assert shown == f"présente ({len(value)} caractères)"
+        assert not any(value[i:i + 3] in shown for i in range(len(value) - 2))
+    assert shown_value("GMAIL_USER", "x@gmail.com") == "x@gmail.com"
+    assert shown_value("GMAIL_APP_PASSWORD", "") == "absente"
