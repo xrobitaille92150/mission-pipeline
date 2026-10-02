@@ -13,22 +13,37 @@ LISTE=0; [ "${1:-}" = "--liste" ] && LISTE=1
 ENV="$HOME/.config/mission-pipeline/n8n.env"
 if [ -f "$ENV" ]; then
   set -a; source "$ENV"; set +a
-  BASE="${N8N_BASEURL%/}"
-  echo "n8n : $BASE"
-  # API publique n8n v1 : en-tête X-N8N-API-KEY (le Bearer est ajouté au cas où l'instance est derrière un proxy d'auth).
-  curl -sS -H "X-N8N-API-KEY: $N8N_API_KEY" -H "Authorization: Bearer $N8N_API_KEY" \
-       "$BASE/api/v1/workflows?active=true" \
-    | python3 -c 'import json,sys; d=json.load(sys.stdin); [print(w["id"], w["name"]) for w in d.get("data", [])]' \
-    | while read -r id name; do
+  # Les scripts v1/v2 lisaient N8N_URL ; la doc v2 parlait de N8N_BASEURL : on accepte les deux.
+  BASE="${N8N_URL:-${N8N_BASEURL:-${N8N_BASE_URL:-}}}"
+  BASE="${BASE%/}"
+  KEY="${N8N_API_KEY:-}"
+  if [ -z "$BASE" ] || [ -z "$KEY" ]; then
+    echo "n8n : adresse (N8N_URL) ou clé (N8N_API_KEY) absente de $ENV"
+    echo "  → désactiver les workflows à la main dans l'interface n8n (bouton Active de chaque workflow)."
+  else
+    echo "n8n : $BASE"
+    # API publique n8n v1 : en-tête X-N8N-API-KEY (le Bearer est ajouté au cas où l'instance est derrière un proxy d'auth).
+    REP="$(curl -sS -m 30 -w '\n%{http_code}' -H "X-N8N-API-KEY: $KEY" -H "Authorization: Bearer $KEY" \
+               "$BASE/api/v1/workflows?active=true" 2>&1 || true)"
+    CODE="${REP##*$'\n'}"; CORPS="${REP%$'\n'*}"
+    if [ "$CODE" != "200" ]; then
+      echo "  n8n répond HTTP $CODE : clé refusée ou serveur injoignable ($(echo "$CORPS" | head -c 200))"
+      echo "  → désactiver les workflows à la main dans l'interface n8n, ou renouveler la clé dans $ENV."
+    else
+      LISTE_WF="$(echo "$CORPS" | python3 -c 'import json,sys; d=json.load(sys.stdin); [print(w["id"], w["name"]) for w in d.get("data", [])]')"
+      [ -z "$LISTE_WF" ] && echo "  aucun workflow actif"
+      echo "$LISTE_WF" | while read -r id name; do
+        [ -z "$id" ] && continue
         if [ "$LISTE" = 1 ]; then echo "  serait désactivé : $id  ($name)"; continue; fi
         echo "  désactive $id  ($name)"
-        curl -sS -o /dev/null -w "    HTTP %{http_code}\n" -X POST \
-             -H "X-N8N-API-KEY: $N8N_API_KEY" -H "Authorization: Bearer $N8N_API_KEY" \
+        curl -sS -m 30 -o /dev/null -w "    HTTP %{http_code}\n" -X POST \
+             -H "X-N8N-API-KEY: $KEY" -H "Authorization: Bearer $KEY" \
              "$BASE/api/v1/workflows/$id/deactivate"
       done
-  echo "  (si HTTP 401 : vérifier la clé dans $ENV ou désactiver depuis l'UI n8n)"
+    fi
+  fi
 else
-  echo "n8n.env absent ($ENV) : désactiver les workflows depuis l'UI n8n."
+  echo "n8n.env absent ($ENV) : désactiver les workflows depuis l'interface n8n."
 fi
 
 echo "launchd :"
