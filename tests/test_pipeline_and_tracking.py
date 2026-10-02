@@ -95,3 +95,71 @@ def test_sync_refuses_mass_postule_without_force():
     assert not [c for c in ctx.at.calls if c[0] == "create"]
     stats = sync_decisions(ctx, force=True)
     assert stats["postulees"] == 20
+
+
+# ---------------------------------------------------------------------------
+# Doublons (règle de l'ancien JACK, sans suppression)
+# ---------------------------------------------------------------------------
+
+def test_norm_title_ignores_gender_marks_accents_and_punctuation():
+    from mp.pipeline import norm_title
+    assert norm_title("Chef de projet H/F") == norm_title("Chef de Projet (F/H)") == "chef de projet"
+    assert norm_title("Senior Manager – Finance (m/w/d)") == norm_title("Senior manager - finance") == "senior manager finance"
+    assert norm_title("Directeur Comptabilité") == "directeur comptabilite"
+
+
+def _row(rid, emp, poste, **f):
+    return {"id": rid, "fields": {"Employeur": emp, "Poste": poste, "jobId": rid[-3:], **f}}
+
+
+def test_dedupe_keeps_best_and_marks_others_without_deleting():
+    from mp.pipeline import dedupe
+    rows = [
+        _row("rec001", "KPMG France", "Manager Transformation Finance H/F", **{"Statut": "À étudier", "Score": 72,
+             "Date 1ère vue": "2026-09-20"}),
+        _row("rec002", "KPMG", "Manager Transformation Finance", **{"Statut": "Dossier prêt", "Score": 60,
+             "Dossier le": "2026-09-25", "Date 1ère vue": "2026-09-24"}),            # dossier présent : gardée
+        _row("rec003", "KPMG", "Manager transformation finance (F/H)", **{"Statut": "Nouvelle",
+             "Date 1ère vue": "2026-10-01", "Préparer dossier": True}),
+        _row("rec004", "AXA", "PMO IFRS 17", **{"Statut": "À étudier"}),                 # seule : intacte
+    ]
+    ctx = FakeContext(at=FakeAirtable({"OFFRES": rows}))
+    stats = dedupe(ctx)
+    assert stats == {"groupes": 1, "doublons": 2}
+    by_id = {r["id"]: r["fields"] for r in ctx.at.tables_data["OFFRES"]}
+    assert by_id["rec002"]["Statut"] == "Dossier prêt"
+    assert by_id["rec001"]["Statut"] == by_id["rec003"]["Statut"] == "Doublon"
+    assert "jobId 002" in by_id["rec001"]["Doublon de"] and by_id["rec003"]["Préparer dossier"] is False
+    assert by_id["rec004"]["Statut"] == "À étudier"
+    assert len(ctx.at.tables_data["OFFRES"]) == 4                                    # rien de supprimé
+    assert dedupe(ctx)["doublons"] == 0                                              # idempotent
+
+
+def test_dedupe_decided_offer_covers_reposts_and_protects_decisions():
+    from mp.pipeline import dedupe
+    rows = [
+        _row("rec101", "EY", "Senior Manager Actuarial", **{"Statut": "Écartée"}),
+        _row("rec102", "EY", "Senior Manager Actuarial", **{"Statut": "À étudier", "Score": 80}),
+        _row("rec103", "EY", "Senior Manager Actuarial", **{"Statut": "À étudier", "Je postule": True}),  # protégée
+        _row("rec201", "Allianz", "Head of Finance", **{"Statut": "Expirée"}),        # n'empêche rien
+        _row("rec202", "Allianz", "Head of Finance", **{"Statut": "Nouvelle"}),
+    ]
+    ctx = FakeContext(at=FakeAirtable({"OFFRES": rows}))
+    dedupe(ctx)
+    by_id = {r["id"]: r["fields"] for r in ctx.at.tables_data["OFFRES"]}
+    assert by_id["rec102"]["Statut"] == "Doublon" and "jobId 101" in by_id["rec102"]["Doublon de"]
+    assert by_id["rec103"]["Statut"] == "À étudier"
+    assert by_id["rec101"]["Statut"] == "Écartée"
+    assert by_id["rec201"]["Statut"] == "Expirée" and by_id["rec202"]["Statut"] == "Nouvelle"
+
+
+def test_duplicates_are_never_scored_nor_given_a_dossier():
+    import inspect
+
+    import mp.pipeline as pl
+    from tests.conftest import eval_formula
+    src = inspect.getsource(pl.score) + inspect.getsource(pl.dossiers)
+    assert src.count("NOT({Statut}='Doublon')") == 2
+    live = "AND(NOT({Scoré le}),NOT({J'écarte}=1),NOT({Statut}='Écartée'),NOT({Statut}='Expirée'),NOT({Statut}='Doublon'))"
+    assert not eval_formula(live, {"Statut": {"name": "Doublon"}})
+    assert eval_formula(live, {"Statut": {"name": "Nouvelle"}})

@@ -27,7 +27,7 @@ class AirtableError(RuntimeError):
 # Schéma attendu (créé si absent par `mp airtable-setup --apply`)
 # ---------------------------------------------------------------------------
 
-STATUTS = ["Nouvelle", "À étudier", "Dossier prêt", "Postulée", "Écartée", "Expirée"]
+STATUTS = ["Nouvelle", "À étudier", "Dossier prêt", "Postulée", "Écartée", "Expirée", "Doublon"]
 REPONSES = ["Néant", "Envoyé", "A/R", "Oui", "Non"]
 CLUSTERS = ["A — Assurance/Passif", "B — Investissement/Actif", "C — Transformation/PMO", "Hors-axe"]
 
@@ -83,6 +83,7 @@ OFFRES_FIELDS: list[dict] = [
     _date("Dernière vue", "Dernière apparition dans un email LinkedIn."),
     _number("Rang du jour", "1 = meilleure offre du run."),
     _text("Erreur", "Dernière erreur rencontrée par le pipeline sur cette offre.", multi=True),
+    _text("Doublon de", "Offre conservée (même employeur, même poste) dont celle-ci est le doublon."),
 ]
 
 CANDIDATURES_FIELDS: list[dict] = [

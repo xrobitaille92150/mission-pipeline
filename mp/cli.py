@@ -1,7 +1,8 @@
 """Ligne de commande `mp`.
 
-  mp run                 run complet : ingest → sync → score → dossiers → track → digest
+  mp run                 run complet : ingest → dedup → sync → score → dossiers → track → digest
   mp ingest              lit les digests LinkedIn (Gmail) → table Offres
+  mp dedup               range en « Doublon » les offres même employeur + même poste (rien n'est supprimé)
   mp score               évalue les offres non scorées (Claude) et coche les meilleures
   mp dossiers            génère CV + lettre pour les offres cochées « Préparer dossier » / « Je postule »
   mp dossier --url …     dossier à la demande (URL LinkedIn, jobId, ou --text pour une annonce collée)
@@ -54,6 +55,7 @@ def cmd_run(args) -> int:
     ctx = _ctx(args)
     steps = [
         ("ingest", lambda: pipeline.ingest(ctx, args.days)),
+        ("dedup", lambda: pipeline.dedupe(ctx)),             # doublons rangés AVANT le scoring : pas de Claude
         ("sync", lambda: pipeline.sync_decisions(ctx)),      # décisions + expiration AVANT le scoring
         ("score", lambda: pipeline.score(ctx, limit=args.limit)),
         ("dossiers", lambda: pipeline.dossiers(ctx, max_n=args.max_dossiers)),
@@ -267,6 +269,14 @@ def cmd_doctor(args) -> int:
 # ---------------------------------------------------------------------------
 
 
+def cmd_dedup(args) -> int:
+    from mp import pipeline
+    ctx = _ctx(args)
+    stats = pipeline.dedupe(ctx)
+    print(f"doublons : {stats}" + ("  (répétition : rien n'a été écrit)" if ctx.dry_run else ""))
+    return 0
+
+
 def cmd_drive_sync(args) -> int:
     from mp import drive
     stats = drive.sync(_ctx(args), days=args.days)
@@ -297,7 +307,7 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--days", type=int, default=None)
     r.add_argument("--limit", type=int, default=80, help="offres à scorer au maximum")
     r.add_argument("--max-dossiers", type=int, default=6)
-    r.add_argument("--skip", nargs="*", choices=["ingest", "score", "sync", "dossiers", "track"])
+    r.add_argument("--skip", nargs="*", choices=["ingest", "dedup", "score", "sync", "dossiers", "track"])
     r.add_argument("--label", default="", help="étiquette du digest (ex. matin / soir)")
     r.set_defaults(fn=cmd_run)
 
@@ -340,6 +350,9 @@ def build_parser() -> argparse.ArgumentParser:
     dr = sub.add_parser("doctor", parents=[common])
     dr.add_argument("--offline", action="store_true", help="ne teste ni Gmail ni Claude")
     dr.set_defaults(fn=cmd_doctor)
+
+    dd = sub.add_parser("dedup", help="range les doublons (même employeur, même poste)", parents=[common])
+    dd.set_defaults(fn=cmd_dedup)
 
     ds = sub.add_parser("drive-sync", help="copie les dossiers récents dans le Drive du Mac", parents=[common])
     ds.add_argument("--days", type=int, default=14)

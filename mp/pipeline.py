@@ -6,7 +6,9 @@ plutôt que d'interrompre le run.
 from __future__ import annotations
 
 import logging
+import re
 import time
+import unicodedata
 from datetime import date, timedelta
 
 from mp.airtable import record_url
@@ -94,6 +96,77 @@ def ingest(ctx: Context, days: int | None = None) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# 1 bis. Doublons : même employeur + même poste (règle de l'ancien JACK), sans jamais rien supprimer
+# ---------------------------------------------------------------------------
+
+_GENRE = re.compile(r"\(?\b[hfm]\s*/\s*[hfmwd](?:\s*/\s*[hfmwd])?\b\)?", re.I)   # (H/F), F/H, m/w/d
+
+
+def norm_title(s: str) -> str:
+    s = _GENRE.sub(" ", str(s or ""))
+    s = "".join(c for c in unicodedata.normalize("NFD", s.lower()) if not unicodedata.combining(c))
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", s).split())
+
+
+ACTIVE = ("Nouvelle", "À étudier", "Dossier prêt", "")
+DECIDED = ("Postulée", "Écartée")        # une décision déjà prise couvre les doublons qui reviennent
+
+
+def dedupe(ctx: Context) -> dict:
+    """Range en « Doublon » les offres actives qui répètent une offre déjà présente (même employeur, même poste).
+
+    Ordre de conservation repris de JACK : dossier présent > case cochée > meilleur score > plus ancienne.
+    Si l'offre a déjà été décidée (Postulée ou Écartée), ses réapparitions sont toutes rangées en Doublon.
+    Jamais modifiées : offres Postulée / Écartée / Expirée / Doublon et lignes cochées « Je postule ».
+    """
+    from mp.tracking import norm_company
+
+    recs = ctx.at.list(ctx.offres, fields=["jobId", "Employeur", "Poste", "Statut", "Score", "Je postule",
+                                           "Préparer dossier", "Dossier le", "CV (fichiers)", "CV", "Date 1ère vue"])
+    groups: dict[tuple[str, str], list[dict]] = {}
+    for r in recs:
+        f = r["fields"]
+        key = (norm_company(f.get("Employeur", "")), norm_title(f.get("Poste", "")))
+        if key[0] and key[1]:
+            groups.setdefault(key, []).append(r)
+
+    def statut(r: dict) -> str:
+        v = r["fields"].get("Statut") or ""
+        return v.get("name", "") if isinstance(v, dict) else v
+
+    def rang(r: dict) -> tuple:
+        f = r["fields"]
+        return (bool(f.get("Dossier le") or f.get("CV (fichiers)") or f.get("CV")),
+                bool(f.get("Préparer dossier") or f.get("Je postule")), f.get("Score") or 0)
+
+    updates = []
+    for rows in groups.values():
+        if len(rows) < 2:
+            continue
+        active = [r for r in rows if statut(r) in ACTIVE and not r["fields"].get("Je postule")]
+        if not active:
+            continue
+        decided = [r for r in rows if statut(r) in DECIDED]
+        if decided:
+            keep, marked = decided[0], active
+        else:
+            best = max(rang(r) for r in active)
+            tete = [r for r in active if rang(r) == best]
+            keep = min(tete, key=lambda r: r["fields"].get("Date 1ère vue") or "9999-12-31")
+            marked = [r for r in active if r is not keep]
+        ref = f"{keep['fields'].get('Employeur', '')} — {keep['fields'].get('Poste', '')} (jobId {keep['fields'].get('jobId', '')})"
+        updates += [{"id": r["id"], "fields": {"Statut": "Doublon", "Doublon de": ref[:250], "Préparer dossier": False}}
+                    for r in marked]
+    if updates:
+        ctx.at.patch_many(ctx.offres, updates)
+    stats = {"groupes": sum(1 for g in groups.values() if len(g) > 1), "doublons": len(updates)}
+    log.info("doublons : %s", stats)
+    if updates:
+        ctx.report.notes.append(f"doublons rangés : {len(updates)}")
+    return stats
+
+
+# ---------------------------------------------------------------------------
 # 2. Scoring
 # ---------------------------------------------------------------------------
 
@@ -139,7 +212,7 @@ def scoring_fields(s, jd: JobDescription | None, fetched: bool) -> dict:
 
 
 def score(ctx: Context, limit: int = 80, rescore: bool = False) -> list[dict]:
-    live = "NOT({J'écarte}=1),NOT({Statut}='Écartée'),NOT({Statut}='Expirée')"
+    live = "NOT({J'écarte}=1),NOT({Statut}='Écartée'),NOT({Statut}='Expirée'),NOT({Statut}='Doublon')"
     formula = f"AND(NOT({{Scoré le}}),{live})" if not rescore else f"AND({live})"
     recs = ctx.at.list(ctx.offres, formula=formula, sort=[("Date 1ère vue", "desc")], max_records=limit,
                        fields=["jobId", "Poste", "Employeur", "Lieu", "Mode", "Source", "Description",
@@ -192,7 +265,7 @@ def score(ctx: Context, limit: int = 80, rescore: bool = False) -> list[dict]:
 
 def dossiers(ctx: Context, max_n: int = 6) -> list[dict]:
     formula = ("AND(OR({Préparer dossier}=1,{Je postule}=1),NOT({Dossier le}),NOT({J'écarte}=1),"
-               "NOT({Statut}='Écartée'),NOT({Statut}='Expirée'))")
+               "NOT({Statut}='Écartée'),NOT({Statut}='Expirée'),NOT({Statut}='Doublon'))")
     recs = ctx.at.list(ctx.offres, formula=formula, sort=[("Score", "desc")], max_records=max_n)
     log.info("dossiers : %d offre(s) en attente", len(recs))
     for rec in recs:
