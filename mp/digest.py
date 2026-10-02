@@ -55,10 +55,13 @@ def render(report: RunReport, label: str = "") -> tuple[str, str, str]:
     if report.events:
         lines.append("SUIVI DES RÉPONSES :")
         h.append("<h3>Suivi des réponses</h3><ul>")
+        labels = {"create": "nouvelle candidature", "update": "mise à jour", "skip": "déjà à jour",
+                  "review": "à vérifier dans la table A traiter"}
         for ev in report.events:
-            lines.append(f"  • {ev['status']:6s} {ev['company']} — {ev['title']} ({ev['action']})")
-            h.append(f"<li><b>{_esc(ev['status'])}</b> {_esc(ev['company'])} — {_esc(ev['title'])} "
-                     f"<small>({_esc(ev['action'])})</small></li>")
+            act = labels.get(ev["action"], ev["action"])
+            lines.append(f"  • {ev['status']:6s} {ev['company'] or '(société ?)'} — {ev['title']} ({act})")
+            h.append(f"<li><b>{_esc(ev['status'])}</b> {_esc(ev['company'] or '(société ?)')} — {_esc(ev['title'])} "
+                     f"<small>({_esc(act)})</small></li>")
         h.append("</ul>")
         lines.append("")
 

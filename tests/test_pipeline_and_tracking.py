@@ -3,7 +3,7 @@ from mp.cli import build_parser
 from mp.models import Card, StatusEvent
 from mp.pipeline import card_to_fields
 from mp.tracking import CandidaturesIndex, apply_event, norm_company, rank, upsert_candidature
-from tests.conftest import FakeAirtable, FakeContext
+from tests.conftest import FakeAirtable, FakeClaude, FakeContext
 
 
 def test_card_to_fields():
@@ -163,3 +163,58 @@ def test_duplicates_are_never_scored_nor_given_a_dossier():
     live = "AND(NOT({Scoré le}),NOT({J'écarte}=1),NOT({Statut}='Écartée'),NOT({Statut}='Expirée'),NOT({Statut}='Doublon'))"
     assert not eval_formula(live, {"Statut": {"name": "Doublon"}})
     assert eval_formula(live, {"Statut": {"name": "Nouvelle"}})
+
+
+# ---------------------------------------------------------------------------
+# File « A traiter » (revue manuelle, comme BOB)
+# ---------------------------------------------------------------------------
+
+def _mail(subject, from_name, from_email="no-reply@ats-mail.com"):
+    from mp.models import Email
+    return Email(uid=b"1", id="18c2f0a1b2c3d4e5", subject=subject, from_name=from_name, from_email=from_email,
+                 date="2026-10-02", plain="Nous avons bien reçu votre candidature. Cordialement, l'équipe.")
+
+
+def _classif(**kw):
+    base = {"categorie": "Accusé de réception", "societe": "", "poste": "", "confiance": "Moyenne",
+            "justification": "accusé automatique"}
+    return {**base, **kw}
+
+
+def test_unidentified_company_goes_to_a_traiter_not_candidatures():
+    from mp.tracking import event_from_email
+    ctx = _ctx_with_candidatures()
+    ctx.claude = FakeClaude([_classif()])
+    idx = CandidaturesIndex(ctx)
+    ev = event_from_email(ctx, _mail("Votre candidature", "Talent Acquisition Team"), idx)
+    assert ev is not None and ev.reliable is False and ev.company == "Talent Acquisition Team"
+    assert apply_event(ctx, ev, idx) == "review"
+    up = [c for c in ctx.at.calls if c[0] == "upsert"]
+    assert up and up[0][1] == "A_TRAITER" and up[0][3] == ["ID Email"]
+    row = up[0][2][0]
+    assert row["ID Email"] == "18c2f0a1b2c3d4e5" and row["Réponse"] == "A/R"
+    assert row["Lien Gmail"].endswith("#all/18c2f0a1b2c3d4e5") and "Talent Acquisition Team" in row["Expéditeur"]
+    assert not [c for c in ctx.at.calls if c[0] == "create" and c[1] == "CANDIDATURES"]
+
+
+def test_low_confidence_unknown_company_goes_to_review_instead_of_being_dropped():
+    from mp.tracking import event_from_email
+    ctx = _ctx_with_candidatures()
+    ctx.claude = FakeClaude([_classif(categorie="Refus", societe="Inconnue SA", confiance="Basse")])
+    idx = CandidaturesIndex(ctx)
+    ev = event_from_email(ctx, _mail("Votre candidature", "RH"), idx)
+    assert ev.reliable is False and apply_event(ctx, ev, idx) == "review"
+
+
+def test_identified_company_still_creates_or_updates_candidature():
+    from mp.tracking import event_from_email
+    ctx = _ctx_with_candidatures()
+    ctx.claude = FakeClaude([_classif(categorie="Réponse positive", societe="Mazars", confiance="Haute"),
+                             _classif(categorie="Refus", confiance="Basse")])
+    idx = CandidaturesIndex(ctx)
+    ev = event_from_email(ctx, _mail("Votre candidature chez Mazars", "Mazars Recrutement"), idx)
+    assert ev.reliable and apply_event(ctx, ev, idx) == "create"
+    # société devinée mais déjà connue des Candidatures (Deloitte) : mise à jour normale, pas de revue
+    ev2 = event_from_email(ctx, _mail("Candidature Deloitte", "Deloitte"), idx)
+    assert ev2.reliable is True and apply_event(ctx, ev2, idx) in ("update", "skip")
+    assert not [c for c in ctx.at.calls if c[0] == "upsert" and c[1] == "A_TRAITER"]

@@ -18,6 +18,7 @@ CONFIG_DIR = Path.home() / ".config" / "mission-pipeline"
 AIRTABLE_BASE = "apphTpnW5vu0OdnfC"
 T_OFFRES = "tblrCyL6huHkUPZbF"        # table historique « Veille 2 », réutilisée telle quelle
 T_CANDIDATURES = "tblF3jpncEXA647ou"  # entonnoir de suivi (tous canaux)
+T_A_TRAITER = "tblSeyppFhxU3i8Ev"     # réponses à revoir à la main (société non identifiée), comme BOB
 
 # --- Gmail --------------------------------------------------------------------
 LINKEDIN_ALERTS = "jobalerts-noreply@linkedin.com"
@@ -115,6 +116,7 @@ class Settings:
     airtable_base: str
     t_offres: str
     t_candidatures: str
+    t_a_traiter: str
 
     def missing_secrets(self) -> list[str]:
         missing = []
@@ -166,6 +168,7 @@ def settings() -> Settings:
         airtable_base=env("MP_AIRTABLE_BASE", AIRTABLE_BASE) or AIRTABLE_BASE,
         t_offres=env("MP_T_OFFRES", T_OFFRES) or T_OFFRES,
         t_candidatures=env("MP_T_CANDIDATURES", T_CANDIDATURES) or T_CANDIDATURES,
+        t_a_traiter=env("MP_T_A_TRAITER", T_A_TRAITER) or T_A_TRAITER,
     )
 
 

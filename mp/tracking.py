@@ -199,22 +199,36 @@ def event_from_email(ctx: Context, e: Email, index: CandidaturesIndex) -> Status
     if not (known or has_label or looks_like):
         return None
     c = classify_email(ctx, e)
-    if c.categorie == "Autre" or (c.confiance == "Basse" and not known):
+    if c.categorie == "Autre":
         return None
     company = c.societe if c.societe and not PLATFORMS.search(c.societe) else ""
+    reliable = bool(company or known)
     if not company and known:
         company = next((r["fields"].get("Société", "") for r in index.records
                         if norm_company(r["fields"].get("Société", "")) == known), "")
-    if not company:
+    if not company:                     # nom de l'expéditeur : simple indice, à faire valider (comme BOB)
         company = e.from_name if not PLATFORMS.search(e.from_name) else ""
-    if not company:
-        return None
+    if c.confiance == "Basse" and not known:
+        reliable = False
     return StatusEvent(email_id=e.id, date=e.date, status=CAT_TO_STATUS[c.categorie], company=company,
                        title=c.poste, job_id=extract_job_id(body) or "", subject=e.subject, source="classif",
-                       confidence=c.confiance, note=c.justification)
+                       confidence=c.confiance, note=c.justification, reliable=reliable,
+                       sender=f"{e.from_name} <{e.from_email}>".strip())
+
+
+def to_review(ctx: Context, ev: StatusEvent) -> str:
+    """Réponse dont la société n'est pas identifiable avec certitude : table « A traiter » (upsert par ID Email),
+    comme le faisait BOB, au lieu de l'ignorer ou de créer une candidature au nom de l'expéditeur."""
+    fields = {"ID Email": ev.email_id, "Société": ev.company, "Poste": ev.title, "Réponse": ev.status,
+              "Sujet": ev.subject[:250], "Expéditeur": ev.sender[:250], "Date": ev.date,
+              "Note": (ev.note or "")[:900], "Lien Gmail": f"https://mail.google.com/mail/u/0/#all/{ev.email_id}"}
+    ctx.at.upsert(ctx.a_traiter, [{k: v for k, v in fields.items() if v}], merge_on=["ID Email"])
+    return "review"
 
 
 def apply_event(ctx: Context, ev: StatusEvent, index: CandidaturesIndex) -> str:
+    if not ev.reliable and not index.find(ev.job_id, ev.company, ev.title):
+        return to_review(ctx, ev)
     offer = update_offer(ctx, ev.job_id, ev.status, ev.date)
     company = ev.company or (offer["fields"].get("Employeur", "") if offer else "")
     title = ev.title or (offer["fields"].get("Poste", "") if offer else "")
@@ -228,7 +242,7 @@ def apply_event(ctx: Context, ev: StatusEvent, index: CandidaturesIndex) -> str:
 
 def track(ctx: Context, days: int = 3) -> list[dict]:
     index = CandidaturesIndex(ctx)
-    stats = {"emails": 0, "events": 0, "create": 0, "update": 0, "skip": 0}
+    stats = {"emails": 0, "events": 0, "create": 0, "update": 0, "skip": 0, "review": 0}
     with ctx.gmail() as g:
         done: list[bytes] = []
         for e in g.iter(query_status_emails(days)):

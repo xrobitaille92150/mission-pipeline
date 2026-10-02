@@ -131,6 +131,7 @@ class FakeContext:
         self.report = RunReport()
         self.offres = "OFFRES"
         self.candidatures = "CANDIDATURES"
+        self.a_traiter = "A_TRAITER"
         self.profile_md = "Profil de test."
         self._tmp = tmp or Path(os.environ["MP_OUT_DIR"])
 

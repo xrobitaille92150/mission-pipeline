@@ -76,6 +76,10 @@ class Context:
     def candidatures(self) -> str:
         return self.s.t_candidatures
 
+    @property
+    def a_traiter(self) -> str:
+        return self.s.t_a_traiter
+
     def out(self, *parts: str) -> Path:
         p = self.s.out_dir.joinpath(*parts)
         p.mkdir(parents=True, exist_ok=True)

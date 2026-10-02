@@ -263,6 +263,8 @@ class StatusEvent:
     source: str = "linkedin"    # linkedin (règle déterministe) / classif (Claude)
     confidence: str = "Haute"
     note: str = ""
+    reliable: bool = True       # False : société devinée (nom d'expéditeur) ou confiance basse → revue manuelle
+    sender: str = ""            # « Nom <adresse> », pour la table A traiter
 
 
 class EmailClass(BaseModel):
