@@ -13,6 +13,7 @@ from datetime import date, timedelta
 
 from mp.airtable import record_url
 from mp.context import Context
+from mp.cv import select_profile
 from mp.dossier import build_dossier
 from mp.gmail import cards_from_email, query_job_digests
 from mp.linkedin import fetch_jd
@@ -297,6 +298,8 @@ def score_one(ctx: Context, rec: dict):
         s = score_offer(ctx.claude, title=title, employer=employer, location=location,
                         mode=f.get("Mode", ""), source=f.get("Source", "Alerte"), jd=jd)
     fields = scoring_fields(s, jd, fetched)
+    if jd.ok:  # profil affiché = celui que le dossier prendra (arbre de cv_profiles.md, l'avis de Claude ne tranche pas)
+        fields["Profil CV"] = select_profile(f"{title} {jd.text}", s.profil_cv, has_jd=True)
     if not jd.ok and jd.error:
         fields["Erreur"] = f"Fiche LinkedIn non récupérée : {jd.error}"
     ctx.at.patch(ctx.offres, rec["id"], fields)

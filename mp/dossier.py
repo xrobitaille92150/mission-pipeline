@@ -37,7 +37,7 @@ def build_dossier(ctx: Context, rec: dict) -> DossierResult:
     lang = f.get("Langue") if f.get("Langue") in ("FR", "EN") else detect_language(jd_text or title)
     if lang == "AUTRE":
         lang = "EN"
-    profile = cvmod.select_profile(f"{title} {jd_text}", hint=f.get("Profil CV"))
+    profile = cvmod.select_profile(f"{title} {jd_text}", hint=f.get("Profil CV"), has_jd=len(jd_text) > 200)
     base, lang_cv = cvmod.base_cv_path(ctx.s.cv_base_dir, profile, lang)
 
     # 3. Contenu : retouches du CV + lettre (Claude Code avec les skills du compte, sinon l'API)

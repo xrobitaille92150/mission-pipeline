@@ -49,10 +49,12 @@ def _kw_regex(words: list[str]) -> re.Pattern:
 AM_RE, IFRS_RE = _kw_regex(AM_KW), _kw_regex(IFRS_KW)
 
 
-def select_profile(text: str, hint: str | None = None) -> str:
-    """Profil CV : règle déterministe du skill cv-tailoring (mots entiers, AM avant IFRS).
-    `hint` (avis de Claude au scoring) tranche quand les deux familles de mots-clés sont présentes,
-    ou quand aucune ne l'est."""
+def select_profile(text: str, hint: str | None = None, has_jd: bool = False) -> str:
+    """Profil CV : règle déterministe du skill cv-tailoring (mots entiers, AM avant IFRS ; aucun mot-clé = CV 1).
+    `hint` (avis de Claude au scoring) ne fait que trancher quand les deux familles de mots-clés sont présentes,
+    ou quand on n'a que le titre (`has_jd` faux). Avec une fiche de poste, il ne contredit jamais l'arbre :
+    le 3 octobre, quatre postes de transformation finance / PMO (KPMG, Accenture, CSC, Allianz Services)
+    portaient « AssetManagement » et avaient reçu le CV Asset Management."""
     t = (text or "").lower()
     am, ifrs = bool(AM_RE.search(t)), bool(IFRS_RE.search(t))
     if am and ifrs and hint in ("AssetManagement", "IFRS17SolvencyII"):
@@ -61,7 +63,7 @@ def select_profile(text: str, hint: str | None = None) -> str:
         return "AssetManagement"
     if ifrs:
         return "IFRS17SolvencyII"
-    if hint in PROFILES:
+    if hint in PROFILES and not has_jd:
         return hint
     return "FinanceTransformation"
 

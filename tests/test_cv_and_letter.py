@@ -33,6 +33,13 @@ def test_select_profile_whole_words_only():
     assert cvmod.select_profile("Reporting prudentiel et provisions techniques") == "IFRS17SolvencyII"
 
 
+def test_select_profile_hint_never_overrides_the_tree_when_the_posting_is_known():
+    # 3 octobre : PMO Digital Finance KPMG (aucun mot-clé AM / IFRS) marqué « AssetManagement » → CV AM. Le CV 1 s'impose.
+    kpmg = "Senior Manager – Digital Finance - PMO. Piloter le portefeuille de projets, gouvernance, budget, KPI."
+    assert cvmod.select_profile(kpmg, hint="AssetManagement", has_jd=True) == "FinanceTransformation"
+    assert cvmod.select_profile("Senior Manager PMO", hint="AssetManagement") == "AssetManagement"   # titre seul
+
+
 def test_select_profile_hint_arbitrates_when_both_families_match():
     both = "IFRS 17 programme on a SimCorp platform"
     assert cvmod.select_profile(both) == "AssetManagement"                       # ordre du skill

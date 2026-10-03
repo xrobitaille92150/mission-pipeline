@@ -135,6 +135,18 @@ def test_score_one_writes_fields_and_report():
     assert ctx.report.scored[0]["employer"] == "AXA"
 
 
+def test_score_one_keeps_the_cv_profile_of_the_decision_tree():
+    # 3 octobre : Claude proposait « AssetManagement » pour des postes PMO / transformation finance sans mot-clé AM.
+    from mp.pipeline import score_one
+    from tests.conftest import FakeAirtable, FakeClaude, FakeContext
+    pmo = "Piloter le portefeuille de projets Digital Finance : gouvernance, budget, KPI, faciliter la collaboration. " * 5
+    rec = {"id": "rec1", "fields": {"jobId": "1", "Poste": "Senior Manager PMO", "Employeur": "KPMG", "Lieu": "Paris",
+                                    "Description": pmo}}
+    ctx = FakeContext(at=FakeAirtable({"OFFRES": [rec]}), claude=FakeClaude([_sub(profil_cv="AssetManagement")]))
+    score_one(ctx, rec)
+    assert ctx.at.tables_data["OFFRES"][0]["fields"]["Profil CV"] == "FinanceTransformation"
+
+
 def test_score_run_ranks_best_offer_for_a_dossier():
     from mp.pipeline import score
     from tests.conftest import FakeAirtable, FakeClaude, FakeContext
