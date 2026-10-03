@@ -262,5 +262,7 @@ def track(ctx: Context, days: int = 3) -> list[dict]:
         if not ctx.dry_run:
             g.mark_done(done)
     log.info("suivi : %s", stats)
-    ctx.report.notes.append(f"suivi des réponses : {stats}")
+    ctx.report.notes.append(f"suivi des réponses : {stats['emails']} email(s) lu(s), {stats['events']} événement(s) "
+                            f"({stats['create']} créé(s), {stats['update']} mis à jour, {stats['skip']} déjà à jour, "
+                            f"{stats['review']} à vérifier)")
     return ctx.report.events

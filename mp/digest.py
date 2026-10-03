@@ -13,6 +13,11 @@ def _esc(s) -> str:
     return html.escape(str(s or ""))
 
 
+def decisions_line(d: dict) -> str:
+    return (f"Décisions : {d.get('postulees', 0)} postulée(s), {d.get('ecartees', 0)} écartée(s), "
+            f"{d.get('expirees', 0)} expirée(s).")
+
+
 def render(report: RunReport, label: str = "") -> tuple[str, str, str]:
     """(sujet, texte, html)"""
     top = sorted((s for s in report.scored if s["verdict"] != "Écarter"), key=lambda s: -s["score"])[:10]
@@ -73,7 +78,8 @@ def render(report: RunReport, label: str = "") -> tuple[str, str, str]:
         h.append(f"<p style='color:#666'>Ingestion : {i.get('emails', 0)} email(s), {i.get('cartes', 0)} carte(s), "
                  f"{i.get('nouvelles', 0)} nouvelle(s).</p>")
     if report.decisions:
-        lines.append(f"Décisions : {report.decisions}")
+        lines.append(decisions_line(report.decisions))
+        h.append(f"<p style='color:#666'>{_esc(decisions_line(report.decisions))}</p>")
     if report.errors:
         lines.append("")
         lines.append("ERREURS :")
@@ -82,9 +88,11 @@ def render(report: RunReport, label: str = "") -> tuple[str, str, str]:
             lines.append(f"  ✗ {e}")
             h.append(f"<li>{_esc(e)}</li>")
         h.append("</ul>")
-    if report.notes:
+    if report.notes:  # suivi des réponses, doublons, consommation Claude : dans les deux versions du digest
         lines.append("")
         lines.extend(f"  · {n}" for n in report.notes)
+        h.append("<ul style='color:#666;font-size:12px'>" + "".join(f"<li>{_esc(n)}</li>" for n in report.notes)
+                 + "</ul>")
     return subject, "\n".join(lines), "\n".join(h)
 
 
