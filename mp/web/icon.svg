@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Icône « Missions » : fond or (le cockpit LinkedIn « Pilotage » est bleu nuit), mallette bleu nuit, coche blanche. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#DDB257"/>
+      <stop offset="1" stop-color="#B9872F"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect x="198" y="112" width="116" height="84" rx="26" fill="none" stroke="#1F2A44" stroke-width="30"/>
+  <rect x="84" y="172" width="344" height="240" rx="40" fill="#1F2A44"/>
+  <rect x="84" y="250" width="344" height="16" fill="#2E3B5C"/>
+  <polyline points="190,300 238,348 326,256" fill="none" stroke="#FFFFFF" stroke-width="36"
+            stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

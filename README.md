@@ -1,165 +1,146 @@
-# Mission Pipeline — Suivi de candidatures Gmail → Claude → Airtable
+# Mission Pipeline v3
 
-Automatisation n8n qui lit les emails Gmail liés à des candidatures, les classe avec
-Claude, et tient à jour une base Airtable du suivi de candidatures.
-
-- **Hébergement** : n8n auto-hébergé sur VPS Hostinger.
-- **Workflows live** :
-  - Backfill (manuel, semaine par semaine) — `Cc6Ngky4IS30Cj8h`
-  - Run quotidien (cron `0 4 * * *`, **inactif** par défaut) — `BsXYMJdidg8tej9i`
-- **Source de vérité** : l'instance n8n en ligne. Ce dépôt en est le **miroir versionné**
-  (`backfill.workflow.json` / `daily.workflow.json` = export complet via API ;
-  `nodes/*.js` = code lisible des nœuds Code).
-- **État** : backfill en cours, traité **semaine par semaine** (déclencheur manuel).
-  Daily à activer une fois le backfill terminé.
-
-## Contexte projet (front-end / pilotage)
-
-Ce dépôt est la **plomberie** : il alimente la base Airtable Mission Pipeline. Le **front
-de pilotage** (dashboard, profil, sync LinkedIn, contexte stratégique) vit dans le projet
-Cowork :
-
-- **Projet Cowork « Candidatures »** : `/Users/xavierrobitaille/Desktop/Claude/Projects/Candidatures/`
-  - `CLAUDE.md` : instructions Claude (schéma Airtable, MCP, dashboard)
-  - `PROJECT.md` : statut, KPIs
-  - `artifacts/mission-pipeline.html` : dashboard live
-- **Profil partagé** : `/Users/xavierrobitaille/Desktop/Claude/Projects/_shared/context.md`
-  (parcours XRO, mission en cours, priorités, TJM cible, liste cabinets…)
-
-**Contrat partagé entre les deux** : la base Airtable **Mission Pipeline**
-(`apphTpnW5vu0OdnfC`). Toute mise à jour écrite par ce pipeline est lue par le dashboard
-en temps réel.
-
-## Édition à distance via l'API n8n
-
-Plus de copier-coller : la clé API n8n est stockée dans `~/.config/mission-pipeline/n8n.env`
-(jamais commitée, jamais collée dans un chat). Depuis une session Code :
-
-```sh
-set -a; source ~/.config/mission-pipeline/n8n.env; set +a
-# GET un workflow
-curl -sS -H "X-N8N-API-KEY: $N8N_API_KEY" "$N8N_URL/api/v1/workflows/Cc6Ngky4IS30Cj8h" | jq .
-# PUT après patch (settings strict : ne garder que executionOrder)
-curl -sS -X PUT -H "X-N8N-API-KEY: $N8N_API_KEY" -H "Content-Type: application/json" \
-  --data @body.json "$N8N_URL/api/v1/workflows/Cc6Ngky4IS30Cj8h"
-```
-
-## Architecture (flux des nœuds)
+Des alertes LinkedIn reçues dans Gmail au dossier de candidature (CV adapté + lettre) attaché dans
+Airtable, sans intervention. Il reste **trois clics** à faire par offre : lire, télécharger, cocher.
 
 ```
-Déclenchement manuel
-  → Gmail (getAll, simple:false, q = fenêtre hebdo)
-  → Filtrer & préparer (Code)            décode corps, règles LinkedIn, prompt Claude
-  → Construire requêtes batch (Code)      1 requête Batch API pour tous les emails
-  → Créer batch Claude (HTTP POST)        /v1/messages/batches
-  → Statut batch (HTTP GET) → Batch terminé ? (IF)
-        ├─ non → Attendre 30 s → (reboucle sur Statut batch)
-        └─ oui → Récupérer résultats (HTTP GET results_url, format texte/JSONL)
-  → Lister enregistrements (Airtable search, returnAll, tous champs)
-  → Matcher & décider (Code)              rapproche email ↔ candidature, action: create/update/skip/review
-  → A traiter ? (IF action=review)
-        ├─ oui → Créer un enregistrement à checker (Airtable → table "A traiter")
-        └─ non → Créer ? (IF action=create)
-              ├─ oui → Créer enregistrement Airtable (Candidatures)
-              └─ non → Mettre à jour ? (IF action=update)
-                    ├─ oui → Mettre à jour Réponse (Candidatures)
-                    └─ non → Ignoré (NoOp, action=skip)
+Gmail ─► mp ingest ─► Airtable « Offres » ─► mp score (Claude) ─► top 3 du jour ─► mp dossiers (CV + lettre, PDF)
+                                   ▲                                                      │
+                                   └──── mp sync (Je postule / J'écarte) ◄── Xavier coche ◄┘
+                                   └──── mp track (emails de statut) ─► « Candidatures »
 ```
 
-Pourquoi la **Batch API** : le backfill traite beaucoup d'emails d'un coup (‑50 % de coût,
-asynchrone). Pour une future version **temps réel** (1 email à la fois), repasser à un appel
-`/v1/messages` synchrone.
+Un seul moteur (`mp/`), un seul ordonnanceur (GitHub Actions ou launchd), une seule interface (Airtable),
+plus un **cockpit sur l'iPhone** (`mp app` derrière Tailscale) pour décider et retoucher la lettre depuis le téléphone.
+Le détail de la refonte, l'audit chiffré et le runbook de migration : [`docs/REFONTE-2026-10.md`](docs/REFONTE-2026-10.md).
 
-## Taxonomie des statuts (champ « Réponse »)
+## Répondre à une offre
 
-Entonnoir, on n'avance que vers l'avant (rangs) :
+1. Ouvrir la vue **À décider** (table Offres). La ligne de `Rang du jour` 1 est la meilleure offre du run ;
+   `Note rôle` résume l'offre (pas besoin d'ouvrir LinkedIn), `Note critères` la compare à tes attentes
+   (✓ / ✗ / ?), `Pourquoi` et `Red flags` expliquent le score ; `Publiée le` et `Mode candidature` (simplifiée
+   ou site de l'employeur) viennent de la page LinkedIn. Le cockpit affiche les mêmes champs.
+2. Télécharger le PDF dans `CV (fichiers)` ; copier `Lettre texte` dans le formulaire LinkedIn.
+3. Cocher **Je postule**. Statut, date, ligne Candidatures et suivi des réponses suivent tout seuls.
 
-`Néant (0) → Envoyé (1) → A/R (2) → Oui / Non (3)`
+Offre trouvée ailleurs (réseau, site d'un cabinet) :
 
-Une mise à jour n'a lieu que si le nouveau statut a un **rang strictement supérieur** à
-l'existant (`rankOf` dans `matcher-decider.js`). Oui et Non sont terminaux et de même rang
-(le premier arrivé gagne).
+```bash
+mp dossier --url https://www.linkedin.com/jobs/view/4444856066/
+mp dossier --text annonce.txt --title "Head of Finance" --employer "Swiss Re"   # si LinkedIn bloque
+```
 
-## Règles déterministes (priment sur Claude) — `filtrer-preparer.js`
+En session Claude : le skill `/postuler` (`skills/postuler/SKILL.md`) fait la même chose.
 
-Emails LinkedIn (domaine `linkedin.com`), détectées sur sujet + aperçu :
+## Cockpit sur l'iPhone
 
-| Motif | Statut forcé | Société |
+`mp app` sert une petite application web sur le Mac (`127.0.0.1:8765`), que Tailscale expose en HTTPS sur ton
+réseau privé, et nulle part ailleurs. Sur l'iPhone, Safari → Partager → **Sur l'écran d'accueil** : l'icône
+« Missions » ouvre le cockpit en plein écran.
+
+- **À décider** : les offres du jour avec score, pourquoi, red flags ; boutons **Je postule** / **J'écarte** /
+  **Préparer le dossier**, appliqués immédiatement (statut, ligne Candidatures, dossier en arrière-plan).
+- **Dossiers** : la lettre, à copier ou à faire réécrire par Claude sur une **consigne** (« plus court »,
+  « insiste sur IFRS 17 ») ; valider régénère le PDF et le DOCX attachés dans Airtable.
+- **＋ Ajouter une offre** trouvée ailleurs : lien LinkedIn ou texte collé ; Claude la note puis prépare le dossier.
+- **Postulées** et **Santé** (dernier run, compteurs, copie Drive, bouton ▶ Run).
+
+Adresse : `https://<mac>.<tailnet>.ts.net:8443`. L'adresse sans port reste celle du cockpit LinkedIn.
+Installation (Mac + iPhone, 15 minutes) : [`deploy/tailscale/README.md`](deploy/tailscale/README.md).
+
+## Installation
+
+```bash
+gh repo clone xrobitaille92150/mission-pipeline && cd mission-pipeline      # HTTPS via gh (aucune clé SSH requise)
+python3.11 -m venv .venv                   # Python 3.11 minimum (python3.12 convient ; `brew install python@3.12` si absent)
+.venv/bin/pip install -U pip && .venv/bin/pip install -e ".[dev]"
+brew install --cask libreoffice            # Mac ; sur Linux : apt install libreoffice-writer
+```
+
+Secrets : dans `~/.config/mission-pipeline/*.env` (format `KEY=VALUE`, jamais commités) ou dans les
+secrets du dépôt GitHub. Liste complète et valeurs par défaut : [`.env.example`](.env.example).
+
+```bash
+mp doctor                      # vérifie secrets, LibreOffice, CV de base, règles, Airtable, Gmail, Claude
+mp airtable-setup --apply      # crée les champs Airtable manquants (une fois)
+mp run --dry-run -v            # répétition sans écriture
+mp run                         # run complet + digest par email
+```
+
+## Commandes
+
+| Commande | Rôle |
+|---|---|
+| `mp run [--days N] [--limit N] [--max-dossiers N] [--skip …] [--label matin]` | ingest → dedup → sync → score → dossiers → track → digest |
+| `mp ingest` | lit les digests LinkedIn des N derniers jours (label Gmail `MissionPipeline` posé sur les emails traités) |
+| `mp dedup` | range en « Doublon » les offres même employeur + même poste (rien n'est supprimé) |
+| `mp sync` | applique `Je postule` / `J'écarte`, expire les offres silencieuses depuis 14 jours |
+| `mp score [--rescore]` | filtres durs puis un appel Claude par offre ; coche `Préparer dossier` sur le top du jour |
+| `mp notes [--limit N]` | complète les offres actives (À étudier, Dossier prêt) : résumé + critères ✓ / ✗ / ? si absents, date de parution et mode de candidature lus sur LinkedIn si absents ; le score n'est pas touché |
+| `mp dossiers` | CV + lettre pour les lignes cochées, attachés dans Airtable |
+| `mp dossier --url … \| --job-id … \| --text …` | dossier à la demande |
+| `mp track [--days N]` | emails de statut LinkedIn et recruteurs → `Réponse`, Candidatures |
+| `mp digest` | renvoie le digest du dernier run |
+| `mp airtable-setup [--apply]` | schéma Airtable |
+| `mp doctor [--offline]` | diagnostic |
+| `mp drive-sync [--days 14]` | copie dans le Drive du Mac les dossiers produits ailleurs (GitHub Actions) |
+| `mp app [--host 127.0.0.1] [--port 8765]` | cockpit mobile (serveur web local, exposé par Tailscale) |
+
+Options globales : `--dry-run` (n'écrit rien), `-v`.
+
+## Réglages
+
+| Variable | Défaut | Effet |
 |---|---|---|
-| « your application was sent to XXX » / « candidature envoyée à XXX » | **Envoyé** | XXX |
-| « your application was viewed by XXX » / « candidature consultée par XXX » | **A/R** | XXX |
-| « Dernière nouvelle de XXX » | **Non** | XXX |
-| Expéditeur `jobalerts-noreply@linkedin.com` | *ignoré* (mis de côté, feature à venir) | — |
+| `MP_MODEL_MAIN` / `MP_MODEL_FAST` | `claude-opus-5-5` / `claude-haiku-4-5` | scoring, CV, lettre / classification des emails |
+| `MP_SCORE_MIN` | 60 | score minimal pour un dossier automatique |
+| `MP_AUTO_DOSSIERS_PER_RUN` | 3 | dossiers générés sans clic, par run |
+| `MP_INGEST_DAYS` | 2 | fenêtre Gmail |
+| `MP_EXPIRE_DAYS` | 14 | silence au-delà duquel une offre expire sans être scorée |
+| `MP_LABEL_DONE` | `MissionPipeline` | label Gmail des emails traités |
+| `MP_CV_BASE_DIR` | `assets/cv_base` | 6 CV de base (3 profils × FR/EN) |
+| `MP_WRITING_RULES_DIR` | `assets/writing_rules` | règles d'écriture FR / EN |
+| `MP_DOSSIER_ENGINE` | `auto` | `auto` : Claude Code + skills si la commande `claude` est installée (hors GitHub Actions), sinon l'API ; `claude-code` ou `api` pour forcer |
+| `MP_CLAUDE_BIN` / `MP_CLAUDE_CODE_MODEL` | (détectés) | chemin de `claude` si launchd ne le trouve pas ; modèle de Claude Code (défaut : celui du compte) |
+| `MP_DRIVE_DOSSIERS_DIR` | `~/Mon Drive/XavierAdvisory/10_Work/Candidatures/dossiers` si Candidatures existe | copie des dossiers (PDF + DOCX) dans le Drive, comme l'ancien MATT ; `off` pour couper. Le cockpit rattrape toutes les 30 min les dossiers produits ailleurs (`mp drive-sync`) |
 
-Exclusions côté prompt (`recrutement=false`) : authentification/code, bienvenue/inscription
-plateforme, invitation conférence/webinaire, newsletters, notifs bancaires, etc.
+## Ordonnancement
 
-Denylist sociétés (faux positifs) dans `matcher-decider.js` : `DENY = {'indigoneo'}`.
+- **launchd sur le Mac** (choix du 2 octobre, option « Mixte ») : `zsh deploy/launchd/install.sh`, 06:30 et 18:30.
+  CV et lettres y sont rédigés par **Claude Code** (`claude -p`) avec les skills du compte claude.ai
+  (`cv-tailoring`, `cover-letter`, `voix-xavier`) sur l'abonnement ; scoring et tri des emails restent sur l'API.
+  Si Claude Code échoue (quota, déconnexion), le dossier est rédigé par l'API et le digest le signale.
+- **GitHub Actions** : lancement manuel seulement, en secours si le Mac est éteint
+  ([`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml)) ; dossiers rédigés par l'API.
+- **Cockpit** (Mac, service permanent) : `zsh deploy/launchd/install-app.sh` puis `tailscale serve --bg --https=8443 8765`
+  ([`deploy/tailscale/README.md`](deploy/tailscale/README.md)).
+- **Pause de l'ancien pipeline** (workflows n8n « Gmail Bridge » + agents launchd v2) : `zsh deploy/decommission.sh`
+  (`--liste` pour voir avant, `--restaurer` pour annuler ; rien n'est supprimé).
 
-## Rapprochement (matching) — `matcher-decider.js`
-
-1. Nom de société extrait par Claude (normalisé : minuscules, sans accents, suffixes
-   `sas/sarl/recruitment/...` retirés).
-2. **Reverse-match** : un nom de candidature connue présent dans le texte de l'email
-   (sujet/corps/expéditeur), le plus spécifique d'abord (longueur ≥ 4).
-3. Domaine de l'expéditeur (dernier recours).
-
-Routage : **si société identifiée de façon fiable** (règle forcée OU nom extrait par Claude)
-→ Candidatures (create/update). **Sinon** → table « A traiter » (review) avec lien Gmail.
-
-## Schéma Airtable
-
-Base **Mission Pipeline** `apphTpnW5vu0OdnfC`.
-
-- **Candidatures** `tblF3jpncEXA647ou` : Société, Poste, Lieu, Mode, URL, Date parue,
-  Date postulé, Date réponse, Réponse (single-select : Néant/Envoyé/A/R/Oui/Non), Note.
-  - Champs réels **à plat** dans la sortie n8n (pas de wrapper `fields`), noms **accentués**
-    (`Société`, `Réponse`…). `getField` gère casse/accents.
-  - Dates : `Date postulé` si statut Envoyé, sinon `Date réponse` (mapping ternaire `undefined`).
-  - URL = lien Gmail **à la création uniquement** (pas à l'update).
-- **A traiter** `tblSeyppFhxU3i8Ev` : Société, Poste, Réponse, Sujet, Expéditeur, Date,
-  Note, Lien Gmail.
-
-Credentials n8n : Gmail OAuth2 `wN9kkTh8npM257wD`, Anthropic (httpHeaderAuth `x-api-key`)
-`tb4jH2LrqUFwnjrM`, Airtable PAT `bQLoL1mZbqEFDoKw`. Modèle : `claude-haiku-4-5-20251001`.
-
-## Lancer / tester
-
-Backfill, une fenêtre par run — changer le `q` du nœud Gmail :
-```
-after:2026/05/01 before:2026/05/08   (puis 05/08→05/15, 05/15→05/22, 05/22→05/29,
-                                       05/29→06/05, 06/05→06/13)
-```
-Lancer manuellement, attendre la fin du batch (polling). Vérifier le ratio create/update/skip
-et la table « A traiter ».
-
-## Itérer (1 feature = 1 commit)
-
-Boucle : décrire la règle → modifier le(s) nœud(s) (`nodes/*.js`) → tester sur une semaine →
-déployer dans n8n → réexporter `candidatures.workflow.json` → commit.
-
-Prochaine amélioration recommandée : **brancher le connecteur n8n (MCP)** sur l'instance
-Hostinger (URL + clé API n8n) pour éditer/déployer directement, sans copier-coller.
-
-## Pipeline dossiers (run_dossiers.py)
-
-Script Python lancé par launchd à 6h, 12h, 19h. Lit les offres Veille avec
-`Préparer dossier=true` + CV vide + J'écarte=false → génère CV adapté + Cover Letter → PDF → GitHub → Airtable PATCH.
+## Structure du dépôt
 
 ```
-scripts/run_dossiers.py      ← script principal
-scripts/run-dossiers.sh      ← lanceur (chemin absolu python3 + pandoc)
-logs/dossiers_*.log          ← un log par run
+mp/                 moteur (config, gmail, linkedin, airtable, claude, scoring, cv, letter, pdf, dossier,
+                    tracking, digest, pipeline, context, cli, app)
+mp/web/             cockpit mobile : index.html (vanilla JS), icon.png
+mp/prompts/         prompts versionnés : profile, scoring, bareme, cv_edits, cover_common/fr/en, tracking
+assets/cv_base/     CV_XRO_{EN,FR}_{FinanceTransformation,AssetManagement,IFRS17_SolvencyII}_v5.docx
+assets/writing_rules/   WRITING RULES.md, REGLES-ECRITURE-FR.md
+tests/              115 tests pytest (doubles Airtable / Claude en mémoire)
+deploy/             launchd (Mac : pipeline + cockpit), Tailscale, automation Airtable
+skills/postuler/    skill Claude « prépare le dossier pour cette offre »
+docs/               REFONTE-2026-10.md
+legacy/             n8n, agents Python de juillet, scripts : plus exécutés, gardés pour mémoire
+out/                sorties locales (dossiers, logs), ignorées par git
 ```
 
-Profils CV (`select_cv` decision tree, fichiers dans `~/Desktop/.../CV de base/`) :
-- `FinanceTransformation` (défaut) — `IFRS17SolvencyII` — `AssetManagement`
+## Tests
 
-## Problèmes connus / TODO
+```bash
+.venv/bin/python -m pytest          # 115 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
+```
 
-- [ ] **BUG n8n** : nœud « Créer un enregistrement à checker » — `Poste` est mappé sur
-  `{{ $json.societe }}` au lieu de `{{ $json.poste }}`.
-- [ ] **« A traiter » pas en upsert** : opération `create` sans clé `ID Email` → doublons
-  cross-run possibles. À passer en « Create or Update » matché sur `ID Email`.
-- [ ] Matching dur résiduel → escalade possible vers matching délégué à Claude.
-- [ ] Feature : version **temps réel** (Gmail Trigger + appel Claude synchrone).
+## Airtable
+
+Base `apphTpnW5vu0OdnfC` : table **Offres** (`tblrCyL6huHkUPZbF`, ex-« Veille 2 ») et table
+**Candidatures** (`tblF3jpncEXA647ou`). Champs, vues et automation : [`deploy/airtable/README.md`](deploy/airtable/README.md).

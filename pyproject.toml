@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mission-pipeline"
+version = "3.0.0"
+description = "Mission Pipeline v3 — des alertes LinkedIn (Gmail) au dossier de candidature (CV + lettre) en un clic."
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=1.11",
+    "fastapi>=0.115",
+    "pydantic>=2.6",
+    "python-docx>=1.1",
+    "requests>=2.31",
+    "uvicorn>=0.30",
+]
+
+[project.optional-dependencies]
+dev = ["httpx>=0.27", "pytest>=8", "ruff>=0.5"]
+
+[project.scripts]
+mp = "mp.cli:main"
+
+[tool.setuptools]
+packages = ["mp", "mp.prompts"]
+
+[tool.setuptools.package-data]
+"mp" = ["web/*"]
+"mp.prompts" = ["*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

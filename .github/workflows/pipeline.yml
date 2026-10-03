@@ -1,0 +1,98 @@
+# Mission Pipeline v3 — secours sur GitHub Actions
+#
+# Depuis le 2 octobre 2026 (option « Mixte » choisie par Xavier), les runs planifiés tournent sur le Mac (launchd,
+# deploy/launchd/install.sh) : c'est là que Claude Code rédige CV et lettres avec les skills du compte claude.ai.
+# Ce workflow ne garde que le lancement manuel (onglet Actions → Run workflow), en secours si le Mac est éteint.
+# Ici, les dossiers sont rédigés par l'API avec les prompts du dépôt (MP_DOSSIER_ENGINE=api) et ne sont pas
+# copiés dans le Drive (le cockpit du Mac les rattrape ensuite, mp drive-sync).
+#
+# Secrets du dépôt (Settings → Secrets and variables → Actions → Secrets) :
+#   ANTHROPIC_API_KEY, AIRTABLE_PAT, GMAIL_USER, GMAIL_APP_PASSWORD
+# Variables facultatives (même écran → Variables) : DIGEST_FROM, DIGEST_TO, MP_MODEL_MAIN, MP_MODEL_FAST,
+#   MP_SCORE_MIN, MP_AUTO_DOSSIERS_PER_RUN, MP_INGEST_DAYS
+
+name: mission-pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Que lancer ?"
+        type: choice
+        default: run
+        options: [run, dossiers, score, track, doctor]
+      url:
+        description: "Dossier à la demande : URL LinkedIn (ignore « mode »)"
+        type: string
+        required: false
+
+concurrency:
+  group: mission-pipeline
+  cancel-in-progress: false
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TZ: Europe/Paris
+      PYTHONUNBUFFERED: "1"
+      MP_DOSSIER_ENGINE: api            # pas de skills du compte ici : prompts du dépôt
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
+      GMAIL_USER: ${{ secrets.GMAIL_USER }}
+      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      DIGEST_FROM: ${{ vars.DIGEST_FROM }}
+      DIGEST_TO: ${{ vars.DIGEST_TO }}
+      MP_MODEL_MAIN: ${{ vars.MP_MODEL_MAIN }}
+      MP_MODEL_FAST: ${{ vars.MP_MODEL_FAST }}
+      MP_SCORE_MIN: ${{ vars.MP_SCORE_MIN }}
+      MP_AUTO_DOSSIERS_PER_RUN: ${{ vars.MP_AUTO_DOSSIERS_PER_RUN }}
+      MP_INGEST_DAYS: ${{ vars.MP_INGEST_DAYS }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: LibreOffice + polices (conversion DOCX → PDF)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            libreoffice-writer fonts-crosextra-carlito fonts-crosextra-caladea fonts-liberation fonts-dejavu-core
+          soffice --version
+
+      - name: Installer mp
+        run: pip install -q -e .
+
+      - name: Diagnostic
+        run: mp doctor --offline
+
+      - name: Déterminer la commande
+        id: cmd
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.url }}" ]; then
+            echo "args=dossier --url ${{ github.event.inputs.url }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.mode }}" != "run" ]; then
+            echo "args=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT"
+          elif [ "$(date +%H)" -lt 12 ]; then
+            echo "args=run --label 'secours matin'" >> "$GITHUB_OUTPUT"
+          else
+            echo "args=run --label 'secours soir'" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: mp ${{ steps.cmd.outputs.args }}
+        shell: bash
+        run: eval mp ${{ steps.cmd.outputs.args }}
+
+      - name: Conserver les logs du run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ github.run_id }}
+          path: out/logs/
+          retention-days: 14
+          if-no-files-found: ignore
