@@ -1,36 +1,50 @@
 # Mission Pipeline — Instructions techniques
 
-**Code du pipeline** — n8n workflows (Gmail → Airtable) + script Python (génération CV/CL)  
-**Repo** : `/Users/xavierrobitaille/Claude/Artifacts/mission-pipeline/` (git, dépôt privé GitHub `xrobitaille92150/mission-pipeline`)  
-**Suivi candidatures** : voir dossier Cowork `Candidatures/` pour le dashboard et le contexte utilisateur
+**Code du pipeline** — service Python sur le Mac (agents JOE / BOB / MATT / JACK) + exports n8n historiques + génération CV/CL
+**Emplacement sur le Mac** : `/Users/xavierrobitaille/Desktop/Claude/Projects/Candidatures/pipeline/` (chemin codé en dur dans `scripts/run-pipeline.sh`, `scripts/run-dossiers.sh`, `scripts/run-jack-hourly.sh`)
+**GitHub** : dépôt privé `xrobitaille92150/mission-pipeline`
 
 ---
 
-## Architecture rapide
+## Architecture (état constaté dans le code au 03/10/2026)
 
 ```
-Gmail (LinkedIn, recruteurs, alertes jobalerts)
-  │
-  └─→ n8n (VPS Hostinger, cron 6h)
-      ├─→ Claude Haiku (Batch API) — Candidatures
-      └─→ Airtable base Mission Pipeline (apphTpnW5vu0OdnfC)
-          ├── Candidatures (tblF3jpncEXA647ou) — suivi statut
-          ├── A traiter (tblSeyppFhxU3i8Ev) — revue manuelle
-          └── Veille (tblrXH5Jiyg6w21lW) — offres jobalerts
-              │
-              ├─ 6h20 : Fetch JD (LinkedIn jobs-guest)
-              ├─ 6h25 : Notes IA (Claude Haiku)
-              ├─ 6h30 : ★ SCORING (Claude Opus)
-              │         └─ 7 blocs, Score 0-100, Justification
-              │
-              └─→ run_dossiers.py (launchd 6h15/12h15/19h15)
-                  ├─→ LinkedIn fetch
-                  ├─→ CV adapté (python-docx)
-                  ├─→ Cover letter
-                  ├─→ PDF (pandoc + Chrome headless)
-                  ├─→ GitHub push
-                  └─→ Airtable PATCH
+launchd com.xrobitaille.missionrun (06:15 / 18:15)
+  └─→ service/run.py — orchestrateur, digest email en fin de run
+      ├─ JOE  : ingest pont Gmail + enrichissement Veille 2
+      │         notes Sonnet (claude-sonnet-4-6) + score Haiku (claude-haiku-4-5-20251001)
+      ├─ BOB  : triage emails de candidature (Haiku) → Candidatures / A traiter / Email Triage
+      └─ MATT : scripts/run-dossiers.sh → scripts/run_dossiers.py (CV + CL, PDF, push GitHub, PATCH Airtable)
+
+launchd com.xrobitaille.jack (toutes les heures à :45)
+  └─→ scripts/run-jack-hourly.sh → service/jack.py
+      purge « J'écarte », dédoublonnage, nettoyage > 7 j, puis MATT (max 12 dossiers / run)
+      verrou partagé avec MATT : /tmp/run-dossiers.lock (périmé après 90 min)
 ```
+
+Airtable — base `apphTpnW5vu0OdnfC` (IDs dans `service/lib/config.py`) :
+- Veille 2 `tblrCyL6huHkUPZbF` — offres jobalerts (table utilisée par JOE / JACK)
+- Candidatures `tblF3jpncEXA647ou` — suivi statut
+- A traiter `tblSeyppFhxU3i8Ev` — revue manuelle
+- Email Triage `tblOkwh1UtFHQpyct` — log de classification BOB
+- Veille `tblrXH5Jiyg6w21lW` — ancienne table des workflows n8n
+
+Seuil actionnable du score : **≥ 50** (`SEUIL` dans `service/lib/config.py`).
+Barème de scoring : `nodes/scoring-bareme-prompt.txt` (source unique, régénéré par `scripts/sync_bareme.sh`).
+
+---
+
+## Modèles Claude utilisés
+
+| Usage | Modèle | Où |
+|---|---|---|
+| Notes Veille (JOE) | `claude-sonnet-4-6` | `service/lib/config.py` (`MODEL_NOTES`) |
+| Score Veille (JOE) | `claude-haiku-4-5-20251001` | `service/lib/config.py` (`MODEL_SCORE`) |
+| Triage emails (BOB) | `claude-haiku-4-5-20251001` | `service/bob.py` via `lib/claude.py` |
+| Gap analysis CV (MATT) | `claude-haiku-4-5-20251001` | `scripts/run_dossiers.py` (`HAIKU_MODEL`) |
+| Cover letter (MATT) | `claude-sonnet-5` | `scripts/run_dossiers.py` (`SONNET_MODEL`) |
+
+Le score de production tourne sur **Haiku**, pas sur Opus. `nodes/veille-scoring.js` (Sonnet 4) et `scripts/test_scoring.py` (Opus 4.1) sont des prototypes de juin, non appelés par le service.
 
 ---
 
@@ -38,56 +52,36 @@ Gmail (LinkedIn, recruteurs, alertes jobalerts)
 
 | Fichier | Rôle |
 |---|---|
-| `README.md` | Spec détaillée du pipeline n8n (schéma Airtable, règles déterministes, triage, logs) |
-| `daily.workflow.json` | Export n8n du workflow quotidien (source de vérité locale) |
-| `backfill.workflow.json` | Export n8n du backfill (historique) |
-| `veille-notes.workflow.json` | Export n8n du workflow Veille — notes IA (triage + scoring, 6h30) |
-| `nodes/veille-scoring.js` | **[NEW]** Nœud n8n : orchestrateur scoring (7 blocs, Claude Opus) |
-| `nodes/scoring-prompt.md` | **[NEW]** Prompt Claude pour évaluation offres |
-| `nodes/*.js` | Logique détachée des nœuds n8n (matching, triage, parsing, scoring) |
-| `scripts/parse_scoring_bareme.py` | **[NEW]** Parser barème Excel → JSON (source unique vérité) |
-| `scripts/test_scoring.py` | **[NEW]** Test suite : mode test + mode live (Airtable) |
-| `scripts/run_dossiers.py` | Script Python — génération CV/CL via Claude Haiku |
-| `scripts/run-dossiers.sh` | Lanceur shell (appelé par launchd, chemins absolus) |
-| `SCORING.md` | **[NEW]** Doc technique complète du système de scoring |
-| `SCORING_QUICKSTART.md` | **[NEW]** Quick start utilisateur + exemples |
-| `DEPLOY_SCORING.md` | **[NEW]** Guide déploiement 5 étapes (référence) |
-| `logs/dossiers_*.log` | Logs d'exécution (un par run) |
-
----
-
-## Mémoires auto-memory (Code)
-
-Pour les bugs, flow, et state :
-- **`project-scoring-deployed.md`** — système scoring en production (24/06), architecture 7 blocs, workflow 6h30 actif
-- **`project-dossiers-python.md`** — bugs launchd (chemin python3/pandoc), CV profils, séquence complète
-- **`n8n-workflow-debug-cheatsheet.md`** — pannes n8n courantes et correctifs (à lire en premier en cas d'erreur)
-- **`feature-veille-jobalerts.md`** — Veille / jobalerts LinkedIn (v1 déployée, intégration dossiers)
-- **`specs-n8n-gmail-airtable.md`** — field IDs, credentials, expressions exactes
-- **`feedback-*.md`** — préférences Xavier (code complet, pas jargon, action proactive)
-
-À consulter avant toute itération.
+| `service/run.py` | Orchestrateur JOE → BOB → MATT (`--dry-run` disponible) |
+| `service/joe.py` | Enrichissement Veille 2 (`--test [N]`, `--dry-run`) |
+| `service/bob.py` | Triage emails (`--write` pour écrire, sinon lecture seule) |
+| `service/jack.py` | Agent horaire Veille 2 (`--dry-run`) |
+| `service/lib/` | Config, clients Airtable / Claude / Gmail, digest email |
+| `scripts/run_dossiers.py` | MATT — génération CV/CL (python-docx, pandoc, Chrome headless) |
+| `scripts/run-dossiers.sh` | Lanceur MATT (charge les `.env`, pose le verrou) |
+| `scripts/apply_tool.py` + `run-apply-tool.sh` | Outil local « Postuler proprement » (http://localhost:8765) |
+| `nodes/scoring-bareme-prompt.txt` | Barème de scoring (lu par JOE, apply_tool, backfills) |
+| `README.md` | Spec historique du pipeline n8n (statuts, règles déterministes, matching, schéma Airtable) |
+| `*.workflow.json` | Exports n8n (`daily`, `backfill`, `veille-notes`, `veille-alerte-dossiers`, `mission-team`) |
+| `SCORING.md`, `SCORING_QUICKSTART.md`, `DEPLOY_SCORING.md` | Docs du scoring v1 (juin, architecture n8n) |
 
 ---
 
 ## Itérer (1 feature = 1 commit)
 
-### Ajouter une règle n8n
+### Modifier un agent du service
+1. Éditer `service/<agent>.py` ou `service/lib/*.py`
+2. Tester sans écrire : `python3 service/run.py --dry-run` (ou `joe.py --dry-run`, `jack.py --dry-run`, `bob.py` sans `--write`)
+3. Commit, puis attendre le prochain run launchd
 
-1. **Décrire la règle** dans le README (avant/après)
-2. **Modifier les nœuds** (`nodes/*.js` ou `daily.workflow.json`)
-3. **Tester** sur une semaine (backfill ou run manuel)
-4. **Déployer** sur n8n live via l'UI ou API (`~/.config/mission-pipeline/n8n.env`)
-5. **Réexporter** le workflow (UI n8n → Export JSON)
-6. **Commit** : `git add daily.workflow.json nodes/ README.md && git commit -m "..."`
+### Fixer un bug MATT (run_dossiers.py)
+1. Lire les logs : `logs/shell_*.log`, `logs/dossiers_*.log`, `logs/launchd_dossiers_err.log`
+2. Éditer `scripts/run_dossiers.py`
+3. Tester : `MATT_MAX=1 scripts/run-dossiers.sh` (le script n'a pas d'option `--test`)
+4. Commit : `git commit -m "fix(dossiers): ..."`
 
-### Fixer un bug run_dossiers.py
-
-1. **Vérifier les logs** : `logs/dossiers_YYYY-MM-DD_*.log`
-2. **Éditer le script** : `scripts/run_dossiers.py`
-3. **Tester localement** : `python3 scripts/run_dossiers.py --test <jobId>`
-4. **Commit** : `git commit -m "fix(dossiers): ..."`
-5. **Relancer launchd** : `launchctl start com.xrobitaille.dossiers` ou attendre le prochain run planifié
+### Modifier le barème de scoring
+Éditer le barème source puis `scripts/sync_bareme.sh` (régénère et commit `nodes/scoring-bareme-prompt.txt`).
 
 ---
 
@@ -95,90 +89,20 @@ Pour les bugs, flow, et state :
 
 - `~/.config/mission-pipeline/anthropic.env` — `ANTHROPIC_API_KEY`
 - `~/.config/mission-pipeline/airtable.env` — `AIRTABLE_PAT`
-- `~/.config/mission-pipeline/n8n.env` — `N8N_BASEURL`, `N8N_API_KEY` (pour déploiement distant)
+- `~/.config/mission-pipeline/n8n.env` — `N8N_BASEURL`, `N8N_API_KEY`
 
 Lire ces fichiers dans les scripts, ne jamais les committer.
 
 ---
 
-## État au 24 juin 2026
+## Points à confirmer par Xavier
 
-**n8n — Ingestion email & Veille**
-- Run quotidien : actif, cron `0 6 * * *` (VPS Hostinger)
-- Backfill : terminé
-- Branche Veille (notes IA) : active 6h25, triage Claude
-- Branche Scoring : **✅ DEPLOYÉE 24/06**
-  - Nœud orchestrateur : `nodes/veille-scoring.js`
-  - Exécution : quotidienne 6h30
-  - Champ Score (0-100) créé dans Airtable Veille
-  - Seuil actionnable ≥ 50
-- Bugs corrigés : `undefined→null` date fields (22/06)
-
-**run_dossiers.py** (génération CV/CL)
-- ✅ Opérationnel depuis le 19 juin 2026
-- launchd actif : 6h15 / 12h15 / 19h15 (décalé +15min pour race condition)
-- Bugs corrigés : chemin absolu python3/pandoc (21-22/06), profil AO supprimé
-- CV profils : FinanceTransformation, AssetManagement, IFRS17SolvencyII
-
-**Scoring (NOUVEAU — 24/06)**
-- ✅ Architecture : Parser barème (Excel) → Prompt Claude → Nœud n8n
-- ✅ Système : 7 blocs d'évaluation (Cluster, Outils, Séniorité, Mode, Géo, Structure, Red flags)
-- ✅ Tests : 5 offres réelles validées, résultats cohérents
-- ✅ Production : Workflow `Veille — notes IA` activé, tourne 6h30 quotidien
-
-Voir `project-scoring-deployed.md`, `project-dossiers-python.md` et `n8n-workflow-debug-cheatsheet.md` pour les détails.
+Ces points ne peuvent pas être vérifiés depuis le dépôt :
+- **n8n** : les workflows du VPS Hostinger sont-ils encore actifs, ou remplacés par le service Mac depuis le 03/07/2026 ? Les exports affichent `active: true` mais datent de juin.
+- **Ancien launchd `com.xrobitaille.dossiers`** (6h15 / 12h15 / 19h15) : `run-dossiers.sh` mentionne un « cron résiduel ». Est-il désactivé ?
+- **Emplacement du dépôt** : le code pointe vers `~/Desktop/Claude/Projects/...`, alors que l'organisation du 15/07/2026 range tout sous `~/Mon Drive/XavierAdvisory/`. Les chemins `CONTEXT_FILE` et `WRITING_*` de `run_dossiers.py` pointent eux aussi vers `~/Desktop/Claude/...`.
+- **Mémoires auto-memory** : elles sont rangées par chemin de projet. Si le dépôt a quitté `~/Claude/Artifacts/mission-pipeline/`, les anciennes mémoires (`project-scoring-deployed.md`, `n8n-workflow-debug-cheatsheet.md`, etc.) ne se chargent plus.
 
 ---
 
-## Dashboard & suivi
-
-**Cowork Candidatures** (`/Users/xavierrobitaille/Desktop/Claude/Projects/Candidatures/`)  
-- `CLAUDE.md` — instructions techniques complètes
-- `PROJECT.md` — vue d'ensemble, KPIs, architecture
-- `artifacts/mission-pipeline.html` — dashboard live (Airtable, KPIs, alertes relance)
-
-Le dossier Cowork est le point d'entrée pour les candidatures ; ce repo (Code) est le moteur technique.
-
----
-
-## Premiers pas
-
-**Debuguer une erreur n8n** → lire [`n8n-workflow-debug-cheatsheet.md`](../../../.claude/projects/-Users-xavierrobitaille-Claude-Artifacts-mission-pipeline/memory/n8n-workflow-debug-cheatsheet.md) (mémoire auto)
-
-**Ajouter une règle n8n** → éditer `daily.workflow.json` ou `nodes/*.js`, tester, déployer
-
-**Générer un dossier CV/CL manuellement** → `python3 scripts/run_dossiers.py` (local) ou attendre le prochain run launchd
-
-**Vérifier les logs** → `tail -f logs/dossiers_*.log`
-
----
-
-## Git & déploiement
-
-```bash
-# Local branches
-git status
-git log --oneline
-
-# Push to GitHub
-git push origin main
-
-# Voir les derniers deployments n8n
-curl -s -H "Authorization: Bearer $N8N_API_KEY" \
-  https://mission-pipeline.fr/api/v1/workflows/<ID>/executions | jq
-```
-
-1 feature = 1 commit. Squash si nécessaire avant merge.
-
----
-
-## Ressources connexes
-
-- **Mémoires auto** : `/Users/xavierrobitaille/.claude/projects/-Users-xavierrobitaille-Claude-Artifacts-mission-pipeline/memory/`
-- **GitHub** : `https://github.com/xrobitaille92150/mission-pipeline` (privé)
-- **n8n live** : Hostinger VPS (credentials dans `~/.config/mission-pipeline/n8n.env`)
-- **Airtable** : base `apphTpnW5vu0OdnfC` (Mission Pipeline)
-
----
-
-**Dernière mise à jour** : 24 juin 2026
+**Dernière mise à jour** : 3 octobre 2026
