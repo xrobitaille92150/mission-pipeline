@@ -169,6 +169,15 @@ def _run(p, text: str, *, size: float, bold: bool = False, color: RGBColor | Non
     return r
 
 
+def strip_signature(text: str) -> str:
+    """Retire la signature finale si le texte la porte déjà (la skill `cover-letter` signe la lettre, le DOCX aussi) :
+    sinon le nom apparaîtrait deux fois."""
+    lines = text.rstrip().split("\n")
+    while lines and lines[-1].strip().lower() in (CONTACT_NAME.lower(), ""):
+        lines.pop()
+    return "\n".join(lines)
+
+
 def letter_docx(text: str, out: Path, *, employer: str, title: str, lang: str, day: dt.date | None = None) -> Path:
     doc = Document()
     for s in doc.sections:
@@ -200,6 +209,7 @@ def letter_docx(text: str, out: Path, *, employer: str, title: str, lang: str, d
         _run(p, f"{'Objet' if lang == 'FR' else 'Re'} : {title}", size=10.5, bold=True)
         p.paragraph_format.space_after = Pt(12)
 
+    text = strip_signature(text)
     blocks = [b.strip() for b in re.split(r"\n\s*\n", text.strip()) if b.strip()]
     for b in blocks or [text.strip()]:
         p = doc.add_paragraph(re.sub(r"\s*\n\s*", " ", b))

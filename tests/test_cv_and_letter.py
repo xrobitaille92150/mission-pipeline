@@ -164,5 +164,16 @@ def test_letter_docx_and_pdf(tmp_path):
     assert pdf.exists() and pdf.stat().st_size > 5000
 
 
+def test_letter_signed_once_when_text_already_signed(tmp_path):
+    # La skill cover-letter termine la lettre par « Xavier Robitaille » (dossier Alpha FMC du 3 octobre) ; le DOCX
+    # ajoute déjà la signature : le nom ne doit apparaître qu'une fois en fin de lettre.
+    text = "Alpha's team in Paris.\n\nI would be happy to discuss.\n\nBest regards,\n\nXavier Robitaille\n"
+    out = lettermod.letter_docx(text, tmp_path / "cl.docx", employer="Alpha FMC", title="Senior Consultant", lang="EN")
+    paras = [p.text for p in Document(str(out)).paragraphs if p.text.strip()]
+    assert paras[-2:] == ["Best regards,", "Xavier Robitaille"]
+    assert paras.count("Xavier Robitaille") == 2          # en-tête + signature, pas de doublon
+    assert lettermod.strip_signature("Corps.\n\nBien cordialement.") == "Corps.\n\nBien cordialement."
+
+
 def test_word_count():
     assert lettermod.word_count("Bien cordialement. L'enjeu est peu commun — vraiment.") == 7  # L'enjeu = 1 mot
