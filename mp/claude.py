@@ -98,7 +98,9 @@ class Claude:
             "output_config": {"format": {"type": "json_schema", "schema": schema}},
         }
         if _is_haiku(model):
-            kw["temperature"] = 0
+            # Le SDK 1.x n'accepte plus `temperature` en argument (TypeError) ; Haiku 4.5 l'accepte encore dans la
+            # requête : on le passe par extra_body (tri des emails de statut, réponse stable d'un run à l'autre).
+            kw["extra_body"] = {"temperature": 0}
         else:
             kw["output_config"]["effort"] = effort
         resp = self._create(**kw)
