@@ -203,7 +203,8 @@ def test_letter_prompts_forbid_self_opening_and_copied_example():
 CV_BASE_DIR = Path(__file__).resolve().parents[1] / "assets" / "cv_base"
 FORBIDDEN_CV = re.compile(r"\bactuary\b|\bactuaire\b|qualification actuarielle|actuarial qualification|"
                           r"master (in|en) (sciences )?actuari|advised investment coo|special advisor|\bAPAC\b|"
-                          r"north america|amérique du nord", re.I)
+                          r"north america|amérique du nord|"
+                          r"\bCPA\b", re.I)                    # D.E.C.F. sans équivalence CPA (Xavier, 3 octobre)
 
 
 @pytest.mark.parametrize("lang, profile", [(lg, pr) for lg in ("EN", "FR") for pr in cvmod.PROFILES])
