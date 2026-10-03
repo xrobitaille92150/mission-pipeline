@@ -52,3 +52,13 @@ def test_doctor_never_prints_secret_characters():
         assert not any(value[i:i + 3] in shown for i in range(len(value) - 2))
     assert shown_value("GMAIL_USER", "x@gmail.com") == "x@gmail.com"
     assert shown_value("GMAIL_APP_PASSWORD", "") == "absente"
+
+
+def test_verbose_mode_keeps_network_libraries_quiet(tmp_path):
+    # `mp track --dry-run -v` du 3 octobre : les en-têtes HTTP de httpcore2 (SDK anthropic 1.x) noyaient la sortie.
+    import logging
+
+    from mp.cli import _setup_logging
+    _setup_logging(True, tmp_path)
+    for name in ("httpx2", "httpcore2", "httpx", "httpcore", "anthropic"):
+        assert logging.getLogger(name).getEffectiveLevel() >= logging.WARNING

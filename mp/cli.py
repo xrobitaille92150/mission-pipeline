@@ -35,7 +35,9 @@ def _setup_logging(verbose: bool, out_dir: Path) -> Path:
     fmt = "%(asctime)s %(levelname)-7s %(name)s: %(message)s"
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO, format=fmt,
                         handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler(path, encoding="utf-8")])
-    for noisy in ("httpx", "httpcore", "anthropic", "urllib3"):
+    # Bibliothèques réseau ramenées à WARNING, même en -v : le SDK anthropic 1.x passe par httpx2 / httpcore2, dont
+    # le niveau DEBUG noyait la sortie de `mp track --dry-run -v` (en-têtes HTTP de chaque appel).
+    for noisy in ("httpx", "httpcore", "httpx2", "httpcore2", "anthropic", "urllib3"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
     return path
 
