@@ -4,7 +4,7 @@
 
 **Structure « Vous-Moi-Nous »**, registre formel soutenu, texte aéré (un paragraphe par idée ou par preuve, séparés par une ligne vide) :
 
-1. **VOUS** (2-3 phrases) — l'enjeu précis de l'entreprise, énoncé directement. Exemple validé : « L'enjeu auquel doit faire face la direction financière de X est peu commun : … ». Jamais commencer par Xavier. Jamais d'abstraction contorsionnée ni de louange générique. Si l'entreprise est leader de son marché, le dire comme motivation.
+1. **VOUS** (2-3 phrases) — l'enjeu précis de l'entreprise, énoncé directement. Exemple validé : « L'enjeu auquel doit faire face la direction financière de X est peu commun : … ». Jamais commencer par Xavier : la première phrase a l'entreprise (ou sa direction) pour sujet et ne contient ni « je », ni « mon », ni « mes ». Jamais d'abstraction contorsionnée ni de louange générique. Si l'entreprise est leader de son marché, le dire comme motivation, en une phrase propre à l'entreprise (jamais l'exemple Swiss Re de la version anglaise, traduit ou recopié).
 2. **MOI** (l'essentiel) — 2 à 3 preuves chiffrées et développées (contexte, action, résultat), chacune reliée à un besoin de l'annonce, en utilisant les faits durs verbatim. Un paragraphe par preuve, à la ligne entre chaque.
 3. **STATUT** (si pertinent) — formulation validée du fait dur n°9.
 4. **NOUS + CLÔTURE**, chaque élément sur sa propre ligne, dans cet ordre :

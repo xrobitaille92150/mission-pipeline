@@ -177,3 +177,12 @@ def test_letter_signed_once_when_text_already_signed(tmp_path):
 
 def test_word_count():
     assert lettermod.word_count("Bien cordialement. L'enjeu est peu commun — vraiment.") == 7  # L'enjeu = 1 mot
+
+
+def test_letter_prompts_forbid_self_opening_and_copied_example():
+    # Dossier Alpha FMC du 3 octobre : accroche qui glissait vers Xavier, exemple Swiss Re recopié. Repli API aligné
+    # sur la skill cover-letter v2.6.
+    from mp.config import prompt
+    en, fr = prompt("cover_en"), prompt("cover_fr")
+    assert 'contains no "I", "my" or "me"' in en and "never copy its wording" in en
+    assert "ni « je », ni « mon », ni « mes »" in fr and "jamais l'exemple Swiss Re" in fr

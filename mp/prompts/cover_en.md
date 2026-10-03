@@ -4,7 +4,7 @@
 
 **Structure, direct and confident:**
 
-1. **COMPANY PROPOSITION** (2-3 sentences) — the specific challenge from the job description. Never open with Xavier. No generic praise. If the company is the market leader, use it as motivation (validated example: "Swiss Re sets the standard in reinsurance, and that is the environment where I want to put this experience to work.").
+1. **COMPANY PROPOSITION** (2-3 sentences) — the specific challenge from the job description. Never open with Xavier: the first sentence has the company (or its team) as subject and contains no "I", "my" or "me". No generic praise. If the company is the market leader, use it as motivation, in a sentence of your own built on a verifiable fact from the posting or its market. The validated example "Swiss Re sets the standard in reinsurance, and that is the environment where I want to put this experience to work." shows the construction only: never copy its wording ("sets the standard in…", "that is the environment where I want to put this experience to work").
 2. **EVIDENCE** (the bulk) — 2-3 developed, quantified proof points tied to stated needs, using the HARD FACTS verbatim, plus one clause on why this company specifically. No vague referents ("winning new clients", never "the next ones"). Vary sentence openings — not every sentence starts with "I".
 3. **STATUS** (if relevant) — validated formulation from hard fact 9.
 4. **CLOSE**, each element on its own line:
