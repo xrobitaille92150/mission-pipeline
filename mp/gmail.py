@@ -308,7 +308,13 @@ class Gmail:
 
     # -- lecture -------------------------------------------------------------
     def search(self, gmail_query: str) -> list[bytes]:
-        typ, data = self._imap.uid("SEARCH", "X-GM-RAW", f'"{gmail_query}"')
+        if gmail_query.isascii():
+            typ, data = self._imap.uid("SEARCH", "X-GM-RAW", f'"{gmail_query}"')
+        else:
+            # imaplib n'envoie les arguments qu'en ASCII : une requête accentuée (labels « Réponses-négatives »)
+            # part en littéral UTF-8, annoncé par CHARSET (premier run réel du 3 octobre : UnicodeEncodeError).
+            self._imap.literal = gmail_query.encode("utf-8")
+            typ, data = self._imap.uid("SEARCH", "CHARSET", "UTF-8", "X-GM-RAW")
         if typ != "OK" or not data or not data[0]:
             return []
         return data[0].split()

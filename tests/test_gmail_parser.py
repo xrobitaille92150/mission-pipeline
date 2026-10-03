@@ -161,3 +161,31 @@ def test_queries_exclude_processed_label_at_runtime():
     assert "newer_than:2d" in query_job_digests(2)
     assert "from:jobalerts-noreply@linkedin.com" in query_job_digests(2)
     assert "subject:candidature" in query_status_emails(3)
+
+
+class _FakeImap:
+    """Enregistre les arguments de uid() et le littéral en attente au moment de l'appel."""
+
+    def __init__(self):
+        self.literal = None
+        self.calls = []
+
+    def uid(self, *args):
+        self.calls.append((args, self.literal))
+        self.literal = None
+        return "OK", [b"11 12"]
+
+
+def test_search_sends_accented_query_as_utf8_literal():
+    # Premier run réel (3 octobre) : imaplib refusait « Candidatures-2_Réponses-négatives » (encodage ASCII).
+    from mp.gmail import Gmail
+    g = Gmail("x@gmail.com", "pwd")
+    g._imap = _FakeImap()
+    assert g.search(query_status_emails(3)) == [b"11", b"12"]
+    args, literal = g._imap.calls[-1]
+    assert args == ("SEARCH", "CHARSET", "UTF-8", "X-GM-RAW")
+    assert literal == query_status_emails(3).encode("utf-8") and "Réponses".encode() in literal
+    # requête ASCII (alertes LinkedIn) : chemin inchangé, entre guillemets, sans littéral
+    g.search("from:jobalerts-noreply@linkedin.com newer_than:2d")
+    args, literal = g._imap.calls[-1]
+    assert args == ("SEARCH", "X-GM-RAW", '"from:jobalerts-noreply@linkedin.com newer_than:2d"') and literal is None
