@@ -213,3 +213,41 @@ def test_offer_summary_and_criteria_for_the_cockpit():
     assert c.get("/api/offres/rec2").json()["criteres"] == [{"statut": "", "texte": "Séniorité : 7+ ans requis"}]
     page = c.get("/").text
     assert "L'offre en bref" in page and "Tes critères" in page
+
+
+def test_cluster_name_posting_age_and_apply_mode_for_the_cockpit(monkeypatch):
+    # Demande de Xavier (3 octobre) : « Que signifie le C ? », date de parution, candidature simplifiée ou non.
+    from datetime import date, timedelta
+
+    from mp.app import _published
+    c, ctx = _client()
+    three_days_ago = (date.today() - timedelta(days=3)).isoformat()
+    ctx.at.tables_data["OFFRES"][0]["fields"].update({
+        "Cluster": "C — Transformation/PMO", "Publiée le": three_days_ago, "Mode candidature": "Site employeur"})
+    ctx.at.tables_data["OFFRES"][1]["fields"].update({"Cluster": "Hors-axe", "Easy Apply": True})
+    items = {o["id"]: o for o in c.get("/api/offres?tab=decider").json()["items"]}
+    o1, o2 = items["rec1"], items["rec2"]
+    assert (o1["cluster_nom"], o1["publiee"], o1["candidature"]) == ("Transformation/PMO", "publiée il y a 3 j",
+                                                                     "Site employeur")
+    # ancienne ligne : pas de date ni de mode lus sur la page, mais le badge « Candidature simplifiée » de l'email
+    assert (o2["cluster_nom"], o2["publiee"], o2["candidature"]) == ("Hors-axe", "", "Simplifiée")
+    today = date(2026, 10, 3)
+    assert [_published(d, today) for d in ("2026-10-03", "2026-10-02", "2026-09-27", "2026-09-19", "2026-08-01",
+                                           "2025-06-01", "", "n/a")] == [
+        "publiée aujourd'hui", "publiée hier", "publiée il y a 6 j", "publiée il y a 2 sem.",
+        "publiée il y a 2 mois", "publiée il y a plus d'un an", "", ""]
+    page = c.get("/").text
+    assert "cluster_nom" in page and "Candidature simplifiée" in page and "o.publiee" in page
+
+
+def test_offer_added_from_a_link_keeps_posting_date_and_apply_mode(monkeypatch):
+    from mp.models import JobDescription
+    c, ctx = _client()
+    monkeypatch.setattr("mp.pipeline.process_new_offer", lambda ctx_, rid: "ok")
+    monkeypatch.setattr("mp.pipeline.fetch_jd", lambda jid: JobDescription(
+        ok=True, text="Fiche complète " * 30, title="Head of Finance Transformation", company="SCOR", location="Paris",
+        posted_on="2026-10-01", apply_mode="Simplifiée"))
+    o = c.post("/api/offres/nouvelle", json={"url": "https://www.linkedin.com/jobs/view/4471234568/"}).json()
+    f = ctx.at.get(ctx.offres, o["id"])["fields"]
+    assert (f["Publiée le"], f["Mode candidature"], f["Easy Apply"]) == ("2026-10-01", "Simplifiée", True)
+    _wait_jobs()

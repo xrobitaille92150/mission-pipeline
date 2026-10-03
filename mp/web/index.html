@@ -117,18 +117,21 @@ async function api(path, opts={}){
 const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const scoreClass = s => s>=70?'s-hi':s>=50?'s-mid':'s-lo';
 const fmtDate = d => d? new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '';
+const APPLY_LABEL = {'Simplifiée':'Candidature simplifiée','Site employeur':'Site employeur'};
+const APPLY_DETAIL = {'Simplifiée':'candidature simplifiée sur LinkedIn','Site employeur':"candidature sur le site de l'employeur"};
 
 function cardHtml(o){
   const chips=[];
   if(o.rang) chips.push(`<span class="chip rank">#${o.rang} du jour</span>`);
   if(o.statut) chips.push(`<span class="chip">${esc(o.statut)}</span>`);
-  if(o.cluster) chips.push(`<span class="chip">${esc(o.cluster.split(' ')[0])}</span>`);
+  if(o.cluster) chips.push(`<span class="chip">${esc(o.cluster_nom||o.cluster)}</span>`);
   if(o.contrat && o.contrat!=='Non précisé') chips.push(`<span class="chip">${esc(o.contrat)}</span>`);
+  if(o.candidature) chips.push(`<span class="chip">${esc(APPLY_LABEL[o.candidature]||o.candidature)}</span>`);
   if(o.cv.length) chips.push(`<span class="chip ok">CV + lettre</span>`);
   if(o.job) chips.push(`<span class="chip"><span class="spin"></span> ${esc(o.job.kind)}</span>`);
   if(o.erreur) chips.push(`<span class="chip bad">erreur</span>`);
   if(o.reponse && o.reponse!=='Néant') chips.push(`<span class="chip">${esc(o.reponse)}</span>`);
-  const where=[o.lieu, o.mode].filter(Boolean).join(' · ');
+  const where=[o.lieu, o.mode, o.publiee].filter(Boolean).join(' · ');
   return `<div class="card" data-id="${o.id}">
     <div class="score ${scoreClass(o.score)}">${o.score??'–'}<small>${esc((o.verdict||'').toUpperCase())}</small></div>
     <div class="t"><div class="emp">${esc(o.employeur)}</div><div class="pos">${esc(o.poste)}</div>
@@ -181,12 +184,14 @@ function detailHtml(o){
   o.lettre_fichiers.forEach(a=>links.push(`<a href="${esc(a.url)}" target="_blank" rel="noopener">Lettre ${a.name.endsWith('.pdf')?'PDF':'DOCX'}</a>`));
   links.push(`<a href="${esc(o.airtable_url)}" target="_blank" rel="noopener">Airtable ↗</a>`);
   const facts=[o.lieu,o.mode,o.pays,o.contrat,o.langue,o.profil_cv].filter(x=>x&&x!=='Non précisé').map(esc).join(' · ');
+  const annonce=[o.publiee?`${o.publiee} (${fmtDate(o.publiee_le)})`:'', APPLY_DETAIL[o.candidature]||'']
+    .filter(Boolean).join(' · ');
   const detailLine=(o.pourquoi.find(p=>p.startsWith('Détail :'))||'');
   const why=o.pourquoi.filter(p=>!p.startsWith('Détail :'));
   return `
   <div class="sec"><div style="display:flex;gap:12px;align-items:center">
     <div class="score ${scoreClass(o.score)}">${o.score??'–'}<small>${esc((o.verdict||'').toUpperCase())}</small></div>
-    <div><div>${facts}</div><div class="detail-line">${esc(detailLine.replace('Détail : ',''))}</div>
+    <div><div>${facts}</div>${annonce?`<div class="detail-line">${esc(annonce.charAt(0).toUpperCase()+annonce.slice(1))}</div>`:''}<div class="detail-line">${esc(detailLine.replace('Détail : ',''))}</div>
     <div class="meta">${o.rang?`<span class="chip rank">#${o.rang} du jour</span>`:''}<span class="chip">${esc(o.statut||'—')}</span>${o.job?`<span class="chip"><span class="spin"></span> ${esc(JOB_LABEL[o.job.kind]||o.job.kind)}</span>`:''}</div></div></div>
     ${o.erreur?`<p class="detail-line" style="color:var(--bad)">${esc(o.erreur)}</p>`:''}
   </div>

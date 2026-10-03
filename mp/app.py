@@ -27,7 +27,8 @@ WEB = Path(__file__).parent / "web"
 F_LIST = ["jobId", "Poste", "Employeur", "Lieu", "Mode", "Pays", "Score", "Verdict IA", "Cluster", "Contrat",
           "Langue", "Pourquoi", "Red flags", "Statut", "Rang du jour", "Scoré le", "Dossier le", "Date postulé",
           "Réponse", "URL", "CV (fichiers)", "Lettre (fichiers)", "Je postule", "J'écarte", "Préparer dossier",
-          "Erreur", "Profil CV", "Mots-clés", "Easy Apply", "Note rôle", "Note critères"]
+          "Erreur", "Profil CV", "Mots-clés", "Easy Apply", "Note rôle", "Note critères",
+          "Publiée le", "Mode candidature"]
 F_DETAIL = F_LIST + ["Description", "Lettre texte", "Objections"]
 
 TABS = {
@@ -77,6 +78,28 @@ def _criteres(v: Any) -> list[dict]:
     return out
 
 
+def _cluster_name(v: str) -> str:
+    """« C — Transformation/PMO » → « Transformation/PMO » (la lettre seule n'est pas parlante)."""
+    return v.split("—", 1)[1].strip() if "—" in v else v
+
+
+def _published(iso: str, today: date | None = None) -> str:
+    """Âge de l'annonce, à la même granularité que LinkedIn : « aujourd'hui », « il y a 3 j », « il y a 2 sem. »."""
+    try:
+        days = ((today or date.today()) - date.fromisoformat(iso[:10])).days
+    except (TypeError, ValueError):
+        return ""
+    if days <= 0:
+        return "publiée aujourd'hui"
+    if days == 1:
+        return "publiée hier"
+    if days < 7:
+        return f"publiée il y a {days} j"
+    if days < 30:
+        return f"publiée il y a {days // 7} sem."
+    return f"publiée il y a {days // 30} mois" if days < 365 else "publiée il y a plus d'un an"
+
+
 def to_json(ctx: Context, rec: dict, detail: bool = False) -> dict:
     f = rec["fields"]
     d = {
@@ -92,7 +115,9 @@ def to_json(ctx: Context, rec: dict, detail: bool = False) -> dict:
         "je_postule": bool(f.get("Je postule")), "j_ecarte": bool(f.get("J'écarte")),
         "preparer_dossier": bool(f.get("Préparer dossier")), "erreur": f.get("Erreur", ""),
         "profil_cv": _sel(f.get("Profil CV")), "mots_cles": f.get("Mots-clés", ""),
-        "easy_apply": bool(f.get("Easy Apply")),
+        "easy_apply": bool(f.get("Easy Apply")), "cluster_nom": _cluster_name(_sel(f.get("Cluster")) or ""),
+        "publiee_le": f.get("Publiée le", ""), "publiee": _published(f.get("Publiée le", "")),
+        "candidature": _sel(f.get("Mode candidature")) or ("Simplifiée" if f.get("Easy Apply") else ""),
         "resume": f.get("Note rôle", ""), "resume_court": _first_sentence(f.get("Note rôle", "")),
         "criteres": _criteres(f.get("Note critères")),
     }

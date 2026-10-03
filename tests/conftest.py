@@ -143,6 +143,18 @@ class FakeContext:
         return p
 
 
+@pytest.fixture(autouse=True)
+def _no_linkedin(monkeypatch):
+    """Jamais de vrai LinkedIn dans les tests : page indisponible, sauf si le test injecte la sienne."""
+    from mp.models import JobDescription
+
+    def offline(job_id, *a, **kw):
+        return JobDescription(error="LinkedIn coupé dans les tests")
+    monkeypatch.setattr("mp.pipeline.fetch_jd", offline)
+    monkeypatch.setattr("mp.dossier.fetch_jd", offline)
+    monkeypatch.setattr("mp.pipeline.LINKEDIN_PAUSE", 0)
+
+
 @pytest.fixture
 def fake_at():
     return FakeAirtable()

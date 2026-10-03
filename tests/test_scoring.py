@@ -192,7 +192,21 @@ def test_scoring_carries_notes_and_writes_them():
     assert "Note rôle" not in scoring_fields(excluded_scoring("poste hors Europe"), None, False)
 
 
-def test_refresh_notes_only_for_active_offers_without_v3_notes():
+def test_scoring_writes_posting_date_and_apply_mode_read_on_the_page():
+    from mp.pipeline import scoring_fields
+    page = JobDescription(ok=True, text=DESC, posted_on="2026-09-30", apply_mode="Simplifiée")
+    s = excluded_scoring("poste hors Europe")
+    f = scoring_fields(s, page, True)
+    assert (f["Publiée le"], f["Mode candidature"], f["Easy Apply"]) == ("2026-09-30", "Simplifiée", True)
+    # fiche reprise du champ Description (rien de lu sur LinkedIn) : rien n'est écrit
+    assert "Publiée le" not in scoring_fields(s, page, False)
+    # page sans bouton « Postuler » : le mode reste vide, jamais deviné
+    f = scoring_fields(s, JobDescription(ok=True, text=DESC, posted_on="2026-10-01"), True)
+    assert "Mode candidature" not in f and "Easy Apply" not in f
+
+
+def test_refresh_notes_only_for_active_offers_without_v3_notes(monkeypatch):
+    import mp.pipeline as pl
     from mp.pipeline import is_v3_notes, refresh_notes
     from tests.conftest import FakeAirtable, FakeClaude, FakeContext
     old = "- Séniorité : 7+ ans requis\n- Contrat : CDI → écart avec TJM >= 800 EUR/j"
@@ -203,13 +217,24 @@ def test_refresh_notes_only_for_active_offers_without_v3_notes():
                                 "Score": 75, "Description": DESC, "Note critères": "✓ Domaine : B"}},
         {"id": "r3", "fields": {"jobId": "3", "Poste": "Analyst", "Employeur": "X", "Statut": "Écartée", "Score": 20,
                                 "Description": DESC}},
+        {"id": "r4", "fields": {"jobId": "manuel-2026-10-03-1", "Poste": "PMO", "Employeur": "Y", "Score": 70,
+                                "Statut": "À étudier", "Description": DESC, "Note critères": "? Langue : non précisé"}},
     ]
+    pages = {"1": JobDescription(ok=True, text=DESC, posted_on="2026-09-30", apply_mode="Site employeur"),
+             "2": JobDescription(ok=True, text=DESC, posted_on="2026-10-01", apply_mode="Simplifiée")}
+    fetched = []
+    monkeypatch.setattr(pl, "fetch_jd", lambda jid: fetched.append(jid) or pages[jid])
     ctx = FakeContext(at=FakeAirtable({"OFFRES": rows}, formulas=True), claude=FakeClaude([NOTES]))
     stats = refresh_notes(ctx)
-    assert stats == {"offres": 2, "faites": 1, "deja": 1, "erreurs": 0}
-    f1, f2, f3 = (r["fields"] for r in ctx.at.tables_data["OFFRES"])
+    assert stats == {"offres": 3, "notes": 1, "parution": 2, "deja": 1, "erreurs": 0}
+    f1, f2, f3, f4 = (r["fields"] for r in ctx.at.tables_data["OFFRES"])
     assert is_v3_notes(f1["Note critères"]) and f1["Note rôle"].startswith("Alpha FMC")
     assert f1["Score"] == 80 and "Scoré le" not in f1                 # le score n'est pas touché
     assert f2["Note critères"] == "✓ Domaine : B" and "Note rôle" not in f3
+    # parution et mode lus sur la page, sans appel Claude pour r2 ; offre manuelle (sans page LinkedIn) sautée
+    assert (f1["Publiée le"], f1["Mode candidature"], f1.get("Easy Apply")) == ("2026-09-30", "Site employeur", None)
+    assert (f2["Publiée le"], f2["Mode candidature"], f2["Easy Apply"]) == ("2026-10-01", "Simplifiée", True)
+    assert fetched == ["1", "2"] and "Publiée le" not in f4
     assert "Tes critères" not in ctx.claude.prompts[0]["system"][0] and len(ctx.claude.prompts) == 1
-    assert refresh_notes(ctx)["faites"] == 0                           # rejouable : tout est déjà fait
+    again = refresh_notes(ctx)                                         # rejouable : tout est déjà fait
+    assert (again["notes"], again["parution"], again["deja"], fetched) == (0, 0, 3, ["1", "2"])

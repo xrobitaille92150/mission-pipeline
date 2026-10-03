@@ -388,7 +388,8 @@ def build_parser() -> argparse.ArgumentParser:
     dd = sub.add_parser("dedup", help="range les doublons (même employeur, même poste)", parents=[common])
     dd.set_defaults(fn=cmd_dedup)
 
-    nt = sub.add_parser("notes", help="résumé et critères des offres en cours qui n'en ont pas (sans re-noter)",
+    nt = sub.add_parser("notes", help="complète les offres en cours : résumé et critères, date de parution, mode de candidature "
+                             "(sans re-noter)",
                         parents=[common])
     nt.add_argument("--limit", type=int, default=200)
     nt.set_defaults(fn=cmd_notes)

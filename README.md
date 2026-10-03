@@ -18,7 +18,8 @@ Le détail de la refonte, l'audit chiffré et le runbook de migration : [`docs/R
 
 1. Ouvrir la vue **À décider** (table Offres). La ligne de `Rang du jour` 1 est la meilleure offre du run ;
    `Note rôle` résume l'offre (pas besoin d'ouvrir LinkedIn), `Note critères` la compare à tes attentes
-   (✓ / ✗ / ?), `Pourquoi` et `Red flags` expliquent le score. Le cockpit affiche les mêmes champs.
+   (✓ / ✗ / ?), `Pourquoi` et `Red flags` expliquent le score ; `Publiée le` et `Mode candidature` (simplifiée
+   ou site de l'employeur) viennent de la page LinkedIn. Le cockpit affiche les mêmes champs.
 2. Télécharger le PDF dans `CV (fichiers)` ; copier `Lettre texte` dans le formulaire LinkedIn.
 3. Cocher **Je postule**. Statut, date, ligne Candidatures et suivi des réponses suivent tout seuls.
 
@@ -75,7 +76,7 @@ mp run                         # run complet + digest par email
 | `mp dedup` | range en « Doublon » les offres même employeur + même poste (rien n'est supprimé) |
 | `mp sync` | applique `Je postule` / `J'écarte`, expire les offres silencieuses depuis 14 jours |
 | `mp score [--rescore]` | filtres durs puis un appel Claude par offre ; coche `Préparer dossier` sur le top du jour |
-| `mp notes [--limit N]` | résumé de l'offre + critères ✓ / ✗ / ? pour les offres actives (À étudier, Dossier prêt) qui ne les ont pas encore ; le score n'est pas touché |
+| `mp notes [--limit N]` | complète les offres actives (À étudier, Dossier prêt) : résumé + critères ✓ / ✗ / ? si absents, date de parution et mode de candidature lus sur LinkedIn si absents ; le score n'est pas touché |
 | `mp dossiers` | CV + lettre pour les lignes cochées, attachés dans Airtable |
 | `mp dossier --url … \| --job-id … \| --text …` | dossier à la demande |
 | `mp track [--days N]` | emails de statut LinkedIn et recruteurs → `Réponse`, Candidatures |
@@ -125,7 +126,7 @@ mp/web/             cockpit mobile : index.html (vanilla JS), icon.png
 mp/prompts/         prompts versionnés : profile, scoring, bareme, cv_edits, cover_common/fr/en, tracking
 assets/cv_base/     CV_XRO_{EN,FR}_{FinanceTransformation,AssetManagement,IFRS17_SolvencyII}_v4.docx
 assets/writing_rules/   WRITING RULES.md, REGLES-ECRITURE-FR.md
-tests/              88 tests pytest (doubles Airtable / Claude en mémoire)
+tests/              104 tests pytest (doubles Airtable / Claude en mémoire)
 deploy/             launchd (Mac : pipeline + cockpit), Tailscale, automation Airtable
 skills/postuler/    skill Claude « prépare le dossier pour cette offre »
 docs/               REFONTE-2026-10.md
@@ -136,7 +137,7 @@ out/                sorties locales (dossiers, logs), ignorées par git
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest          # 88 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
+.venv/bin/python -m pytest          # 104 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
 ```
 
 ## Airtable

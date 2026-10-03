@@ -74,6 +74,11 @@ OFFRES_FIELDS: list[dict] = [
     _text("Note rôle", "L'offre en bref : 3 à 5 phrases (missions, périmètre, niveau, format), pour décider sans LinkedIn.",
           multi=True),
     _text("Note critères", "Une ligne par critère de Xavier : ✓ correspond, ✗ écart, ? non précisé.", multi=True),
+    _date("Publiée le", "Parution sur LinkedIn, déduite de « il y a N jours » (au jour près sur une semaine, "
+                        "approchée au-delà ; une offre republiée prend la date de republication)."),
+    _select("Mode candidature", ["Simplifiée", "Site employeur"],
+            "Lu sur la page LinkedIn : candidature simplifiée (sur LinkedIn) ou sur le site de l'employeur ; "
+            "vide si la page ne l'indique pas."),
     _attach("CV (fichiers)", "CV adapté : PDF + DOCX éditable."),
     _attach("Lettre (fichiers)", "Lettre / cover text : PDF + DOCX éditable."),
     _text("Lettre texte", "Texte de la lettre, à coller dans le formulaire de candidature.", multi=True),

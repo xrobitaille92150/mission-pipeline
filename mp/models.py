@@ -54,6 +54,9 @@ class JobDescription:
     criteria: dict[str, str] = field(default_factory=dict)
     mode: str = ""
     easy_apply: bool = False
+    posted_ago: str = ""        # « il y a 3 jours », tel qu'affiché par LinkedIn
+    posted_on: str = ""         # YYYY-MM-DD déduit de posted_ago (approché au-delà d'une semaine)
+    apply_mode: str = ""        # Simplifiée (sur LinkedIn) / Site employeur / "" si la page ne le dit pas
     error: str = ""
 
 

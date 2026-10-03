@@ -14,9 +14,9 @@ Lire d'abord : `README.md` (usage) puis `docs/REFONTE-2026-10.md` (pourquoi, dé
 | Fichier | Rôle | Testé par |
 |---|---|---|
 | `mp/cli.py` | commandes `mp run / ingest / dedup / sync / score / notes / dossiers / dossier / track / digest / drive-sync / airtable-setup / doctor / app` | `test_pipeline_and_tracking` |
-| `mp/pipeline.py` | ingest (Gmail → Offres), `dedupe` (Doublon, jamais de suppression), score / `score_one` (+ classement du jour), `refresh_notes` (résumé + critères des offres actives), dossiers / `make_dossier`, `add_offer` / `process_new_offer` (offre ajoutée à la main), sync_decisions | `test_scoring`, `test_pipeline_and_tracking` |
+| `mp/pipeline.py` | ingest (Gmail → Offres), `dedupe` (Doublon, jamais de suppression), score / `score_one` (+ classement du jour), `refresh_notes` (résumé + critères, parution et mode de candidature des offres actives), dossiers / `make_dossier`, `add_offer` / `process_new_offer` (offre ajoutée à la main), sync_decisions | `test_scoring`, `test_pipeline_and_tracking` |
 | `mp/gmail.py` | IMAP, parseur des digests LinkedIn (`parse_job_cards`), emails de statut (`parse_linkedin_status`), label de traitement, envoi SMTP | `test_gmail_parser` |
-| `mp/linkedin.py` | fiche de poste via `jobs-guest`, jamais d'exception (`JobDescription.ok`) | — (réseau) |
+| `mp/linkedin.py` | fiche de poste via `jobs-guest`, jamais d'exception (`JobDescription.ok`) ; date de parution (« il y a N jours ») et mode de candidature (bouton `apply-link-onsite` = simplifiée, `offsite` = site employeur) | `test_linkedin` (marqueurs relevés le 3 octobre) |
 | `mp/airtable.py` | client REST (upsert, patch, pièces jointes via `content.airtable.com`, Meta API) et **schéma attendu** (`OFFRES_FIELDS`) | double `FakeAirtable` |
 | `mp/claude.py` | SDK `anthropic` : sorties JSON (schema), cache de prompt, repli serveur, comptage d'usage | double `FakeClaude` |
 | `mp/scoring.py` | filtres durs (langue, junior, géo), `score_offer` (score + notes), `notes_offer` (notes seules), `rank_for_dossiers` | `test_scoring` |
@@ -68,7 +68,8 @@ Les champs sont adressés par **nom** (`typecast=True`), jamais par id de champ.
 - **Changer une règle de scoring** : `mp/prompts/scoring.md` ou `bareme.md` (jugement) ; `mp/scoring.py::hard_filter`
   (déterministe). Ajouter un cas dans `tests/test_scoring.py`.
 - **Changer le résumé ou les critères du cockpit** : `mp/prompts/notes.md` (texte), `mp/models.py::NOTE_CRITERES`
-  (liste et ordre des critères) ; `mp notes` régénère les offres actives dont les notes ne sont pas au format v3.
+  (liste et ordre des critères) ; `mp notes` régénère les offres actives dont les notes ne sont pas au format v3 et relit leur page
+  LinkedIn quand `Publiée le` manque. Les tests coupent LinkedIn (`conftest._no_linkedin`) : injecter une page.
 - **Changer le parseur Gmail** : coller un digest réel (anonymisé) dans `tests/test_gmail_parser.py`, faire passer.
 - **Ajouter un champ Airtable** : `mp/airtable.py::OFFRES_FIELDS`, puis `mp airtable-setup --apply`.
 - **Changer la lettre** : `cover_common.md` (invariants), `cover_fr.md` / `cover_en.md` (structure), `letter.py::geo_clauses`
@@ -111,7 +112,7 @@ transmises en entier). Écarts voulus : pas de « Je postule » coché automatiq
 
 ## État au 1er octobre 2026
 
-- v3 écrite et testée (88 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
+- v3 écrite et testée (104 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
   ordonnanceur à mettre en place selon `docs/REFONTE-2026-10.md` § 5.
 - Décisions de Xavier (1er octobre) : ordonnanceur GitHub Actions ; schéma créé automatiquement ; `candidatures/`
   supprimé ; n8n et agents launchd v2 arrêtés tout de suite (`deploy/decommission.sh`), VPS résilié après une

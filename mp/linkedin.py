@@ -11,6 +11,7 @@ import html as html_lib
 import random
 import re
 import time
+from datetime import datetime, timedelta
 
 import requests
 
@@ -24,6 +25,29 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
     "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0",
 ]
+
+
+# Bouton « Postuler » de la page publique (relevé sur le Mac le 3 octobre 2026) : `public_jobs_apply-link-onsite`
+# pour la candidature simplifiée sur LinkedIn, `public_jobs_apply-link-offsite_…` pour le site de l'employeur.
+# Certaines pages n'ont aucun bouton : le mode reste inconnu (jamais déduit par défaut).
+APPLY_MODES = {"onsite": "Simplifiée", "offsite": "Site employeur"}
+AGO_UNITS = [  # (motif, jours par unité) ; les heures et minutes comptent pour 1/24 et 1/1440 de jour
+    (r"min", 1 / 1440), (r"heure|hour|\bh\b", 1 / 24), (r"jour|day", 1), (r"semaine|week", 7),
+    (r"mois|month", 30), (r"\ban|year", 365),
+]
+
+
+def posted_date(text: str, now: datetime | None = None) -> str:
+    """« il y a 3 jours », « Republiée il y a 2 semaines », « 5 days ago » → date ISO, ou "" si illisible.
+    LinkedIn arrondit : la date est exacte au jour près jusqu'à 6 jours, approchée au-delà."""
+    m = re.search(r"(\d+)\s*([a-zé]+)", (text or "").lower())
+    if not m:
+        return ""
+    n, unit = int(m.group(1)), m.group(2)
+    for pat, days in AGO_UNITS:
+        if re.match(pat, unit):
+            return ((now or datetime.now()) - timedelta(days=n * days)).date().isoformat()
+    return ""
 
 
 def extract_job_id(text: str) -> str | None:
@@ -40,7 +64,7 @@ def _clean(s: str) -> str:
     return s.strip()
 
 
-def parse_job_html(html: str) -> JobDescription:
+def parse_job_html(html: str, now: datetime | None = None) -> JobDescription:
     jd = JobDescription()
     if not html or len(html) < 500:
         jd.error = "page vide"
@@ -67,7 +91,14 @@ def parse_job_html(html: str) -> JobDescription:
             jd.mode = clean_mode(val)
     if not jd.mode:
         jd.mode = clean_mode(" ".join([jd.location, jd.text[:600]]))
-    jd.easy_apply = bool(re.search(r"candidature simplifiée|easy apply", html, re.I))
+    pm = re.search(r'posted-time-ago__text[^>]*>(.*?)<', html, re.S | re.I)
+    if pm:
+        jd.posted_ago = _clean(pm.group(1))[:60]
+        jd.posted_on = posted_date(jd.posted_ago, now)
+    am = re.search(r"apply-link-(onsite|offsite)", html, re.I)
+    if am:
+        jd.apply_mode = APPLY_MODES[am.group(1).lower()]
+    jd.easy_apply = jd.apply_mode == "Simplifiée" or bool(re.search(r"candidature simplifiée|easy apply", html, re.I))
     jd.ok = len(jd.text) > 200
     if not jd.ok and not jd.error:
         jd.error = "description absente du HTML"
