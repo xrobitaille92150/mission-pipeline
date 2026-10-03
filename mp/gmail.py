@@ -48,6 +48,7 @@ HEADERS = re.compile(
     re.I,
 )
 # Labels Gmail posés par les filtres de Xavier (nommage de recherche Gmail : « / » et espace → « - »).
+DIGEST_TAG = "Mission Pipeline"  # préfixe des emails envoyés par mp.digest
 STATUS_LABELS = [
     "Candidatures", "Candidatures-1_Confirmations", "Candidatures-2_R\u00e9ponses-n\u00e9gatives",
     "Candidatures-3_Suivi---En-attente", "Candidatures-4_R\u00e9ponses-positives",
@@ -392,8 +393,10 @@ def query_job_digests(days: int) -> str:
 def query_status_emails(days: int) -> str:
     # LinkedIn (statuts), labels Candidatures/* posés par les filtres Gmail de Xavier,
     # et tout email mentionnant « candidature » / « application » dans l'objet.
+    # Exclus : les alertes LinkedIn et les digests du pipeline lui-même (« [Mission Pipeline] … dossier(s) prêt(s) »),
+    # que « subject:mission » ramenait au premier run réel et qui pouvaient passer pour des réponses.
     labels = " OR ".join(f"label:{lab}" for lab in STATUS_LABELS)
-    return (f"newer_than:{days}d -from:{LINKEDIN_ALERTS} "
+    return (f'newer_than:{days}d -from:{LINKEDIN_ALERTS} -subject:"{DIGEST_TAG}" '
             f"((from:{LINKEDIN_JOBS} (subject:candidature OR subject:application)) "
             f"OR {labels} OR subject:candidature OR subject:application OR subject:applied "
             f"OR subject:entretien OR subject:interview OR subject:mission OR subject:recrutement)")

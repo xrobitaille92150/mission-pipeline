@@ -161,6 +161,8 @@ def test_queries_exclude_processed_label_at_runtime():
     assert "newer_than:2d" in query_job_digests(2)
     assert "from:jobalerts-noreply@linkedin.com" in query_job_digests(2)
     assert "subject:candidature" in query_status_emails(3)
+    # les digests du pipeline (« [Mission Pipeline] … ») ne sont jamais relus comme des réponses
+    assert '-subject:"Mission Pipeline"' in query_status_emails(3)
 
 
 class _FakeImap:
