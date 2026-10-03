@@ -17,14 +17,14 @@ PROFILES = ("FinanceTransformation", "AssetManagement", "IFRS17SolvencyII")
 
 CV_FILES = {
     "EN": {
-        "FinanceTransformation": "CV_XRO_EN_FinanceTransformation_v4.docx",
-        "AssetManagement": "CV_XRO_EN_AssetManagement_v4.docx",
-        "IFRS17SolvencyII": "CV_XRO_EN_IFRS17_SolvencyII_v4.docx",
+        "FinanceTransformation": "CV_XRO_EN_FinanceTransformation_v5.docx",
+        "AssetManagement": "CV_XRO_EN_AssetManagement_v5.docx",
+        "IFRS17SolvencyII": "CV_XRO_EN_IFRS17_SolvencyII_v5.docx",
     },
     "FR": {
-        "FinanceTransformation": "CV_XRO_FR_FinanceTransformation_v4.docx",
-        "AssetManagement": "CV_XRO_FR_AssetManagement_v4.docx",
-        "IFRS17SolvencyII": "CV_XRO_FR_IFRS17_SolvencyII_v4.docx",
+        "FinanceTransformation": "CV_XRO_FR_FinanceTransformation_v5.docx",
+        "AssetManagement": "CV_XRO_FR_AssetManagement_v5.docx",
+        "IFRS17SolvencyII": "CV_XRO_FR_IFRS17_SolvencyII_v5.docx",
     },
 }
 

@@ -4,7 +4,7 @@ Tu adaptes le CV de base de Xavier Robitaille à une offre précise par des reto
 
 # Ce que tu peux modifier (par ordre de priorité)
 
-1. **La barre de mots-clés** (ligne « CORE KEYWORDS » / « MOTS-CLÉS ») : ajouter les termes de l'annonce qui ont un appui réel dans l'expérience, à côté des termes voisins existants. Ne jamais retirer un mot-clé existant.
+1. **La barre de mots-clés** (paragraphe de termes séparés par « | » placé avant l'expérience professionnelle ; dans les CV v5 il est en blanc, 2 points, lu par les outils de recrutement) : ajouter les termes de l'annonce qui ont un appui réel dans l'expérience, à côté des termes voisins existants. Ne jamais retirer un mot-clé existant ni toucher à sa mise en forme.
 2. **Le résumé exécutif** : si l'annonce a un angle dominant différent de celui du CV de base, reformuler 1 ou 2 phrases pour refléter le vocabulaire de l'annonce. Même structure, même longueur.
 3. **Les puces de mission** : faire remonter une expérience existante mais sous-exprimée, avec les termes exacts de l'annonce quand ils sont exacts ; remplacer une formulation générique par la terminologie spécifique de l'annonce.
 

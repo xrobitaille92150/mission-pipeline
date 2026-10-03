@@ -1,3 +1,4 @@
+import re
 import shutil
 from pathlib import Path
 
@@ -109,7 +110,7 @@ def test_fallback_prompt_carries_tailoring_rules(tmp_path):
 
 
 def test_base_cv_path_fallback(tmp_path):
-    (tmp_path / "CV_XRO_EN_FinanceTransformation_v4.docx").write_bytes(b"x")
+    (tmp_path / "CV_XRO_EN_FinanceTransformation_v5.docx").write_bytes(b"x")
     p, lang = cvmod.base_cv_path(tmp_path, "FinanceTransformation", "FR")
     assert lang == "EN" and p.name.startswith("CV_XRO_EN")
     with pytest.raises(FileNotFoundError):
@@ -193,3 +194,34 @@ def test_letter_prompts_forbid_self_opening_and_copied_example():
     en, fr = prompt("cover_en"), prompt("cover_fr")
     assert 'contains no "I", "my" or "me"' in en and "never copy its wording" in en
     assert "ni « je », ni « mon », ni « mes »" in fr and "jamais l'exemple Swiss Re" in fr
+
+
+# ---------------------------------------------------------------------------
+# CV de base v5 (3 octobre 2026) : format du CV ABOR du 27 septembre, faits durs, dates arbitrées par Xavier
+# ---------------------------------------------------------------------------
+
+CV_BASE_DIR = Path(__file__).resolve().parents[1] / "assets" / "cv_base"
+FORBIDDEN_CV = re.compile(r"\bactuary\b|\bactuaire\b|qualification actuarielle|actuarial qualification|"
+                          r"master (in|en) (sciences )?actuari|advised investment coo|special advisor|\bAPAC\b|"
+                          r"north america|amérique du nord", re.I)
+
+
+@pytest.mark.parametrize("lang, profile", [(lg, pr) for lg in ("EN", "FR") for pr in cvmod.PROFILES])
+def test_base_cvs_v5_respect_hard_facts(lang, profile):
+    text = cvmod.docx_text(CV_BASE_DIR / cvmod.CV_FILES[lang][profile])
+    bad = FORBIDDEN_CV.search(text)
+    assert not bad, bad and bad.group(0)                      # faits durs 1 et 5, cap du 6 septembre
+    assert "chief transformation officer" in text.lower()
+    assert ("all examinations passed" if lang == "EN" else "ensemble des épreuves") in text
+    assert "CNP Assurances  ·  2013 – 2017" in text           # arbitrage du 3 octobre
+    assert ("Nov 2024 – June 2026" if lang == "EN" else "nov. 2024 – juin 2026") in text
+
+
+def test_edits_apply_on_the_v5_layout_and_keep_the_keyword_bar_format(tmp_path):
+    base = CV_BASE_DIR / cvmod.CV_FILES["FR"]["AssetManagement"]
+    out = tmp_path / "cv.docx"
+    edits = [CvEdit(old="SAS  |  Power BI", new="SAS  |  Power BI  |  Aladdin"),
+             CvEdit(old="d'hebdomadaire à quotidienne", new="d'hebdomadaire à quotidienne (multi-dépositaires)")]
+    assert cvmod.apply_edits(base, out, edits) == (2, 0)
+    kw = next(p for p in Document(str(out)).paragraphs if "Power BI  |  Aladdin" in p.text)
+    assert all(r.font.size.pt == 2 for r in kw.runs if r.text)   # barre de mots-clés toujours invisible à l'œil

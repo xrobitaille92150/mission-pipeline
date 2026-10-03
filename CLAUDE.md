@@ -112,7 +112,7 @@ transmises en entier). Écarts voulus : pas de « Je postule » coché automatiq
 
 ## État au 1er octobre 2026
 
-- v3 écrite et testée (106 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
+- v3 écrite et testée (113 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
   ordonnanceur à mettre en place selon `docs/REFONTE-2026-10.md` § 5.
 - Décisions de Xavier (1er octobre) : ordonnanceur GitHub Actions ; schéma créé automatiquement ; `candidatures/`
   supprimé ; n8n et agents launchd v2 arrêtés tout de suite (`deploy/decommission.sh`), VPS résilié après une
