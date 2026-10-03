@@ -144,6 +144,26 @@ def auth_status(runner=subprocess.run) -> dict:
         return {"authMethod": "inconnu", "erreur": str(e)[:200]}
 
 
+def version(runner=subprocess.run) -> str:
+    """`claude --version` → « 2.1.288 » (chaîne vide si la commande est absente ou muette)."""
+    exe = binary()
+    if not exe:
+        return ""
+    try:
+        proc = runner([exe, "--version"], capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    m = re.search(r"\d+\.\d+\.\d+", proc.stdout or "")
+    return m.group(0) if m else ""
+
+
+# Commandes à donner à Xavier : sans la clé API du shell, qui ferait passer `claude` hors de l'abonnement et
+# l'empêcherait de voir les skills du compte ; la synchronisation des skills n'est active qu'avec cette variable.
+LOGIN_HINT = "lancer `env -u ANTHROPIC_API_KEY claude`, taper /login et choisir le compte claude.ai"
+SYNC_HINT = ("mettre Claude Code à jour (`claude update`), puis lancer "
+             "`env -u ANTHROPIC_API_KEY CLAUDE_CODE_SYNC_SKILLS=1 claude -p ok --max-turns 1`")
+
+
 def workdir() -> Path:
     """Répertoire de travail neutre, hors du dépôt (sinon Claude Code chargerait le CLAUDE.md de développement)."""
     import tempfile

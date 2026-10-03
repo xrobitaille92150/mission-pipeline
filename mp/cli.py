@@ -270,17 +270,17 @@ def cmd_doctor(args) -> int:
     eng = claude_code.engine()
     exe = claude_code.binary()
     if eng == "claude-code":
-        check("Claude Code (dossiers)", True, exe or "")
+        ver = claude_code.version()
+        check("Claude Code (dossiers)", True, f"{exe or ''}{f' — version {ver}' if ver else ''}")
         auth = claude_code.auth_status()
         method = auth.get("authMethod", "inconnu")
         check("    connexion abonnement", method == "claude.ai",
-              "claude.ai" if method == "claude.ai" else
-              f"{method} : ouvrir un terminal, taper `claude`, puis /login avec le compte claude.ai")
+              "claude.ai" if method == "claude.ai" else f"{method} : {claude_code.LOGIN_HINT}")
         skills = claude_code.synced_skills()
         missing_sk = [x for x in claude_code.SKILLS if x not in skills]
         check("    skills du compte", not missing_sk,
               ", ".join(skills) if not missing_sk else
-              f"absentes : {', '.join(missing_sk)} (lancer `claude` une fois, connecté, pour les synchroniser)")
+              f"absentes : {', '.join(missing_sk)} ; {claude_code.SYNC_HINT}")
     else:
         print(f"  [--] Claude Code : non utilisé ({'MP_DOSSIER_ENGINE=api' if exe else 'commande claude absente'}) ;"
               " dossiers rédigés par l'API avec les prompts du dépôt")

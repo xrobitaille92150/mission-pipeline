@@ -143,3 +143,12 @@ def test_build_content_falls_back_to_api(monkeypatch, tmp_path):
 def test_auth_status(fake_bin):
     assert cc.auth_status(runner=FakeRunner('{"loggedIn": true, "authMethod": "claude.ai"}'))["authMethod"] == "claude.ai"
     assert cc.auth_status(runner=FakeRunner("pas du json"))["authMethod"] == "inconnu"
+
+
+def test_version_and_hints(fake_bin):
+    # Le 3 octobre, le Mac avait Claude Code 2.1.193, non connecté au compte claude.ai (le Terminal passait par la
+    # clé API du shell) : aucune skill synchronisée. doctor affiche la version et les commandes exactes.
+    assert cc.version(runner=FakeRunner("2.1.193 (Claude Code)\n")) == "2.1.193"
+    assert cc.version(runner=FakeRunner("")) == ""
+    assert "env -u ANTHROPIC_API_KEY" in cc.LOGIN_HINT and "/login" in cc.LOGIN_HINT
+    assert "claude update" in cc.SYNC_HINT and "CLAUDE_CODE_SYNC_SKILLS=1" in cc.SYNC_HINT

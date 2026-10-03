@@ -60,7 +60,7 @@ exemplaires divergents : nœud n8n, module `service/lib`, prompt. Aucune n'étai
 
 ### 2.1 Principes
 
-- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 77 tests). Rien d'autre ne s'exécute.
+- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 78 tests). Rien d'autre ne s'exécute.
 - **Un ordonnanceur** : GitHub Actions (recommandé) ou launchd sur le Mac. Pas les deux.
 - **Une interface** : Airtable. Tout ce que Xavier fait se fait dans la vue « À décider » de la table Offres.
 - **Fichiers dans Airtable**, pas dans git : CV et lettre attachés à la ligne (PDF + DOCX éditable).
@@ -232,9 +232,11 @@ Créer les vues « À décider », « Dossiers prêts », « Postulées », « E
 ### 5.3 Ordonnanceur
 
 **launchd sur le Mac** (décision du 2 octobre) : `zsh deploy/launchd/install.sh` (06:30 / 18:30, logs dans `out/logs/`).
-Prérequis pour les dossiers par Claude Code : la commande `claude` installée et connectée au compte claude.ai
-(`claude`, puis `/login`) ; `mp doctor` vérifie la connexion et la présence des skills `cv-tailoring`, `cover-letter`,
-`voix-xavier`. Documentation : https://code.claude.com/docs/en/headless.md et https://code.claude.com/docs/en/skills.md.
+Prérequis pour les dossiers par Claude Code : la commande `claude` à jour (`claude update` ; la 2.1.193 du Mac ne
+synchronisait pas les skills du compte) et connectée au compte claude.ai **sans la clé API du shell**
+(`env -u ANTHROPIC_API_KEY claude`, puis `/login`), puis une première synchronisation des skills
+(`env -u ANTHROPIC_API_KEY CLAUDE_CODE_SYNC_SKILLS=1 claude -p ok --max-turns 1`). `mp doctor` affiche la version, vérifie
+la connexion et la présence des skills `cv-tailoring`, `cover-letter`, `voix-xavier`, et donne ces commandes si besoin. Documentation : https://code.claude.com/docs/en/headless.md et https://code.claude.com/docs/en/skills.md.
 
 **GitHub Actions** : lancement manuel seulement, en secours (Settings → Secrets : `ANTHROPIC_API_KEY`, `AIRTABLE_PAT`,
 `GMAIL_USER`, `GMAIL_APP_PASSWORD`). L'automation Airtable (`deploy/airtable/`) n'est plus nécessaire : le cockpit
@@ -291,7 +293,7 @@ autres (septembre) sont scorées par lots de 80 par run (`--limit`). Pour forcer
 
 ## 7. Vérification
 
-- `python -m pytest` : 77 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI, config, cockpit).
+- `python -m pytest` : 78 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI, config, cockpit).
 - `mp doctor` : secrets, LibreOffice, CV de base, règles, schéma Airtable, Gmail, Claude.
 - `mp run --dry-run -v` : exécution complète sans écriture.
 - Logs : `out/logs/mp_YYYY-MM-DD.log` (Mac) ou artefact `logs-<run>` (Actions).
