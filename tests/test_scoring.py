@@ -159,3 +159,57 @@ def test_process_new_offer_scores_then_builds_dossier(monkeypatch):
     import pytest
     with pytest.raises(RuntimeError):                        # déjà notée : pas de second appel Claude
         pl.process_new_offer(ctx, "rec9")
+
+
+# ---------------------------------------------------------------------------
+# Notes du cockpit : « L'offre en bref » et « Tes critères » (colonnes Note rôle / Note critères)
+# ---------------------------------------------------------------------------
+
+NOTES = {"resume": "Alpha FMC recrute un Senior Consultant pour son équipe Insurance Finance Transformation à Paris. "
+                   "Missions : comptabilité des investissements, IFRS 9 / IFRS 17, implémentation SimCorp.",
+         "criteres": [{"critere": "Domaine", "constat": "investissement et transformation finance", "statut": "ok"},
+                      {"critere": "Rémunération", "constat": "CDI à 55 k€ de base : très en deçà de la cible",
+                       "statut": "ecart"},
+                      {"critere": "Langue", "constat": "non précisé dans l'annonce", "statut": "inconnu"}]}
+
+
+def test_scoring_carries_notes_and_writes_them():
+    from mp.pipeline import scoring_fields
+    claude = FakeClaude([_sub(**NOTES)])
+    jd = JobDescription(ok=True, text=DESC)
+    s = score_offer(claude, title="Senior Consultant", employer="Alpha FMC", location="Paris", mode="",
+                    source="Alerte", jd=jd)
+    assert "Tes critères" not in claude.prompts[0]["system"][0]
+    assert "Notes pour Xavier" in claude.prompts[0]["system"][1]          # consigne notes.md dans la notation
+    assert claude.prompts[0]["schema"]["required"][-2:] == ["resume", "criteres"]
+    f = scoring_fields(s, jd, False)
+    assert f["Note rôle"].startswith("Alpha FMC recrute")
+    assert f["Note critères"].splitlines() == [
+        "✓ Domaine : investissement et transformation finance",
+        "✗ Rémunération : CDI à 55 k€ de base : très en deçà de la cible",
+        "? Langue : non précisé dans l'annonce"]
+    # offre exclue par filtre dur : pas de notes, rien n'est écrasé
+    assert "Note rôle" not in scoring_fields(excluded_scoring("poste hors Europe"), None, False)
+
+
+def test_refresh_notes_only_for_active_offers_without_v3_notes():
+    from mp.pipeline import is_v3_notes, refresh_notes
+    from tests.conftest import FakeAirtable, FakeClaude, FakeContext
+    old = "- Séniorité : 7+ ans requis\n- Contrat : CDI → écart avec TJM >= 800 EUR/j"
+    rows = [
+        {"id": "r1", "fields": {"jobId": "1", "Poste": "PMO", "Employeur": "AXA", "Statut": "À étudier", "Score": 80,
+                                "Description": DESC, "Note critères": old}},
+        {"id": "r2", "fields": {"jobId": "2", "Poste": "Head", "Employeur": "CNP", "Statut": "Dossier prêt",
+                                "Score": 75, "Description": DESC, "Note critères": "✓ Domaine : B"}},
+        {"id": "r3", "fields": {"jobId": "3", "Poste": "Analyst", "Employeur": "X", "Statut": "Écartée", "Score": 20,
+                                "Description": DESC}},
+    ]
+    ctx = FakeContext(at=FakeAirtable({"OFFRES": rows}, formulas=True), claude=FakeClaude([NOTES]))
+    stats = refresh_notes(ctx)
+    assert stats == {"offres": 2, "faites": 1, "deja": 1, "erreurs": 0}
+    f1, f2, f3 = (r["fields"] for r in ctx.at.tables_data["OFFRES"])
+    assert is_v3_notes(f1["Note critères"]) and f1["Note rôle"].startswith("Alpha FMC")
+    assert f1["Score"] == 80 and "Scoré le" not in f1                 # le score n'est pas touché
+    assert f2["Note critères"] == "✓ Domaine : B" and "Note rôle" not in f3
+    assert "Tes critères" not in ctx.claude.prompts[0]["system"][0] and len(ctx.claude.prompts) == 1
+    assert refresh_notes(ctx)["faites"] == 0                           # rejouable : tout est déjà fait

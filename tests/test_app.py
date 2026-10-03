@@ -194,3 +194,22 @@ def test_nouvelle_offre_from_linkedin_url_fetches_the_posting(monkeypatch):
     o2 = c.post("/api/offres/nouvelle", json={"url": "https://www.linkedin.com/jobs/view/4471234567/"}).json()
     assert o2["id"] == o["id"]
     _wait_jobs()
+
+
+def test_offer_summary_and_criteria_for_the_cockpit():
+    # Demande de Xavier (3 octobre) : comprendre le poste sans aller sur LinkedIn.
+    c, ctx = _client()
+    ctx.at.tables_data["OFFRES"][0]["fields"].update({
+        "Note rôle": "Allianz cherche un directeur de programme pour sa transformation finance. Mission de 12 mois.",
+        "Note critères": "✓ Domaine : transformation finance (C)\n✗ Rémunération : 700 €/j\n? Langue : non précisé",
+    })
+    ctx.at.tables_data["OFFRES"][1]["fields"]["Note critères"] = "- Séniorité : 7+ ans requis"   # ancienne note
+    items = {o["id"]: o for o in c.get("/api/offres?tab=decider").json()["items"]}
+    assert items["rec1"]["resume_court"] == "Allianz cherche un directeur de programme pour sa transformation finance."
+    d = c.get("/api/offres/rec1").json()
+    assert d["resume"].endswith("Mission de 12 mois.")
+    assert [x["statut"] for x in d["criteres"]] == ["ok", "ecart", "inconnu"]
+    assert d["criteres"][1]["texte"] == "Rémunération : 700 €/j"
+    assert c.get("/api/offres/rec2").json()["criteres"] == [{"statut": "", "texte": "Séniorité : 7+ ans requis"}]
+    page = c.get("/").text
+    assert "L'offre en bref" in page and "Tes critères" in page

@@ -303,6 +303,14 @@ def cmd_dedup(args) -> int:
     return 0
 
 
+def cmd_notes(args) -> int:
+    from mp import pipeline
+    ctx = _ctx(args)
+    stats = pipeline.refresh_notes(ctx, limit=args.limit)
+    print(f"notes : {stats}" + ("  (répétition : rien n'a été écrit)" if ctx.dry_run else ""))
+    return 1 if stats.get("erreurs") else 0
+
+
 def cmd_drive_sync(args) -> int:
     from mp import drive
     stats = drive.sync(_ctx(args), days=args.days)
@@ -379,6 +387,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     dd = sub.add_parser("dedup", help="range les doublons (même employeur, même poste)", parents=[common])
     dd.set_defaults(fn=cmd_dedup)
+
+    nt = sub.add_parser("notes", help="résumé et critères des offres en cours qui n'en ont pas (sans re-noter)",
+                        parents=[common])
+    nt.add_argument("--limit", type=int, default=200)
+    nt.set_defaults(fn=cmd_notes)
 
     ds = sub.add_parser("drive-sync", help="copie les dossiers récents dans le Drive du Mac", parents=[common])
     ds.add_argument("--days", type=int, default=14)

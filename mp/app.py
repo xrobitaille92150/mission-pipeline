@@ -6,6 +6,7 @@ le téléphone. L'application écoute sur 127.0.0.1 ; `tailscale serve` l'expose
 from __future__ import annotations
 
 import logging
+import re
 import threading
 import uuid
 from datetime import date, datetime
@@ -26,7 +27,7 @@ WEB = Path(__file__).parent / "web"
 F_LIST = ["jobId", "Poste", "Employeur", "Lieu", "Mode", "Pays", "Score", "Verdict IA", "Cluster", "Contrat",
           "Langue", "Pourquoi", "Red flags", "Statut", "Rang du jour", "Scoré le", "Dossier le", "Date postulé",
           "Réponse", "URL", "CV (fichiers)", "Lettre (fichiers)", "Je postule", "J'écarte", "Préparer dossier",
-          "Erreur", "Profil CV", "Mots-clés", "Easy Apply"]
+          "Erreur", "Profil CV", "Mots-clés", "Easy Apply", "Note rôle", "Note critères"]
 F_DETAIL = F_LIST + ["Description", "Lettre texte", "Objections"]
 
 TABS = {
@@ -55,6 +56,27 @@ def _lines(v: Any) -> list[str]:
     return [ln.lstrip("•- ").strip() for ln in str(v or "").splitlines() if ln.strip()]
 
 
+def _first_sentence(text: str, limit: int = 180) -> str:
+    """Première phrase du résumé, pour la liste (coupée proprement si elle est longue)."""
+    s = " ".join((text or "").split())
+    m = re.match(r"(.+?[.!?])(\s|$)", s)
+    s = m.group(1) if m else s
+    return s if len(s) <= limit else s[:limit].rsplit(" ", 1)[0] + " …"
+
+
+def _criteres(v: Any) -> list[dict]:
+    """« ✓ Contrat : … » → {statut: ok, texte: "Contrat : …"} ; les anciennes notes (« - … ») restent neutres."""
+    out = []
+    for ln in str(v or "").splitlines():
+        ln = ln.strip()
+        if not ln:
+            continue
+        sym = ln[:1]
+        statut = {"✓": "ok", "✗": "ecart", "?": "inconnu"}.get(sym, "")
+        out.append({"statut": statut, "texte": (ln[1:] if statut else ln.lstrip("•- ")).strip()})
+    return out
+
+
 def to_json(ctx: Context, rec: dict, detail: bool = False) -> dict:
     f = rec["fields"]
     d = {
@@ -71,6 +93,8 @@ def to_json(ctx: Context, rec: dict, detail: bool = False) -> dict:
         "preparer_dossier": bool(f.get("Préparer dossier")), "erreur": f.get("Erreur", ""),
         "profil_cv": _sel(f.get("Profil CV")), "mots_cles": f.get("Mots-clés", ""),
         "easy_apply": bool(f.get("Easy Apply")),
+        "resume": f.get("Note rôle", ""), "resume_court": _first_sentence(f.get("Note rôle", "")),
+        "criteres": _criteres(f.get("Note critères")),
     }
     if detail:
         d["description"] = f.get("Description", "")

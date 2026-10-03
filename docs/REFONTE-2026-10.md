@@ -60,7 +60,7 @@ exemplaires divergents : nœud n8n, module `service/lib`, prompt. Aucune n'étai
 
 ### 2.1 Principes
 
-- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 85 tests). Rien d'autre ne s'exécute.
+- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 88 tests). Rien d'autre ne s'exécute.
 - **Un ordonnanceur** : GitHub Actions (recommandé) ou launchd sur le Mac. Pas les deux.
 - **Une interface** : Airtable. Tout ce que Xavier fait se fait dans la vue « À décider » de la table Offres.
 - **Fichiers dans Airtable**, pas dans git : CV et lettre attachés à la ligne (PDF + DOCX éditable).
@@ -79,7 +79,8 @@ mp ingest ──► Offres (Airtable)            upsert sur jobId, Statut = Nouv
 mp sync ────► décisions cochées            Je postule → Postulée + ligne Candidatures ; J'écarte → Écartée ;
   │                                        silence 14 j → Expirée
 mp score ───► filtres durs (0 appel IA)    junior / hors Europe / langue ≠ FR-EN → Écartée
-  │           + 1 appel Claude par offre   Score 0-100, Verdict IA, Cluster, Pourquoi, Red flags, Mots-clés, Profil CV
+  │           + 1 appel Claude par offre   Score 0-100, Verdict IA, Cluster, Pourquoi, Red flags, Mots-clés, Profil CV,
+  │                                        Note rôle (l'offre en bref), Note critères (7 critères ✓ / ✗ / ?)
   │           + classement du jour         top 3 (score ≥ 60, verdict Postuler) → « Préparer dossier » coché, Rang du jour
   ▼
 mp dossiers ► pour chaque ligne cochée     fiche LinkedIn (ou Description) → profil CV → retouches python-docx
@@ -148,7 +149,7 @@ le même jour ; les écarts restants sont voulus.
 |---|---|---|
 | Lecture des alertes | JOE via le pont n8n « Gmail Bridge » | IMAP direct (`mp ingest`) |
 | Fiche, mode, Easy Apply | JOE | `linkedin.fetch_jd` |
-| Notation | Haiku, « Note rôle » / « Note critères » | Opus, cinq sous-scores, Pourquoi, Red flags (écart voulu) |
+| Notation | Haiku, « Note rôle » / « Note critères » | Opus, cinq sous-scores, Pourquoi, Red flags (écart voulu) ; « Note rôle » / « Note critères » repris le 3 octobre (résumé + 7 critères alignés sur le cap du 6 septembre, `mp notes` pour les offres déjà notées) |
 | Choix des dossiers | toute offre ≥ 50 | top 3 ≥ 60 par passage + coches de Xavier (écart voulu) |
 | « Je postule » automatique | coché sur Easy Apply ≥ 50 | jamais (écart voulu : décision de Xavier) |
 | CV + lettre | MATT : 3-6 retouches, faits durs, clauses géo | idem, CV complet fourni à Claude, profil choisi sur mots entiers, règles d'écriture en entier |
@@ -293,7 +294,7 @@ autres (septembre) sont scorées par lots de 80 par run (`--limit`). Pour forcer
 
 ## 7. Vérification
 
-- `python -m pytest` : 85 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI, config, cockpit).
+- `python -m pytest` : 88 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, CLI, config, cockpit).
 - `mp doctor` : secrets, LibreOffice, CV de base, règles, schéma Airtable, Gmail, Claude.
 - `mp run --dry-run -v` : exécution complète sans écriture.
 - Logs : `out/logs/mp_YYYY-MM-DD.log` (Mac) ou artefact `logs-<run>` (Actions).

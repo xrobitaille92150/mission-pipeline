@@ -7,7 +7,7 @@ from datetime import date
 
 from mp.claude import Claude
 from mp.config import prompt
-from mp.models import SCORING_SCHEMA, JobDescription, Scoring
+from mp.models import NOTES_SCHEMA, SCORING_SCHEMA, JobDescription, Notes, Scoring
 
 log = logging.getLogger("mp.scoring")
 
@@ -92,7 +92,7 @@ def _offer_block(title: str, employer: str, location: str, mode: str, source: st
 
 def score_offer(claude: Claude, *, title: str, employer: str, location: str, mode: str, source: str,
                 jd: JobDescription | None, effort: str = "medium") -> Scoring:
-    system = [prompt("profile"), prompt("scoring") + "\n\n" + prompt("bareme")]
+    system = [prompt("profile"), prompt("scoring") + "\n\n" + prompt("bareme") + "\n\n" + prompt("notes")]
     user = ("Évalue cette offre et rends le JSON demandé.\n\n"
             + _offer_block(title, employer, location, mode, source, jd))
     data = claude.json(system=system, user=user, schema=SCORING_SCHEMA, effort=effort, max_tokens=6000)
@@ -102,6 +102,17 @@ def score_offer(claude: Claude, *, title: str, employer: str, location: str, mod
         if s.verdict == "POSTULER":
             s.verdict = "ETUDIER"
     return s
+
+
+def notes_offer(claude: Claude, *, title: str, employer: str, location: str, mode: str, source: str,
+                jd: JobDescription | None) -> Notes:
+    """Résumé et critères seuls, sans re-noter l'offre (rattrapage des offres déjà notées : `mp notes`).
+    Même consigne que dans la notation (prompts/notes.md)."""
+    user = ("Rédige les notes demandées (résumé et critères) pour cette offre et rends le JSON.\n\n"
+            + _offer_block(title, employer, location, mode, source, jd))
+    data = claude.json(system=[prompt("profile"), prompt("notes")], user=user, schema=NOTES_SCHEMA,
+                       effort="low", max_tokens=3000)
+    return Notes.model_validate(data)
 
 
 def excluded_scoring(reason: str) -> Scoring:

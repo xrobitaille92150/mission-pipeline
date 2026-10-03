@@ -28,11 +28,16 @@ header .right{margin-left:auto;display:flex;gap:6px}
 main{padding:12px 16px calc(24px + var(--sab))}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;cursor:pointer}
 .card:active{opacity:.75}
-.score{min-width:52px;height:52px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;line-height:1}
+.score{flex:0 0 auto;padding:0 6px;min-width:52px;height:52px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;line-height:1}
 .score small{font-size:10px;font-weight:600;opacity:.9;margin-top:3px}
 .s-hi{background:var(--ok)}.s-mid{background:var(--warn)}.s-lo{background:var(--muted)}
 .card .t{flex:1;min-width:0}.card .emp{font-weight:600}.card .pos{color:var(--ink);opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .meta{color:var(--muted);font-size:13px;margin-top:3px;display:flex;flex-wrap:wrap;gap:6px 10px}
+.card .sum{font-size:13px;color:var(--ink);opacity:.8;margin-top:4px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.resume{margin:0;line-height:1.5}
+.crit{list-style:none;margin:0;padding:0}.crit li{display:flex;gap:8px;padding:5px 0;border-top:1px solid var(--line);line-height:1.4}
+.crit li:first-child{border-top:0}.crit .ic{flex:0 0 18px;font-weight:700;text-align:center}
+.crit .ok{color:var(--ok)}.crit .ecart{color:var(--bad)}.crit .inconnu{color:var(--muted)}
 .chip{background:var(--chip);border-radius:999px;padding:1px 8px;font-size:12px;color:var(--ink)}
 .chip.rank{background:var(--gold);color:#fff;font-weight:700}
 .chip.ok{background:#E3F2EA;color:var(--ok)}.chip.bad{background:#F8E1E4;color:var(--bad)}
@@ -127,6 +132,7 @@ function cardHtml(o){
   return `<div class="card" data-id="${o.id}">
     <div class="score ${scoreClass(o.score)}">${o.score??'–'}<small>${esc((o.verdict||'').toUpperCase())}</small></div>
     <div class="t"><div class="emp">${esc(o.employeur)}</div><div class="pos">${esc(o.poste)}</div>
+    ${o.resume_court?`<div class="sum">${esc(o.resume_court)}</div>`:''}
     <div class="meta">${where?`<span>${esc(where)}</span>`:''}${o.date_postule?`<span>postulé le ${fmtDate(o.date_postule)}</span>`:''}${chips.join('')}</div></div></div>`;
 }
 
@@ -184,7 +190,10 @@ function detailHtml(o){
     <div class="meta">${o.rang?`<span class="chip rank">#${o.rang} du jour</span>`:''}<span class="chip">${esc(o.statut||'—')}</span>${o.job?`<span class="chip"><span class="spin"></span> ${esc(JOB_LABEL[o.job.kind]||o.job.kind)}</span>`:''}</div></div></div>
     ${o.erreur?`<p class="detail-line" style="color:var(--bad)">${esc(o.erreur)}</p>`:''}
   </div>
-  <div class="sec"><h3>Pourquoi</h3><ul>${why.map(p=>`<li>${esc(p)}</li>`).join('')||'<li>—</li>'}</ul>
+  ${o.resume?`<div class="sec"><h3>L'offre en bref</h3><p class="resume">${esc(o.resume)}</p></div>`:''}
+  ${o.criteres.length?`<div class="sec"><h3>Tes critères</h3><ul class="crit">${o.criteres.map(c=>
+    `<li><span class="ic ${c.statut||'inconnu'}">${({ok:'✓',ecart:'✗',inconnu:'?'})[c.statut]||'•'}</span><span>${esc(c.texte)}</span></li>`).join('')}</ul></div>`:''}
+  <div class="sec"><h3>Pourquoi ce score</h3><ul>${why.map(p=>`<li>${esc(p)}</li>`).join('')||'<li>—</li>'}</ul>
     ${o.red_flags.length?`<h3 style="margin-top:10px">Red flags</h3><ul>${o.red_flags.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:''}
     ${o.objections.length?`<h3 style="margin-top:10px">Objections à préparer</h3><ul>${o.objections.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:''}
   </div>

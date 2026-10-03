@@ -82,6 +82,48 @@ SUBSCORE_LABELS = {"fit": "adéquation", "seniorite": "séniorité", "geo": "gé
                    "signaux": "signaux"}
 
 
+# Notes affichées dans le cockpit (« L'offre en bref », « Tes critères »), écrites dans les colonnes historiques
+# « Note rôle » et « Note critères » de la table Offres (reprises de l'ancien système, à la demande de Xavier).
+NOTE_CRITERES = ["Domaine", "Séniorité", "Contrat", "Rémunération", "Lieu et rythme", "Langue", "Secteur"]
+STATUT_SYMBOLS = {"ok": "✓", "ecart": "✗", "inconnu": "?"}
+
+
+class Critere(BaseModel):
+    critere: str
+    constat: str
+    statut: str = Field(pattern="^(ok|ecart|inconnu)$")
+
+
+def format_criteres(criteres: list[Critere]) -> str:
+    """« ✓ Contrat : … » une ligne par critère (le symbole en tête distingue les notes v3 des anciennes)."""
+    return "\n".join(f"{STATUT_SYMBOLS[c.statut]} {c.critere} : {c.constat.strip()}" for c in criteres)
+
+
+class Notes(BaseModel):
+    resume: str = ""
+    criteres: list[Critere] = Field(default_factory=list)
+
+
+NOTES_PROPERTIES: dict = {
+    "resume": {"type": "string"},
+    "criteres": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "critere": {"type": "string", "enum": NOTE_CRITERES},
+                "constat": {"type": "string"},
+                "statut": {"type": "string", "enum": ["ok", "ecart", "inconnu"]},
+            },
+            "required": ["critere", "constat", "statut"],
+        },
+    },
+}
+NOTES_SCHEMA: dict = {"type": "object", "additionalProperties": False, "properties": NOTES_PROPERTIES,
+                      "required": ["resume", "criteres"]}
+
+
 class Scoring(BaseModel):
     cluster: str = Field(pattern="^(A|B|C|HORS_AXE)$")
     posture: str = Field(pattern="^(projet|production|mixte)$")
@@ -102,6 +144,8 @@ class Scoring(BaseModel):
     red_flags: list[str] = Field(default_factory=list)
     profil_cv: str = Field(pattern="^(FinanceTransformation|AssetManagement|IFRS17SolvencyII)$")
     mots_cles: list[str] = Field(default_factory=list)
+    resume: str = ""
+    criteres: list[Critere] = Field(default_factory=list)
 
     @field_validator("score")
     @classmethod
@@ -166,11 +210,12 @@ SCORING_SCHEMA: dict = {
             "enum": ["FinanceTransformation", "AssetManagement", "IFRS17SolvencyII"],
         },
         "mots_cles": {"type": "array", "items": {"type": "string"}},
+        **NOTES_PROPERTIES,
     },
     "required": [
         "cluster", "posture", "langue", "pays", "europe", "mode", "contrat", "junior",
         "fit", "seniorite", "geo", "format_poste", "signaux",
-        "pourquoi", "red_flags", "profil_cv", "mots_cles",
+        "pourquoi", "red_flags", "profil_cv", "mots_cles", "resume", "criteres",
     ],
 }
 

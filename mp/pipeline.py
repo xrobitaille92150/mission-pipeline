@@ -21,11 +21,13 @@ from mp.models import (
     CONTRAT_LABELS,
     MODE_LABELS,
     POSTURE_LABELS,
+    STATUT_SYMBOLS,
     VERDICT_LABELS,
     Card,
     JobDescription,
+    format_criteres,
 )
-from mp.scoring import excluded_scoring, hard_filter, rank_for_dossiers, score_offer, today
+from mp.scoring import excluded_scoring, hard_filter, notes_offer, rank_for_dossiers, score_offer, today
 
 log = logging.getLogger("mp.pipeline")
 
@@ -182,6 +184,46 @@ def _jd_for(ctx: Context, rec: dict) -> tuple[JobDescription, bool]:
     return jd, True
 
 
+def notes_fields(n) -> dict:
+    """Colonnes historiques « Note rôle » / « Note critères » (vides pour une offre exclue par filtre dur)."""
+    if not getattr(n, "resume", ""):
+        return {}
+    return {"Note rôle": n.resume.strip(), "Note critères": format_criteres(n.criteres)}
+
+
+def is_v3_notes(text: str | None) -> bool:
+    """Notes rédigées par la v3 (« ✓ Domaine : … ») ; les anciennes commencent par « - Séniorité : … »."""
+    return (text or "").lstrip()[:1] in STATUT_SYMBOLS.values()
+
+
+def refresh_notes(ctx: Context, limit: int = 200) -> dict:
+    """Rédige « L'offre en bref » et « Tes critères » des offres en cours (À étudier, Dossier prêt) qui n'ont pas
+    encore de notes v3, sans toucher à leur score. Idempotent : une offre déjà traitée est sautée."""
+    recs = ctx.at.list(ctx.offres, formula="OR({Statut}='À étudier',{Statut}='Dossier prêt')",
+                       sort=[("Score", "desc")], max_records=limit,
+                       fields=["jobId", "Poste", "Employeur", "Lieu", "Mode", "Source", "Description",
+                               "Easy Apply", "Note critères"])
+    stats = {"offres": len(recs), "faites": 0, "deja": 0, "erreurs": 0}
+    for rec in recs:
+        f = rec["fields"]
+        if is_v3_notes(f.get("Note critères")):
+            stats["deja"] += 1
+            continue
+        try:
+            jd, _ = _jd_for(ctx, rec)
+            n = notes_offer(ctx.claude, title=f.get("Poste", ""), employer=f.get("Employeur", ""),
+                            location=f.get("Lieu", ""), mode=f.get("Mode", ""), source=f.get("Source", "Alerte"),
+                            jd=jd)
+            ctx.at.patch(ctx.offres, rec["id"], notes_fields(n))
+            stats["faites"] += 1
+            log.info("  notes   %-28.28s | %s", f.get("Employeur", ""), f.get("Poste", "")[:60])
+        except Exception as e:  # noqa: BLE001 — une offre en échec n'arrête pas le rattrapage
+            stats["erreurs"] += 1
+            ctx.report.error(f"notes KO : {f.get('Employeur', '')} — {f.get('Poste', '')[:50]} : {e}")
+    log.info("notes : %s", stats)
+    return stats
+
+
 def scoring_fields(s, jd: JobDescription | None, fetched: bool) -> dict:
     fields = {
         "Score": s.score,
@@ -194,6 +236,7 @@ def scoring_fields(s, jd: JobDescription | None, fetched: bool) -> dict:
         "Pourquoi": "\n".join([f"• {p}" for p in s.pourquoi] + ([s.detail] if getattr(s, "detail", "") else [])),
         "Red flags": "\n".join(f"• {r}" for r in s.red_flags),
         "Mots-clés": ", ".join(s.mots_cles)[:250],
+        **notes_fields(s),
         "Profil CV": s.profil_cv,
         "Scoré le": today(),
         "Statut": "Écartée" if s.verdict == "ECARTER" else "À étudier",
