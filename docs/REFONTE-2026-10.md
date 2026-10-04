@@ -60,7 +60,7 @@ exemplaires divergents : nœud n8n, module `service/lib`, prompt. Aucune n'étai
 
 ### 2.1 Principes
 
-- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 115 tests). Rien d'autre ne s'exécute.
+- **Un moteur** : le package Python `mp/` (16 modules + cockpit, 116 tests). Rien d'autre ne s'exécute.
 - **Un ordonnanceur** : GitHub Actions (recommandé) ou launchd sur le Mac. Pas les deux.
 - **Une interface** : Airtable. Tout ce que Xavier fait se fait dans la vue « À décider » de la table Offres.
 - **Fichiers dans Airtable**, pas dans git : CV et lettre attachés à la ligne (PDF + DOCX éditable).
@@ -106,7 +106,8 @@ Même résultat, même ligne Airtable.
 **Cockpit mobile (ajouté le 1er octobre, demande de Xavier : « un minimum de clics, depuis l'iPhone »).**
 `mp app` sert sur le Mac une page web minimaliste (`mp/web/index.html`, FastAPI derrière), exposée à l'iPhone
 par Tailscale Serve et ajoutée à l'écran d'accueil. Les trois clics deviennent trois boutons : **Je postule**,
-**J'écarte**, **Préparer le dossier**, appliqués tout de suite (le run suivant n'a plus rien à faire). La lettre
+**J'écarte**, **Préparer le dossier**, appliqués tout de suite (le run suivant n'a plus rien à faire) ; dans « À décider »,
+glisser une offre vers la gauche l'écarte (« Annuler » pendant 5 secondes, statut d'avant rétabli). La lettre
 se relit sur le téléphone, se copie, et se fait réécrire par Claude sur une consigne libre (« plus court »,
 « insiste sur IFRS 17 ») ; valider régénère PDF et DOCX dans Airtable. Un bouton lance un run complet.
 Choix de Xavier : auto-hébergement derrière Tailscale (pas d'app native, pas d'exposition Internet, secrets
@@ -295,7 +296,7 @@ autres (septembre) sont scorées par lots de 80 par run (`--limit`). Pour forcer
 
 ## 7. Vérification
 
-- `python -m pytest` : 115 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, digest, CLI, config, cockpit).
+- `python -m pytest` : 116 tests (parseur Gmail, scoring, retouches CV, lettre, PDF, suivi, digest, CLI, config, cockpit).
 - `mp doctor` : secrets, LibreOffice, CV de base, règles, schéma Airtable, Gmail, Claude.
 - `mp run --dry-run -v` : exécution complète sans écriture.
 - Logs : `out/logs/mp_YYYY-MM-DD.log` (Mac) ou artefact `logs-<run>` (Actions).

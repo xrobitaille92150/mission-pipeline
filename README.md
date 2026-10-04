@@ -39,7 +39,8 @@ réseau privé, et nulle part ailleurs. Sur l'iPhone, Safari → Partager → **
 « Missions » ouvre le cockpit en plein écran.
 
 - **À décider** : les offres du jour avec score, pourquoi, red flags ; boutons **Je postule** / **J'écarte** /
-  **Préparer le dossier**, appliqués immédiatement (statut, ligne Candidatures, dossier en arrière-plan).
+  **Préparer le dossier**, appliqués immédiatement (statut, ligne Candidatures, dossier en arrière-plan) ;
+  **glisser une offre vers la gauche** l'écarte, avec « Annuler » pendant 5 secondes (rien n'est supprimé).
 - **Dossiers** : la lettre, à copier ou à faire réécrire par Claude sur une **consigne** (« plus court »,
   « insiste sur IFRS 17 ») ; valider régénère le PDF et le DOCX attachés dans Airtable.
 - **＋ Ajouter une offre** trouvée ailleurs : lien LinkedIn ou texte collé ; Claude la note puis prépare le dossier.
@@ -126,7 +127,7 @@ mp/web/             cockpit mobile : index.html (vanilla JS), icon.png
 mp/prompts/         prompts versionnés : profile, scoring, bareme, cv_edits, cover_common/fr/en, tracking
 assets/cv_base/     CV_XRO_{EN,FR}_{FinanceTransformation,AssetManagement,IFRS17_SolvencyII}_v5.docx
 assets/writing_rules/   WRITING RULES.md, REGLES-ECRITURE-FR.md
-tests/              115 tests pytest (doubles Airtable / Claude en mémoire)
+tests/              116 tests pytest (doubles Airtable / Claude en mémoire)
 deploy/             launchd (Mac : pipeline + cockpit), Tailscale, automation Airtable
 skills/postuler/    skill Claude « prépare le dossier pour cette offre »
 docs/               REFONTE-2026-10.md
@@ -137,7 +138,7 @@ out/                sorties locales (dossiers, logs), ignorées par git
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest          # 115 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
+.venv/bin/python -m pytest          # 116 tests, < 10 s (le test PDF est sauté si LibreOffice est absent)
 ```
 
 ## Airtable

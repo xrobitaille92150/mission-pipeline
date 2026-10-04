@@ -81,9 +81,20 @@ def test_decision_ecarte_and_annule():
     c, ctx = _client()
     d = c.post("/api/offres/rec2/decision", json={"action": "ecarte"}).json()
     assert d["j_ecarte"] is True and d["statut"] == "Écartée"       # sync immédiat
+    assert "rec2" not in [o["id"] for o in c.get("/api/offres?tab=decider").json()["items"]]
     d = c.post("/api/offres/rec2/decision", json={"action": "annule"}).json()
     assert d["j_ecarte"] is False and d["je_postule"] is False
+    assert d["statut"] == "À étudier"                                # « Annuler » du glisser : l'offre revient
+    assert "rec2" in [o["id"] for o in c.get("/api/offres?tab=decider").json()["items"]]
     assert c.post("/api/offres/rec2/decision", json={"action": "boum"}).status_code == 400
+
+
+def test_annule_restores_dossier_pret():
+    c, ctx = _client()
+    ctx.at.patch(ctx.offres, "rec2", {"Dossier le": "2026-10-03", "Statut": "Dossier prêt"})
+    c.post("/api/offres/rec2/decision", json={"action": "ecarte"})
+    d = c.post("/api/offres/rec2/decision", json={"action": "annule"}).json()
+    assert d["statut"] == "Dossier prêt"
 
 
 def test_decision_postule_creates_candidature_and_starts_dossier(monkeypatch):

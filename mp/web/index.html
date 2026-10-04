@@ -68,7 +68,13 @@ input[type=text]{width:100%;border:1px solid var(--line);border-radius:10px;padd
 pre.desc{white-space:pre-wrap;font:inherit;font-size:14px;margin:0;max-height:260px;overflow:auto}
 details summary{cursor:pointer;color:var(--navy);font-weight:600}
 @media (prefers-color-scheme:dark){details summary{color:#E8D5A8}}
-#toast{position:fixed;left:50%;bottom:calc(80px + var(--sab));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;font-size:14px;display:none;z-index:20;max-width:90vw}
+/* glisser vers la gauche (onglet À décider) : J'écarte */
+.swipe{position:relative;margin-bottom:10px;border-radius:14px;overflow:hidden}
+.swipe .card{margin-bottom:0;position:relative;touch-action:pan-y}
+.swipe .under{position:absolute;inset:0;background:var(--bad);color:#fff;font-weight:600;display:flex;align-items:center;justify-content:flex-end;padding-right:22px;border-radius:14px;opacity:0}
+.swipe.on .under{opacity:1}.swipe.on .card{opacity:1}
+#toast .undo{background:transparent;border:0;color:var(--gold);font:inherit;font-weight:700;margin-left:12px;padding:4px 2px}
+#toast{position:fixed;left:50%;bottom:calc(80px + var(--sab));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;font-size:14px;display:none;z-index:20;width:max-content;max-width:90vw}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:r 1s linear infinite;vertical-align:-2px}
 @keyframes r{to{transform:rotate(360deg)}}
 .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -109,6 +115,12 @@ const store = {get:k=>{try{return localStorage.getItem(k)}catch(e){return null}}
 let tab = store.get('mp.tab') || 'decider', current = null, poll = null;
 
 function toast(msg, ms=2600){const t=$('#toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',ms);}
+function toastUndo(msg, onUndo, ms=5000){
+  const t=$('#toast'), b=document.createElement('button');
+  t.textContent=msg; b.className='undo'; b.textContent='Annuler'; t.append(b);
+  b.addEventListener('click',()=>{clearTimeout(t._h); t.style.display='none'; onUndo();});
+  t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none',ms);
+}
 async function api(path, opts={}){
   const r = await fetch(path, Object.assign({headers:{'Content-Type':'application/json'}}, opts));
   if(!r.ok){let m='erreur '+r.status;try{m=(await r.json()).detail||m}catch(e){}throw new Error(m);}
@@ -138,6 +150,8 @@ function cardHtml(o){
     ${o.resume_court?`<div class="sum">${esc(o.resume_court)}</div>`:''}
     <div class="meta">${where?`<span>${esc(where)}</span>`:''}${o.date_postule?`<span>postulé le ${fmtDate(o.date_postule)}</span>`:''}${chips.join('')}</div></div></div>`;
 }
+const swipeHtml = o => `<div class="swipe"><div class="under">J'écarte</div>${cardHtml(o)}</div>`;
+const EMPTY_DECIDER = 'Rien à décider. Le prochain run tourne à 06:30 et 18:30.';
 
 async function load(){
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
@@ -147,8 +161,8 @@ async function load(){
   list.innerHTML='<div class="empty">Chargement…</div>';
   try{
     const d=await api('/api/offres?tab='+tab);
-    list.innerHTML = d.items.length ? d.items.map(cardHtml).join('') :
-      `<div class="empty">${tab==='decider'?'Rien à décider. Le prochain run tourne à 06:30 et 18:30.':'Aucune offre ici.'}</div>`;
+    list.innerHTML = d.items.length ? d.items.map(tab==='decider'?swipeHtml:cardHtml).join('') :
+      `<div class="empty">${tab==='decider'?EMPTY_DECIDER:'Aucune offre ici.'}</div>`;
   }catch(e){list.innerHTML=`<div class="empty">${esc(e.message)}</div>`;}
 }
 
@@ -258,7 +272,48 @@ function bind(o){
 }
 
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;load();}));
-$('#list').addEventListener('click',e=>{const c=e.target.closest('.card'); if(c) openDetail(c.dataset.id);});
+$('#list').addEventListener('click',e=>{if(swiped) return; const c=e.target.closest('.card'); if(c) openDetail(c.dataset.id);});
+
+// Glisser une offre vers la gauche dans « À décider » : J'écarte, avec « Annuler » pendant 5 secondes.
+let swipe=null, swiped=false;
+$('#list').addEventListener('touchstart',e=>{
+  const c=e.target.closest('.swipe .card'); if(!c||e.touches.length>1) return;
+  swipe={c,x:e.touches[0].clientX,y:e.touches[0].clientY,dx:0,dir:null};
+},{passive:true});
+$('#list').addEventListener('touchmove',e=>{
+  if(!swipe) return;
+  const t=e.touches[0], dx=t.clientX-swipe.x, dy=t.clientY-swipe.y;
+  if(!swipe.dir){ if(Math.abs(dx)<8&&Math.abs(dy)<8) return; swipe.dir=Math.abs(dx)>Math.abs(dy)?'h':'v';
+    if(swipe.dir==='h') swipe.c.parentElement.classList.add('on'); }
+  if(swipe.dir!=='h') return;
+  swipe.dx=Math.min(0,dx); swipe.c.style.transition='none'; swipe.c.style.transform=`translateX(${swipe.dx}px)`;
+},{passive:true});
+function endSwipe(cancel){
+  if(!swipe) return; const s=swipe; swipe=null;
+  if(s.dir!=='h') return;
+  swiped=true; setTimeout(()=>{swiped=false;},400);
+  s.c.style.transition='transform .2s ease';
+  if(cancel || s.dx > -Math.max(90, s.c.offsetWidth*0.3)){
+    s.c.style.transform=''; setTimeout(()=>s.c.parentElement?.classList.remove('on'),200); return;
+  }
+  ecarterParGlisse(s.c);
+}
+$('#list').addEventListener('touchend',()=>endSwipe(false));
+$('#list').addEventListener('touchcancel',()=>endSwipe(true));
+function ecarterParGlisse(card){
+  const box=card.parentElement, id=card.dataset.id, post=action=>api(`/api/offres/${id}/decision`,{method:'POST',body:JSON.stringify({action})});
+  card.style.transform='translateX(-110%)';
+  box.style.height=box.offsetHeight+'px'; void box.offsetHeight;
+  box.style.transition='height .2s ease .15s, margin-bottom .2s ease .15s';
+  box.style.height='0px'; box.style.marginBottom='0px';
+  setTimeout(()=>{ box.remove(); if(tab==='decider' && !$('#list .card')) $('#list').innerHTML=`<div class="empty">${EMPTY_DECIDER}</div>`; },400);
+  const req=post('ecarte');
+  req.then(n=>{ if(n.erreur_sync) toast('Attention : '+n.erreur_sync,8000); }).catch(e=>{ toast(e.message,5000); load(); });
+  toastUndo('Offre écartée', async()=>{
+    try{ await req; await post('annule'); toast('Offre rétablie'); }catch(e){ toast(e.message,5000); }
+    load();
+  });
+}
 function openAdd(){
   current=null; clearInterval(poll); $('#detail').classList.add('open'); window.scrollTo(0,0);
   $('#dEmp').textContent='Ajouter une offre'; $('#dPos').textContent='trouvée ailleurs que dans les alertes';
