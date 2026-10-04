@@ -439,6 +439,12 @@ def process_new_offer(ctx: Context, record_id: str) -> str:
 MAX_POSTULE_PER_RUN = 15   # au-delà, c'est presque sûrement un stock de coches anciennes : on demande --force
 
 
+def statut_reactive(f: dict) -> str:
+    """Statut rendu à une offre écartée à la main puis réactivée (« Annuler » ou « Réactiver » du cockpit) :
+    sans lui, elle garderait « Écartée » et ne reviendrait jamais dans « À décider »."""
+    return "Dossier prêt" if f.get("Dossier le") else "À étudier"
+
+
 def sync_decisions(ctx: Context, expire_after_days: int | None = None, force: bool = False) -> dict:
     from mp.tracking import upsert_candidature  # import tardif (dépendance croisée)
 

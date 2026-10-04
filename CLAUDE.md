@@ -28,7 +28,7 @@ Lire d'abord : `README.md` (usage) puis `docs/REFONTE-2026-10.md` (pourquoi, dé
 | `mp/tracking.py` | index Candidatures, événements de statut, entonnoir sans retour arrière, revue manuelle (table A traiter) si la société n'est pas identifiée | `test_pipeline_and_tracking` |
 | `mp/digest.py` | email de fin de run (texte + HTML, mêmes informations dans les deux) | `test_digest` |
 | `mp/drive.py` | copie des dossiers vers le Drive du Mac depuis les pièces jointes Airtable (lancée par le cockpit toutes les 30 min) | `test_drive` |
-| `mp/app.py` + `mp/web/` | cockpit mobile (FastAPI + page vanilla JS) : onglets, décisions immédiates, consigne → réécriture de la lettre, ajout d'offre (lien ou texte), run à distance | `test_app` |
+| `mp/app.py` + `mp/web/` | cockpit mobile (FastAPI + page vanilla JS) : onglets, décisions immédiates (glisser à gauche = J'écarte dans « À décider »), consigne → réécriture de la lettre, ajout d'offre (lien ou texte), run à distance | `test_app` |
 | `mp/models.py` | dataclasses + schémas Pydantic (`Scoring`, `CvEditPlan`, `Letter`, `EmailClass`) | `test_scoring` |
 | `mp/config.py` | `settings()`, lecture de `~/.config/mission-pipeline/*.env`, ids Airtable | — |
 | `mp/prompts/*.md` | profil candidat, méthode et barème de scoring, notes du cockpit (`notes.md` : l'offre en bref + 7 critères), retouches CV, lettre FR/EN (HARD FACTS verbatim), tri des emails | — |
@@ -112,7 +112,7 @@ transmises en entier). Écarts voulus : pas de « Je postule » coché automatiq
 
 ## État au 1er octobre 2026
 
-- v3 écrite et testée (115 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
+- v3 écrite et testée (116 tests), cockpit mobile inclus, **pas encore exécutée en production** : secrets, schéma Airtable et
   ordonnanceur à mettre en place selon `docs/REFONTE-2026-10.md` § 5.
 - Décisions de Xavier (1er octobre) : ordonnanceur GitHub Actions ; schéma créé automatiquement ; `candidatures/`
   supprimé ; n8n et agents launchd v2 arrêtés tout de suite (`deploy/decommission.sh`), VPS résilié après une

@@ -302,7 +302,7 @@ def create_app(ctx: Context | None = None) -> FastAPI:
 
     @app.post("/api/offres/{record_id}/decision")
     def decision(record_id: str, body: Decision) -> dict:
-        from mp.pipeline import make_dossier, sync_decisions
+        from mp.pipeline import make_dossier, statut_reactive, sync_decisions
         ctx = get_ctx()
         rec = record(record_id)
         patch = {
@@ -313,6 +313,8 @@ def create_app(ctx: Context | None = None) -> FastAPI:
         }.get(body.action)
         if patch is None:
             raise HTTPException(400, "action inconnue")
+        if body.action == "annule" and _sel(rec["fields"].get("Statut")) == "Écartée":
+            patch = {**patch, "Statut": statut_reactive(rec["fields"])}
         ctx.at.patch(ctx.offres, record_id, patch)
         erreurs: list[str] = []
         if body.action in ("postule", "ecarte"):
